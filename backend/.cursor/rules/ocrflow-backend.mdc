@@ -1,0 +1,30 @@
+---
+description: OCRFlow backend conventions and stack
+alwaysApply: true
+---
+
+# OCRFlow Backend
+
+## Stack
+
+- **Python 3.11+**
+- **FastAPI** for HTTP API
+- Virtual environment: activate with `activate` before running Python commands
+
+## Infrastructure
+
+If the application needs databases or other services, define them in `docker/` with a `docker-compose.yml`. Keep services self-hostable — on-prem and air-gapped deployment is a first-class requirement.
+
+## Conventions
+
+- API must mirror canvas capabilities: anything doable in the UI must be doable headless via SDK/API
+- Pipelines are serializable, diffable, version-controllable graphs (not ephemeral UI state)
+- Custom nodes are first-class — developers can register their own models
+- Minimal scope per change; match existing patterns
+
+## Sibling directories
+
+| Path | Purpose |
+|------|---------|
+| `../frontend/` | Next.js landing page and canvas UI |
+| `../branding/` | Brand assets and guidelines |
