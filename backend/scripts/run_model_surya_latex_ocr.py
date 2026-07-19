@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+"""CLI smoke script for surya/latex-ocr."""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import base64
+import io
+import json
+import sys
+from pathlib import Path
+
+from PIL import Image
+
+from app.core.config import get_settings
+from app.models.surya.latex_ocr import SuryaLatexOcrRunner
+from app.schemas.artifacts import PageImage
+from app.schemas.models.surya.latex_ocr import LatexOcrInput
+
+
+async def main() -> int:
+    parser = argparse.ArgumentParser(description="Run surya/latex-ocr on an image")
+    parser.add_argument("--image", required=True, type=Path, help="Path to input image")
+    args = parser.parse_args()
+
+    if not args.image.exists():
+        print(f"Image not found: {args.image}", file=sys.stderr)
+        return 1
+
+    image_bytes = args.image.read_bytes()
+    pil = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    page = PageImage(
+        page_index=0,
+        width=pil.width,
+        height=pil.height,
+        image_base64=base64.b64encode(image_bytes).decode("ascii"),
+    )
+
+    settings = get_settings()
+    config = settings.build_model_config()
+    runner = SuryaLatexOcrRunner()
+    await runner.load(config)
+    try:
+        output = await runner.run(LatexOcrInput(page=page))
+        print(json.dumps(output.model_dump(), indent=2))
+    finally:
+        await runner.unload()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(asyncio.run(main()))
