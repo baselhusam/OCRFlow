@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #DEDCE6; }
+</style>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#DEDCE6; padding:44px 32px; --accent: {{ accentVar }}; --soft: {{ softVar }};">
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="ds-seg" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="40" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-dasharray="61.78 22" transform="rotate(-90 60 60)"/>
+      <circle cx="60" cy="20" r="10" fill="var(--accent,#5B2EEF)"/>
+    </symbol>
+  </svg>
+
+  <div style="max-width:1120px; margin:0 auto; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 2px rgba(20,18,37,0.1), 0 40px 80px -50px rgba(20,18,37,0.45);">
+
+    <!-- COVER -->
+    <section style="background:#15131F; color:#fff; padding:84px 80px 72px;">
+      <div style="display:flex; align-items:center; gap:18px; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.24em; color:#9A95B5;">
+        <span style="width:8px; height:8px; border-radius:50%; background:var(--accent,#5B2EEF);"></span>
+        DESIGN SYSTEM · V1.0 · 2026
+      </div>
+      <div style="display:flex; align-items:center; gap:26px; margin:54px 0 0;">
+        <svg viewBox="0 0 120 120" style="width:92px; height:92px; color:#fff;"><use href="#ds-seg"/></svg>
+        <div>
+          <div style="font-weight:800; font-size:60px; letter-spacing:-0.035em; color:#fff; line-height:1;">OCRFlow</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:0.18em; color:#9A95B5; margin-top:10px;">PRODUCT&nbsp;UI&nbsp;KIT</div>
+        </div>
+      </div>
+      <p style="font-size:21px; line-height:1.45; color:#C9C5DA; max-width:640px; margin:42px 0 0; font-weight:500;">The building blocks behind the canvas — tokens, controls, and patterns that keep every screen composable and consistent.</p>
+      <div style="display:flex; gap:32px; margin-top:60px; padding-top:34px; border-top:1px solid rgba(255,255,255,0.12); font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9A95B5; letter-spacing:0.04em; flex-wrap:wrap;">
+        <div><span style="color:#fff;">01</span>&nbsp;&nbsp;Color</div>
+        <div><span style="color:#fff;">02</span>&nbsp;&nbsp;Type</div>
+        <div><span style="color:#fff;">03</span>&nbsp;&nbsp;Spacing &amp; radius</div>
+        <div><span style="color:#fff;">04</span>&nbsp;&nbsp;Elevation</div>
+        <div><span style="color:#fff;">05</span>&nbsp;&nbsp;Icons</div>
+        <div><span style="color:#fff;">06</span>&nbsp;&nbsp;Buttons</div>
+        <div><span style="color:#fff;">07</span>&nbsp;&nbsp;Forms</div>
+        <div><span style="color:#fff;">08</span>&nbsp;&nbsp;Selection</div>
+        <div><span style="color:#fff;">09</span>&nbsp;&nbsp;Status</div>
+        <div><span style="color:#fff;">10</span>&nbsp;&nbsp;Cards</div>
+        <div><span style="color:#fff;">11</span>&nbsp;&nbsp;Tabs &amp; nav</div>
+        <div><span style="color:#fff;">12</span>&nbsp;&nbsp;Table</div>
+        <div><span style="color:#fff;">13</span>&nbsp;&nbsp;Pipeline node</div>
+        <div><span style="color:#fff;">14</span>&nbsp;&nbsp;Feedback</div>
+      </div>
+    </section>
+
+    <!-- 01 COLOR -->
+    <section style="padding:68px 80px;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">01 — COLOR TOKENS</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Palette</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">One accent carries intent. <strong style="color:#141225;">Pulse Violet</strong> is reserved for the active node, primary actions and links; everything structural is graphite, slate and paper.</p>
+
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#9A95B5; margin:40px 0 14px;">BRAND &amp; SURFACES</div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:96px; background:var(--accent,#5B2EEF);"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Pulse Violet</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">{{ accentHex }}</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--accent</div></div></div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:96px; background:var(--soft,#EDE9FE);"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Soft Violet</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">{{ softHex }}</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--accent-tint</div></div></div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:96px; background:#15131F;"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Night</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">#15131F</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--surface-dark</div></div></div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:96px; background:#211D30;"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Carbon</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">#211D30</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--surface-dark-2</div></div></div>
+      </div>
+
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#9A95B5; margin:30px 0 14px;">TEXT &amp; NEUTRALS</div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:96px; background:#141225;"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Graphite</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">#141225</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--text</div></div></div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:96px; background:#6F6C84;"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Slate</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">#6F6C84</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--text-muted</div></div></div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:96px; background:#EDEBF2;"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Mist</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">#EDEBF2</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--surface-2</div></div></div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:96px; background:#fff; border-bottom:1px solid #ECEAF2;"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Paper</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">#FFFFFF</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--surface</div></div></div>
+      </div>
+
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#9A95B5; margin:30px 0 14px;">SEMANTIC · STATUS</div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:72px; background:#12A65B;"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Running</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">#12A65B</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--success</div></div></div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:72px; background:#E8A317;"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Queued</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">#E8A317</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--warning</div></div></div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:72px; background:#E0245E;"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Failed</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">#E0245E</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--danger</div></div></div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;"><div style="height:72px; background:#2F6BFF;"></div><div style="padding:12px 14px;"><div style="font-weight:700; font-size:14px; color:#141225;">Info</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:3px;">#2F6BFF</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">--info</div></div></div>
+      </div>
+    </section>
+
+    <!-- 02 TYPE -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">02 — TYPOGRAPHY</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Type scale</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;"><strong style="color:#141225;">Hanken Grotesk</strong> for everything spoken to humans; <strong style="color:#141225;">IBM Plex Mono</strong> for everything the machine says — node labels, keys, metadata.</p>
+
+      <div style="margin-top:40px; border:1px solid #ECEAF2; border-radius:10px; overflow:hidden; background:#fff;">
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:0; align-items:center; padding:22px 28px; border-bottom:1px solid #ECEAF2;"><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">Display / 60<br>800 · -3.5%</div><div style="font-weight:800; font-size:52px; letter-spacing:-0.035em; color:#141225; line-height:1;">Composable OCR</div></div>
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:0; align-items:center; padding:22px 28px; border-bottom:1px solid #ECEAF2;"><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">H1 / 32<br>700 · -2.5%</div><div style="font-weight:700; font-size:32px; letter-spacing:-0.025em; color:#141225;">Build a pipeline</div></div>
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:0; align-items:center; padding:22px 28px; border-bottom:1px solid #ECEAF2;"><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">H2 / 22<br>700 · -2%</div><div style="font-weight:700; font-size:22px; letter-spacing:-0.02em; color:#141225;">Detect, recognize, extract</div></div>
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:0; align-items:center; padding:22px 28px; border-bottom:1px solid #ECEAF2;"><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">Body / 16<br>400 · 1.55</div><div style="font-weight:400; font-size:16px; line-height:1.55; color:#3A3550; max-width:560px;">Each stage is a swappable node. Wire them together on the canvas and run the whole flow with a single click.</div></div>
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:0; align-items:center; padding:22px 28px; border-bottom:1px solid #ECEAF2;"><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">Label / 13<br>600</div><div style="font-weight:600; font-size:13px; color:#141225;">Recognize Text</div></div>
+        <div style="display:grid; grid-template-columns:130px 1fr; gap:0; align-items:center; padding:22px 28px;"><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">Mono / 12<br>500</div><div style="font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:13px; color:#3A3550;">node: layout.detect → recognize.text <span style="color:var(--accent,#5B2EEF);">// active</span></div></div>
+      </div>
+    </section>
+
+    <!-- 03 SPACING & RADIUS -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">03 — SPACING &amp; RADIUS</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">4-pt system</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">Spacing steps in multiples of 4. Radii scale with the element: tight on inputs, soft on cards, pill on tags.</p>
+
+      <div style="display:flex; gap:48px; margin-top:40px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:320px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#9A95B5; margin-bottom:18px;">SPACING SCALE</div>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <div style="display:flex; align-items:center; gap:16px;"><span style="width:4px; height:22px; background:var(--accent,#5B2EEF); border-radius:1px;"></span><span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#141225; width:64px;">xs · 4</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">hairline gaps</span></div>
+            <div style="display:flex; align-items:center; gap:16px;"><span style="width:8px; height:22px; background:var(--accent,#5B2EEF); border-radius:1px;"></span><span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#141225; width:64px;">sm · 8</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">icon ↔ label</span></div>
+            <div style="display:flex; align-items:center; gap:16px;"><span style="width:12px; height:22px; background:var(--accent,#5B2EEF); border-radius:1px;"></span><span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#141225; width:64px;">md · 12</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">control padding</span></div>
+            <div style="display:flex; align-items:center; gap:16px;"><span style="width:16px; height:22px; background:var(--accent,#5B2EEF); border-radius:1px;"></span><span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#141225; width:64px;">lg · 16</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">card padding</span></div>
+            <div style="display:flex; align-items:center; gap:16px;"><span style="width:24px; height:22px; background:var(--accent,#5B2EEF); border-radius:1px;"></span><span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#141225; width:64px;">xl · 24</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">section blocks</span></div>
+            <div style="display:flex; align-items:center; gap:16px;"><span style="width:40px; height:22px; background:var(--accent,#5B2EEF); border-radius:1px;"></span><span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#141225; width:64px;">2xl · 40</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">page gutters</span></div>
+          </div>
+        </div>
+        <div style="flex:1; min-width:320px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#9A95B5; margin-bottom:18px;">CORNER RADIUS</div>
+          <div style="display:flex; gap:18px; flex-wrap:wrap;">
+            <div style="text-align:center;"><div style="width:84px; height:84px; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:4px;"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#141225; margin-top:10px;">4 · input</div></div>
+            <div style="text-align:center;"><div style="width:84px; height:84px; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:7px;"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#141225; margin-top:10px;">7 · button</div></div>
+            <div style="text-align:center;"><div style="width:84px; height:84px; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:12px;"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#141225; margin-top:10px;">12 · card</div></div>
+            <div style="text-align:center;"><div style="width:84px; height:84px; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:42px;"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#141225; margin-top:10px;">pill · tag</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 ELEVATION -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">04 — ELEVATION</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Shadow scale</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">Soft, violet-tinted shadows. Reserve the highest level for floating layers — menus, modals, the active node.</p>
+
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:24px; margin-top:44px;">
+        <div style="text-align:center;"><div style="height:120px; background:#fff; border-radius:12px; box-shadow:0 1px 2px rgba(20,18,37,0.08);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#141225; margin-top:14px;">flat · sm</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">cards at rest</div></div>
+        <div style="text-align:center;"><div style="height:120px; background:#fff; border-radius:12px; box-shadow:0 4px 12px -4px rgba(20,18,37,0.16);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#141225; margin-top:14px;">raised · md</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">hover / dropdown</div></div>
+        <div style="text-align:center;"><div style="height:120px; background:#fff; border-radius:12px; box-shadow:0 18px 40px -22px rgba(20,18,37,0.4);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#141225; margin-top:14px;">float · lg</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">modals / popovers</div></div>
+        <div style="text-align:center;"><div style="height:120px; background:#fff; border-radius:12px; box-shadow:0 0 0 4px var(--soft,#EDE9FE), 0 0 0 1px var(--accent,#5B2EEF) inset;"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#141225; margin-top:14px;">focus ring</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">active node</div></div>
+      </div>
+    </section>
+
+    <!-- 05 ICONS -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">05 — ICONOGRAPHY</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Line icons</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">A single stroke weight at <strong style="color:#141225;">1.75px</strong> on a 24px grid, round caps and joins — echoing the rounded arcs of the mark.</p>
+
+      <div style="display:grid; grid-template-columns:repeat(8,1fr); gap:14px; margin-top:40px;">
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11H4z"/><path d="M14 4v5h5"/><path d="M8 13h8M8 16.5h5"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="13" width="7" height="7" rx="1.5"/><path d="M10 7.5h4a3 3 0 0 1 3 3V13"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l14 8-14 8z"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 6l-4 12"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6m0 6v6M5.6 5.6l4.2 4.2m4.4 4.4l4.2 4.2M3 12h6m6 0h6M5.6 18.4l4.2-4.2m4.4-4.4l4.2-4.2"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.5-2.4 1a7 7 0 0 0-2-1.2L16 3H8l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.5 2 1.5A7 7 0 0 0 3 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.5 2.4-1c.6.5 1.3.9 2 1.2L8 21h8l.5-2.6c.7-.3 1.4-.7 2-1.2l2.4 1 2-3.5-2-1.5c.1-.4.1-.8.1-1.2z"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10M3 15l5-4 4 3 3-2 6 4M3 19h18"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 12l-4-4m4 4l4-4M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg></div>
+        <div style="aspect-ratio:1; background:#F7F6FB; border:1px solid #ECEAF2; border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.6"/><circle cx="5" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></div>
+        <div style="aspect-ratio:1; background:var(--accent,#5B2EEF); border-radius:10px; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 120 120" style="width:26px; height:26px; color:#fff;"><use href="#ds-seg"/></svg></div>
+      </div>
+    </section>
+
+    <!-- 06 BUTTONS -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">06 — BUTTONS</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Actions</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">One primary action per view. Secondary and ghost carry the rest; danger is reserved for destructive, irreversible steps.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:40px;">
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:12px; padding:28px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#9A95B5; margin-bottom:20px;">VARIANTS</div>
+          <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+            <span style="background:var(--accent,#5B2EEF); color:#fff; font-weight:600; font-size:14px; padding:10px 18px; border-radius:7px;">Run pipeline</span>
+            <span style="background:#fff; color:#141225; font-weight:600; font-size:14px; padding:10px 18px; border-radius:7px; border:1px solid #D8D5E4;">Save draft</span>
+            <span style="background:transparent; color:var(--accent,#5B2EEF); font-weight:600; font-size:14px; padding:10px 14px; border-radius:7px;">Add node</span>
+            <span style="background:#fff; color:#E0245E; font-weight:600; font-size:14px; padding:10px 18px; border-radius:7px; border:1px solid #F3C5D2;">Delete</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:16px;">
+            <span style="background:var(--accent,#5B2EEF); color:#fff; font-weight:600; font-size:14px; padding:10px 18px 10px 14px; border-radius:7px; display:inline-flex; align-items:center; gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l14 8-14 8z"/></svg>Run</span>
+            <span style="background:#141225; color:#fff; font-weight:600; font-size:14px; padding:10px 18px; border-radius:7px;">Deploy</span>
+            <span style="width:38px; height:38px; border-radius:7px; border:1px solid #D8D5E4; background:#fff; display:inline-flex; align-items:center; justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#141225" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
+            <span style="background:var(--accent,#5B2EEF); color:#fff; font-weight:600; font-size:14px; padding:10px 18px; border-radius:7px; opacity:0.4;">Disabled</span>
+          </div>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:12px; padding:28px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#9A95B5; margin-bottom:20px;">SIZES</div>
+          <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+            <span style="background:var(--accent,#5B2EEF); color:#fff; font-weight:600; font-size:12px; padding:6px 12px; border-radius:6px;">Small</span>
+            <span style="background:var(--accent,#5B2EEF); color:#fff; font-weight:600; font-size:14px; padding:10px 18px; border-radius:7px;">Medium</span>
+            <span style="background:var(--accent,#5B2EEF); color:#fff; font-weight:600; font-size:16px; padding:13px 24px; border-radius:8px;">Large</span>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#9A95B5; margin:26px 0 14px;">ON DARK</div>
+          <div style="background:#15131F; border-radius:8px; padding:20px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <span style="background:var(--accent,#5B2EEF); color:#fff; font-weight:600; font-size:14px; padding:10px 18px; border-radius:7px;">Run</span>
+            <span style="background:rgba(255,255,255,0.08); color:#fff; font-weight:600; font-size:14px; padding:10px 18px; border-radius:7px; border:1px solid rgba(255,255,255,0.16);">Cancel</span>
+            <span style="background:transparent; color:#C9C5DA; font-weight:600; font-size:14px; padding:10px 14px; border-radius:7px;">Logs</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 FORMS -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">07 — FORM CONTROLS</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Inputs</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">36px controls, 1px graphite border at rest, accent ring on focus, danger ring on error. Mono font for keys and values.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 40px; margin-top:40px; max-width:760px;">
+        <div>
+          <label style="font-weight:600; font-size:13px; color:#141225; display:block; margin-bottom:8px;">Pipeline name</label>
+          <div style="border:1px solid #D8D5E4; border-radius:6px; padding:10px 12px; font-size:14px; color:#141225; background:#fff;">invoice-pipeline</div>
+          <div style="font-size:12px; color:#9A95B5; margin-top:6px;">Default · rest</div>
+        </div>
+        <div>
+          <label style="font-weight:600; font-size:13px; color:#141225; display:block; margin-bottom:8px;">API key</label>
+          <div style="border:1px solid var(--accent,#5B2EEF); border-radius:6px; padding:10px 12px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#141225; background:#fff; box-shadow:0 0 0 3px var(--soft,#EDE9FE);">sk_live_••••••<span style="color:var(--accent,#5B2EEF);">│</span></div>
+          <div style="font-size:12px; color:var(--accent,#5B2EEF); margin-top:6px;">Focused</div>
+        </div>
+        <div>
+          <label style="font-weight:600; font-size:13px; color:#141225; display:block; margin-bottom:8px;">Concurrency</label>
+          <div style="border:1px solid #E0245E; border-radius:6px; padding:10px 12px; font-size:14px; color:#141225; background:#fff; box-shadow:0 0 0 3px rgba(224,36,94,0.12);">256</div>
+          <div style="font-size:12px; color:#E0245E; margin-top:6px;">Exceeds plan limit of 64</div>
+        </div>
+        <div>
+          <label style="font-weight:600; font-size:13px; color:#9A95B5; display:block; margin-bottom:8px;">Region</label>
+          <div style="border:1px solid #ECEAF2; border-radius:6px; padding:10px 12px; font-size:14px; color:#9A95B5; background:#F7F6FB;">us-east-1</div>
+          <div style="font-size:12px; color:#9A95B5; margin-top:6px;">Disabled</div>
+        </div>
+        <div>
+          <label style="font-weight:600; font-size:13px; color:#141225; display:block; margin-bottom:8px;">Search</label>
+          <div style="border:1px solid #D8D5E4; border-radius:6px; padding:10px 12px; font-size:14px; color:#9A95B5; background:#fff; display:flex; align-items:center; gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9A95B5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Find a node…</div>
+          <div style="font-size:12px; color:#9A95B5; margin-top:6px;">With leading icon</div>
+        </div>
+        <div>
+          <label style="font-weight:600; font-size:13px; color:#141225; display:block; margin-bottom:8px;">Output format</label>
+          <div style="border:1px solid #D8D5E4; border-radius:6px; padding:10px 12px; font-size:14px; color:#141225; background:#fff; display:flex; align-items:center; justify-content:space-between;">JSON<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6F6C84" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div style="font-size:12px; color:#9A95B5; margin-top:6px;">Select</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 SELECTION -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">08 — SELECTION CONTROLS</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Toggles &amp; choices</h2>
+
+      <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:24px; margin-top:40px;">
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:12px; padding:28px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#9A95B5; margin-bottom:22px;">SWITCH</div>
+          <div style="display:flex; flex-direction:column; gap:18px;">
+            <div style="display:flex; align-items:center; justify-content:space-between;"><span style="font-size:14px; color:#141225; font-weight:500;">Auto-run on upload</span><span style="width:42px; height:24px; border-radius:14px; background:var(--accent,#5B2EEF); position:relative; flex:none;"><span style="position:absolute; top:3px; left:21px; width:18px; height:18px; border-radius:50%; background:#fff;"></span></span></div>
+            <div style="display:flex; align-items:center; justify-content:space-between;"><span style="font-size:14px; color:#141225; font-weight:500;">Email on failure</span><span style="width:42px; height:24px; border-radius:14px; background:#D8D5E4; position:relative; flex:none;"><span style="position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff;"></span></span></div>
+          </div>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:12px; padding:28px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#9A95B5; margin-bottom:22px;">CHECKBOX &amp; RADIO</div>
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div style="display:flex; align-items:center; gap:11px;"><span style="width:20px; height:20px; border-radius:5px; background:var(--accent,#5B2EEF); display:flex; align-items:center; justify-content:center; flex:none;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span style="font-size:14px; color:#141225;">Detect tables</span></div>
+            <div style="display:flex; align-items:center; gap:11px;"><span style="width:20px; height:20px; border-radius:5px; border:1.5px solid #C3BFD3; flex:none;"></span><span style="font-size:14px; color:#141225;">Detect handwriting</span></div>
+            <div style="height:1px; background:#ECEAF2; margin:2px 0;"></div>
+            <div style="display:flex; align-items:center; gap:11px;"><span style="width:20px; height:20px; border-radius:50%; border:5px solid var(--accent,#5B2EEF); background:#fff; flex:none;"></span><span style="font-size:14px; color:#141225;">High accuracy</span></div>
+            <div style="display:flex; align-items:center; gap:11px;"><span style="width:20px; height:20px; border-radius:50%; border:1.5px solid #C3BFD3; flex:none;"></span><span style="font-size:14px; color:#141225;">Fast draft</span></div>
+          </div>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:12px; padding:28px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#9A95B5; margin-bottom:22px;">SEGMENTED</div>
+          <div style="display:inline-flex; background:#EDEBF2; border-radius:8px; padding:3px;">
+            <span style="font-size:13px; font-weight:600; color:#141225; padding:7px 16px; border-radius:6px; background:#fff; box-shadow:0 1px 2px rgba(20,18,37,0.1);">Canvas</span>
+            <span style="font-size:13px; font-weight:600; color:#6F6C84; padding:7px 16px; border-radius:6px;">Code</span>
+            <span style="font-size:13px; font-weight:600; color:#6F6C84; padding:7px 16px; border-radius:6px;">Runs</span>
+          </div>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:12px; padding:28px;">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#9A95B5; margin-bottom:22px;">SLIDER</div>
+          <div style="position:relative; height:6px; background:#EDEBF2; border-radius:3px; margin:18px 6px 0;"><span style="position:absolute; left:0; top:0; height:6px; width:62%; background:var(--accent,#5B2EEF); border-radius:3px;"></span><span style="position:absolute; left:62%; top:50%; transform:translate(-50%,-50%); width:18px; height:18px; border-radius:50%; background:#fff; border:2px solid var(--accent,#5B2EEF); box-shadow:0 2px 6px rgba(20,18,37,0.2);"></span></div>
+          <div style="display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5; margin-top:14px;"><span>Confidence</span><span style="color:#141225;">0.62</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 STATUS -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">09 — STATUS &amp; TAGS</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Badges</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">A dot plus a tinted pill communicates run state at a glance. Tags use Mist with mono text for technical metadata.</p>
+
+      <div style="display:flex; gap:14px; flex-wrap:wrap; margin-top:40px;">
+        <span style="display:inline-flex; align-items:center; gap:7px; background:rgba(18,166,91,0.12); color:#0E7C45; font-weight:600; font-size:13px; padding:6px 13px; border-radius:40px;"><span style="width:7px; height:7px; border-radius:50%; background:#12A65B;"></span>Running</span>
+        <span style="display:inline-flex; align-items:center; gap:7px; background:rgba(232,163,23,0.14); color:#9A6B07; font-weight:600; font-size:13px; padding:6px 13px; border-radius:40px;"><span style="width:7px; height:7px; border-radius:50%; background:#E8A317;"></span>Queued</span>
+        <span style="display:inline-flex; align-items:center; gap:7px; background:rgba(224,36,94,0.12); color:#B5113F; font-weight:600; font-size:13px; padding:6px 13px; border-radius:40px;"><span style="width:7px; height:7px; border-radius:50%; background:#E0245E;"></span>Failed</span>
+        <span style="display:inline-flex; align-items:center; gap:7px; background:#EDEBF2; color:#6F6C84; font-weight:600; font-size:13px; padding:6px 13px; border-radius:40px;"><span style="width:7px; height:7px; border-radius:50%; background:#9A95B5;"></span>Idle</span>
+        <span style="display:inline-flex; align-items:center; gap:7px; background:var(--soft,#EDE9FE); color:var(--accent,#5B2EEF); font-weight:600; font-size:13px; padding:6px 13px; border-radius:40px;">Beta</span>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;">
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#6F6C84; background:#EDEBF2; padding:5px 11px; border-radius:5px;">pdf</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#6F6C84; background:#EDEBF2; padding:5px 11px; border-radius:5px;">layout.detect</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#6F6C84; background:#EDEBF2; padding:5px 11px; border-radius:5px;">v2.4.1</span>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--accent,#5B2EEF); background:var(--soft,#EDE9FE); padding:5px 11px; border-radius:5px; display:inline-flex; align-items:center; gap:6px;">regions[]<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+      </div>
+    </section>
+
+    <!-- 10 CARDS -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">10 — CARDS &amp; LISTS</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Containers</h2>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:40px;">
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:12px; padding:24px; box-shadow:0 1px 2px rgba(20,18,37,0.06);">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:12px;"><span style="width:40px; height:40px; border-radius:10px; background:var(--soft,#EDE9FE); display:flex; align-items:center; justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent,#5B2EEF)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11H4z"/><path d="M14 4v5h5"/></svg></span><div><div style="font-weight:700; font-size:16px; color:#141225;">invoice-pipeline</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5; margin-top:2px;">4 nodes · edited 2h ago</div></div></div>
+            <span style="display:inline-flex; align-items:center; gap:7px; background:rgba(18,166,91,0.12); color:#0E7C45; font-weight:600; font-size:12px; padding:5px 11px; border-radius:40px;"><span style="width:6px; height:6px; border-radius:50%; background:#12A65B;"></span>Live</span>
+          </div>
+          <p style="font-size:14px; line-height:1.55; color:#6F6C84; margin:16px 0 0;">Extracts totals and line items from supplier invoices, then posts to the ledger webhook.</p>
+        </div>
+        <div style="background:#15131F; border-radius:12px; padding:24px; box-shadow:0 18px 40px -24px rgba(20,18,37,0.5);">
+          <div style="display:flex; align-items:center; gap:12px;"><svg viewBox="0 0 120 120" style="width:34px; height:34px; color:#fff;"><use href="#ds-seg"/></svg><div><div style="font-weight:700; font-size:16px; color:#fff;">Pro plan</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5; margin-top:2px;">unlimited pipelines</div></div></div>
+          <p style="font-size:14px; line-height:1.55; color:#C9C5DA; margin:16px 0 18px;">10k pages / month, priority queue and custom node hosting.</p>
+          <span style="background:var(--accent,#5B2EEF); color:#fff; font-weight:600; font-size:13px; padding:9px 16px; border-radius:7px; display:inline-block;">Upgrade</span>
+        </div>
+      </div>
+
+      <div style="background:#fff; border:1px solid #ECEAF2; border-radius:12px; margin-top:24px; overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #ECEAF2;"><div style="display:flex; align-items:center; gap:12px;"><span style="width:8px; height:8px; border-radius:50%; background:#12A65B;"></span><span style="font-weight:600; font-size:14px; color:#141225;">Recognize Text</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">→ tokens[]</span></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9A95B5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #ECEAF2;"><div style="display:flex; align-items:center; gap:12px;"><span style="width:8px; height:8px; border-radius:50%; background:#9A95B5;"></span><span style="font-weight:600; font-size:14px; color:#141225;">Extract Tables</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">→ tables[]</span></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9A95B5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px;"><div style="display:flex; align-items:center; gap:12px;"><span style="width:8px; height:8px; border-radius:50%; background:#E0245E;"></span><span style="font-weight:600; font-size:14px; color:#141225;">Post to Webhook</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#E0245E;">timeout</span></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9A95B5" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></div>
+      </div>
+    </section>
+
+    <!-- 11 TABS & NAV -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">11 — TABS &amp; NAVIGATION</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Wayfinding</h2>
+
+      <div style="margin-top:38px; border-bottom:1px solid #ECEAF2; display:flex; gap:28px;">
+        <span style="font-weight:600; font-size:14px; color:#141225; padding-bottom:14px; border-bottom:2px solid var(--accent,#5B2EEF);">Overview</span>
+        <span style="font-weight:600; font-size:14px; color:#6F6C84; padding-bottom:14px; border-bottom:2px solid transparent;">Nodes</span>
+        <span style="font-weight:600; font-size:14px; color:#6F6C84; padding-bottom:14px; border-bottom:2px solid transparent;">Runs</span>
+        <span style="font-weight:600; font-size:14px; color:#6F6C84; padding-bottom:14px; border-bottom:2px solid transparent;">Settings</span>
+      </div>
+
+      <div style="display:flex; gap:24px; margin-top:36px; flex-wrap:wrap;">
+        <!-- sidebar -->
+        <div style="width:236px; flex:none; background:#15131F; border-radius:12px; padding:16px; box-shadow:0 18px 40px -24px rgba(20,18,37,0.5);">
+          <div style="display:flex; align-items:center; gap:10px; padding:6px 8px 16px;"><svg viewBox="0 0 120 120" style="width:24px; height:24px; color:#fff;"><use href="#ds-seg"/></svg><span style="font-weight:800; font-size:17px; letter-spacing:-0.03em; color:#fff;">OCRFlow</span></div>
+          <div style="display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:8px; background:rgba(91,46,239,0.18); color:#fff; font-weight:600; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="13" width="7" height="7" rx="1.5"/><path d="M10 7.5h4a3 3 0 0 1 3 3V13"/></svg>Pipelines</div>
+          <div style="display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:8px; color:#9A95B5; font-weight:500; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Runs</div>
+          <div style="display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:8px; color:#9A95B5; font-weight:500; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11H4z"/><path d="M14 4v5h5"/></svg>Documents</div>
+          <div style="display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:8px; color:#9A95B5; font-weight:500; font-size:14px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.5-2.4 1a7 7 0 0 0-2-1.2L16 3H8l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.5 2 1.5A7 7 0 0 0 3 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.5 2.4-1c.6.5 1.3.9 2 1.2L8 21h8l.5-2.6c.7-.3 1.4-.7 2-1.2l2.4 1 2-3.5-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</div>
+        </div>
+        <!-- top bar -->
+        <div style="flex:1; min-width:340px; display:flex; flex-direction:column; gap:16px;">
+          <div style="background:#15131F; border-radius:12px; height:58px; display:flex; align-items:center; justify-content:space-between; padding:0 18px;">
+            <div style="display:flex; align-items:center; gap:11px;"><svg viewBox="0 0 120 120" style="width:24px; height:24px; color:#fff;"><use href="#ds-seg"/></svg><span style="font-weight:800; font-size:17px; letter-spacing:-0.03em; color:#fff;">OCRFlow</span><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6E6A85; margin-left:6px; padding:3px 8px; border:1px solid rgba(255,255,255,0.12); border-radius:5px;">invoice-pipeline.flow</span></div>
+            <div style="display:flex; align-items:center; gap:12px;"><span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5; display:flex; align-items:center; gap:6px;"><span style="width:7px; height:7px; border-radius:50%; background:#12A65B;"></span>running</span><span style="background:var(--accent,#5B2EEF); color:#fff; font-weight:600; font-size:13px; padding:7px 14px; border-radius:7px;">Run</span></div>
+          </div>
+          <div style="background:#fff; border:1px solid #ECEAF2; border-radius:12px; padding:14px 18px; display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9A95B5;">Pipelines<span style="color:#C3BFD3;">/</span><span style="color:#141225;">invoice-pipeline</span><span style="color:#C3BFD3;">/</span><span style="color:var(--accent,#5B2EEF);">Recognize Text</span></div>
+          <div style="background:#fff; border:1px solid #ECEAF2; border-radius:12px; padding:8px; display:flex; gap:4px;">
+            <span style="font-size:13px; font-weight:600; color:#fff; background:var(--accent,#5B2EEF); padding:7px 14px; border-radius:7px;">All</span>
+            <span style="font-size:13px; font-weight:600; color:#6F6C84; padding:7px 14px; border-radius:7px;">Active</span>
+            <span style="font-size:13px; font-weight:600; color:#6F6C84; padding:7px 14px; border-radius:7px;">Archived</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12 TABLE -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">12 — DATA TABLE</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Runs table</h2>
+
+      <div style="margin-top:38px; background:#fff; border:1px solid #ECEAF2; border-radius:12px; overflow:hidden;">
+        <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 0.8fr; padding:13px 22px; background:#FAFAFC; border-bottom:1px solid #ECEAF2; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.06em; color:#9A95B5;">
+          <span>RUN ID</span><span>PIPELINE</span><span>STARTED</span><span>STATUS</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 0.8fr; padding:16px 22px; border-bottom:1px solid #F2F0F7; align-items:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#141225;">run_8f2a1c</span><span style="font-size:14px; color:#3A3550;">invoice-pipeline</span><span style="font-size:14px; color:#6F6C84;">2m ago</span><span><span style="display:inline-flex; align-items:center; gap:6px; background:rgba(18,166,91,0.12); color:#0E7C45; font-weight:600; font-size:12px; padding:4px 10px; border-radius:40px;"><span style="width:6px; height:6px; border-radius:50%; background:#12A65B;"></span>Done</span></span></div>
+        <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 0.8fr; padding:16px 22px; border-bottom:1px solid #F2F0F7; align-items:center; background:var(--soft,#EDE9FE);"><span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#141225;">run_3b7e90</span><span style="font-size:14px; color:#3A3550;">passport-ocr</span><span style="font-size:14px; color:#6F6C84;">8m ago</span><span><span style="display:inline-flex; align-items:center; gap:6px; background:rgba(232,163,23,0.14); color:#9A6B07; font-weight:600; font-size:12px; padding:4px 10px; border-radius:40px;"><span style="width:6px; height:6px; border-radius:50%; background:#E8A317;"></span>Running</span></span></div>
+        <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 0.8fr; padding:16px 22px; border-bottom:1px solid #F2F0F7; align-items:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#141225;">run_c19d4f</span><span style="font-size:14px; color:#3A3550;">receipts-batch</span><span style="font-size:14px; color:#6F6C84;">31m ago</span><span><span style="display:inline-flex; align-items:center; gap:6px; background:rgba(224,36,94,0.12); color:#B5113F; font-weight:600; font-size:12px; padding:4px 10px; border-radius:40px;"><span style="width:6px; height:6px; border-radius:50%; background:#E0245E;"></span>Failed</span></span></div>
+        <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr 0.8fr; padding:16px 22px; align-items:center;"><span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#141225;">run_5a02bb</span><span style="font-size:14px; color:#3A3550;">invoice-pipeline</span><span style="font-size:14px; color:#6F6C84;">1h ago</span><span><span style="display:inline-flex; align-items:center; gap:6px; background:rgba(18,166,91,0.12); color:#0E7C45; font-weight:600; font-size:12px; padding:4px 10px; border-radius:40px;"><span style="width:6px; height:6px; border-radius:50%; background:#12A65B;"></span>Done</span></span></div>
+      </div>
+    </section>
+
+    <!-- 13 PIPELINE NODE -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">13 — PIPELINE NODE</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">The signature component</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">Nodes are the atom of the product. Graphite at rest, accent ring while running, danger border on error. Ports sit on the edges; mono labels name the output.</p>
+
+      <div style="margin-top:40px; background:#1B1827; background-image:radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size:22px 22px; border-radius:12px; padding:44px 40px; display:flex; gap:30px; align-items:center; flex-wrap:wrap;">
+        <!-- idle -->
+        <div style="position:relative; background:#262234; border:1px solid #36314A; border-radius:10px; width:172px; flex:none; overflow:hidden;">
+          <div style="padding:11px 13px; display:flex; align-items:center; gap:9px; border-bottom:1px solid #36314A;"><span style="width:8px;height:8px;border-radius:2px;background:#6E6A85;"></span><span style="font-weight:600; font-size:13px; color:#E7E5F0;">Detect Layout</span></div>
+          <div style="padding:10px 13px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8B86A4;">→ regions[]</div>
+          <span style="position:absolute; right:-5px; top:50%; transform:translateY(-50%); width:10px; height:10px; border-radius:50%; background:#4A4463; border:2px solid #1B1827;"></span>
+        </div>
+        <svg width="40" height="14" viewBox="0 0 40 14" fill="none"><path d="M0 7h32" stroke="var(--accent,#5B2EEF)" stroke-width="2"/><path d="M30 2l6 5-6 5" stroke="var(--accent,#5B2EEF)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <!-- active -->
+        <div style="position:relative; background:#262234; border:1px solid var(--accent,#5B2EEF); border-radius:10px; width:182px; flex:none; overflow:hidden; box-shadow:0 0 0 4px rgba(91,46,239,0.18);">
+          <div style="padding:11px 13px; display:flex; align-items:center; gap:9px; border-bottom:1px solid #36314A;"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent,#5B2EEF);"></span><span style="font-weight:600; font-size:13px; color:#fff;">Recognize Text</span></div>
+          <div style="padding:10px 13px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8B86A4;">running… <span style="color:var(--accent,#5B2EEF);">64%</span></div>
+          <div style="height:3px; background:#36314A;"><span style="display:block; height:3px; width:64%; background:var(--accent,#5B2EEF);"></span></div>
+          <span style="position:absolute; left:-5px; top:50%; transform:translateY(-50%); width:10px; height:10px; border-radius:50%; background:var(--accent,#5B2EEF); border:2px solid #1B1827;"></span>
+          <span style="position:absolute; right:-5px; top:50%; transform:translateY(-50%); width:10px; height:10px; border-radius:50%; background:#4A4463; border:2px solid #1B1827;"></span>
+        </div>
+        <svg width="40" height="14" viewBox="0 0 40 14" fill="none"><path d="M0 7h32" stroke="#4A4463" stroke-width="2"/><path d="M30 2l6 5-6 5" stroke="#4A4463" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <!-- error -->
+        <div style="position:relative; background:#262234; border:1px solid #E0245E; border-radius:10px; width:172px; flex:none; overflow:hidden;">
+          <div style="padding:11px 13px; display:flex; align-items:center; gap:9px; border-bottom:1px solid #36314A;"><span style="width:8px;height:8px;border-radius:50%;background:#E0245E;"></span><span style="font-weight:600; font-size:13px; color:#fff;">Post Webhook</span></div>
+          <div style="padding:10px 13px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#F2738F;">error · timeout</div>
+          <span style="position:absolute; left:-5px; top:50%; transform:translateY(-50%); width:10px; height:10px; border-radius:50%; background:#E0245E; border:2px solid #1B1827;"></span>
+        </div>
+      </div>
+      <div style="display:flex; gap:28px; margin-top:18px; flex-wrap:wrap; font-size:13px; color:#6F6C84;">
+        <div style="display:flex; gap:8px; align-items:center;"><span style="width:10px;height:10px;border-radius:2px;background:#6E6A85;"></span>Idle — graphite header dot</div>
+        <div style="display:flex; gap:8px; align-items:center;"><span style="width:10px;height:10px;border-radius:50%;background:var(--accent,#5B2EEF);"></span>Active — accent ring + progress</div>
+        <div style="display:flex; gap:8px; align-items:center;"><span style="width:10px;height:10px;border-radius:50%;background:#E0245E;"></span>Error — danger border</div>
+      </div>
+    </section>
+
+    <!-- 14 FEEDBACK -->
+    <section style="padding:68px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">14 — FEEDBACK</div>
+      <h2 style="font-size:32px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Toasts, banners &amp; dialog</h2>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:40px;">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div style="background:#fff; border:1px solid #ECEAF2; border-left:3px solid #12A65B; border-radius:8px; padding:14px 16px; display:flex; gap:12px; box-shadow:0 4px 12px -6px rgba(20,18,37,0.14);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#12A65B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none; margin-top:1px;"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg><div><div style="font-weight:600; font-size:14px; color:#141225;">Pipeline deployed</div><div style="font-size:13px; color:#6F6C84; margin-top:2px;">invoice-pipeline is live in us-east-1.</div></div></div>
+          <div style="background:#fff; border:1px solid #ECEAF2; border-left:3px solid #E0245E; border-radius:8px; padding:14px 16px; display:flex; gap:12px; box-shadow:0 4px 12px -6px rgba(20,18,37,0.14);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E0245E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none; margin-top:1px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><div><div style="font-weight:600; font-size:14px; color:#141225;">Run failed</div><div style="font-size:13px; color:#6F6C84; margin-top:2px;">Webhook timed out after 30s. Retry?</div></div></div>
+          <div style="background:var(--soft,#EDE9FE); border:1px solid rgba(91,46,239,0.18); border-radius:8px; padding:14px 16px; display:flex; gap:12px;"><svg viewBox="0 0 120 120" style="width:20px; height:20px; color:var(--accent,#5B2EEF); flex:none; margin-top:1px;"><use href="#ds-seg"/></svg><div><div style="font-weight:600; font-size:14px; color:#141225;">New node available</div><div style="font-size:13px; color:#5A5470; margin-top:2px;">Handwriting recognition is in beta. <span style="color:var(--accent,#5B2EEF); font-weight:600;">Try it →</span></div></div></div>
+        </div>
+        <!-- dialog -->
+        <div style="background:#fff; border-radius:14px; padding:26px; box-shadow:0 24px 60px -24px rgba(20,18,37,0.5); border:1px solid #ECEAF2;">
+          <div style="width:44px; height:44px; border-radius:11px; background:rgba(224,36,94,0.1); display:flex; align-items:center; justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E0245E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></div>
+          <div style="font-weight:700; font-size:19px; color:#141225; margin-top:16px; letter-spacing:-0.01em;">Delete this pipeline?</div>
+          <p style="font-size:14px; line-height:1.55; color:#6F6C84; margin:8px 0 22px;">invoice-pipeline and its 4 nodes will be permanently removed. Past runs are kept for 30 days.</p>
+          <div style="display:flex; gap:12px; justify-content:flex-end;">
+            <span style="background:#fff; color:#141225; font-weight:600; font-size:14px; padding:10px 18px; border-radius:7px; border:1px solid #D8D5E4;">Cancel</span>
+            <span style="background:#E0245E; color:#fff; font-weight:600; font-size:14px; padding:10px 18px; border-radius:7px;">Delete</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <section style="background:#15131F; color:#fff; padding:52px 80px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <svg viewBox="0 0 120 120" style="width:38px; height:38px; color:#fff;"><use href="#ds-seg"/></svg>
+        <div><span style="font-weight:800; font-size:24px; letter-spacing:-0.035em;">OCRFlow</span><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5; margin-top:3px; letter-spacing:0.04em;">Design System · v1.0</div></div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9A95B5; letter-spacing:0.04em; max-width:300px; text-align:right;">Composable OCR pipelines, fully under your control.</div>
+    </section>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1200, &quot;height&quot;: 900}, &quot;accent&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#5B2EEF&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;#5B2EEF&quot;, &quot;#2F6BFF&quot;, &quot;#12A65B&quot;, &quot;#FF5A2C&quot;, &quot;#E0245E&quot;]}}">
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#5B2EEF';
+    const tints = {
+      '#5B2EEF': '#EDE9FE',
+      '#2F6BFF': '#E2ECFF',
+      '#12A65B': '#DCF3E7',
+      '#FF5A2C': '#FFE6DC',
+      '#E0245E': '#FBDCE6'
+    };
+    const soft = tints[String(accent)] || '#EDE9FE';
+    return {
+      accentVar: accent,
+      accentHex: String(accent).toUpperCase(),
+      softVar: soft,
+      softHex: String(soft).toUpperCase()
+    };
+  }
+}
+</script>
+</body>
+</html>

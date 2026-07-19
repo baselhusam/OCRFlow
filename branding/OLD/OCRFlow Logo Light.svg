@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="dl-lockup-h-light" viewBox="0 0 540 140" xmlns="http://www.w3.org/2000/svg" fill="none">
+            <g transform="translate(8,20)">
+              <circle cx="42" cy="50" r="34" stroke="#16171C" stroke-width="5.5" stroke-dasharray="189.9 23.8" stroke-dashoffset="-11.9"/>
+              <line x1="42" y1="50" x2="122" y2="50" stroke="#16171C" stroke-width="5.5"/>
+              <rect x="122" y="44" width="12" height="12" fill="#B0895A"/>
+            </g>
+            <text x="182" y="92" font-family="'Hanken Grotesk','Helvetica Neue',Arial,sans-serif" font-size="64" letter-spacing="-1.5" fill="#16171C"><tspan font-weight="600">OCR</tspan><tspan font-weight="400">Flow</tspan></text>
+          </svg>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #DEDCE6; }
+</style>
+</helmet>
+
+<div style="font-family:'Hanken Grotesk',sans-serif; background:#DEDCE6; padding:44px 32px; --accent: {{ accentVar }};">
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="seg" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="40" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round" stroke-dasharray="61.78 22" transform="rotate(-90 60 60)"/>
+      <circle cx="60" cy="20" r="10" fill="var(--accent,#5B2EEF)"/>
+    </symbol>
+  </svg>
+
+  <div style="max-width:1120px; margin:0 auto; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 1px 2px rgba(20,18,37,0.1), 0 40px 80px -50px rgba(20,18,37,0.45);">
+
+    <!-- COVER -->
+    <section style="background:#15131F; color:#fff; padding:84px 80px 72px;">
+      <div style="display:flex; align-items:center; gap:18px; font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.24em; color:#9A95B5;">
+        <span style="width:8px; height:8px; border-radius:50%; background:var(--accent,#5B2EEF);"></span>
+        BRAND GUIDELINES · V1.0 · 2026
+      </div>
+      <div style="display:flex; align-items:center; gap:28px; margin:54px 0 0;">
+        <svg viewBox="0 0 120 120" style="width:104px; height:104px; color:#fff;"><use href="#seg"/></svg>
+        <span style="font-weight:800; font-size:74px; letter-spacing:-0.035em; color:#fff;">OCRFlow</span>
+      </div>
+      <p style="font-size:23px; line-height:1.4; color:#C9C5DA; max-width:620px; margin:44px 0 0; font-weight:500;">Composable OCR pipelines, fully under your control.</p>
+      <div style="display:flex; gap:32px; margin-top:64px; padding-top:34px; border-top:1px solid rgba(255,255,255,0.12); font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9A95B5; letter-spacing:0.04em; flex-wrap:wrap;">
+        <div><span style="color:#fff;">01</span>&nbsp;&nbsp;Logomark</div>
+        <div><span style="color:#fff;">02</span>&nbsp;&nbsp;Lockups</div>
+        <div><span style="color:#fff;">03</span>&nbsp;&nbsp;In product</div>
+        <div><span style="color:#fff;">04</span>&nbsp;&nbsp;Clear space</div>
+        <div><span style="color:#fff;">05</span>&nbsp;&nbsp;App icons</div>
+        <div><span style="color:#fff;">06</span>&nbsp;&nbsp;Color</div>
+        <div><span style="color:#fff;">07</span>&nbsp;&nbsp;Type</div>
+        <div><span style="color:#fff;">08</span>&nbsp;&nbsp;Misuse</div>
+      </div>
+    </section>
+
+    <!-- 01 LOGOMARK -->
+    <section style="padding:72px 80px;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">01 — LOGOMARK</div>
+      <h2 style="font-size:34px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">The Segment mark</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">An <strong style="color:#141225;">O</strong> built from three rounded arcs — the composable stages of a pipeline — broken by gaps where stages connect, with one accent node marking the active stage. It is the heart of the identity and always reads as a single ring.</p>
+
+      <div style="display:flex; gap:48px; margin-top:48px; flex-wrap:wrap; align-items:center;">
+        <div style="position:relative; width:300px; height:300px; flex:none; background:#F7F6FB; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+          <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ false }}">
+            <svg viewBox="0 0 120 120" style="position:absolute; width:200px; height:200px; opacity:0.9;">
+              <g stroke="rgba(91,46,239,0.18)" stroke-width="0.5">
+                <line x1="60" y1="0" x2="60" y2="120"/><line x1="0" y1="60" x2="120" y2="60"/>
+                <line x1="20" y1="0" x2="20" y2="120"/><line x1="100" y1="0" x2="100" y2="120"/>
+                <line x1="0" y1="20" x2="120" y2="20"/><line x1="0" y1="100" x2="120" y2="100"/>
+              </g>
+              <circle cx="60" cy="60" r="47" fill="none" stroke="rgba(91,46,239,0.3)" stroke-width="0.5"/>
+              <circle cx="60" cy="60" r="33" fill="none" stroke="rgba(91,46,239,0.3)" stroke-width="0.5"/>
+            </svg>
+          </sc-if>
+          <svg viewBox="0 0 120 120" style="position:relative; width:200px; height:200px; color:#141225;"><use href="#seg"/></svg>
+        </div>
+        <div style="flex:1; min-width:280px; display:flex; flex-direction:column; gap:22px;">
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <span style="width:13px; height:13px; border-radius:3px; background:#141225; margin-top:4px; flex:none;"></span>
+            <div><div style="font-weight:700; font-size:16px; color:#141225;">Three arc stages</div><div style="font-size:14px; color:#6F6C84; line-height:1.5;">Each arc is a swappable stage — detect, recognize, extract.</div></div>
+          </div>
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <span style="width:13px; height:13px; border-radius:3px; background:#fff; border:2px solid #141225; margin-top:4px; flex:none;"></span>
+            <div><div style="font-weight:700; font-size:16px; color:#141225;">Composable gaps</div><div style="font-size:14px; color:#6F6C84; line-height:1.5;">The breaks are where stages wire together — modular by design.</div></div>
+          </div>
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <span style="width:13px; height:13px; border-radius:50%; background:var(--accent,#5B2EEF); margin-top:4px; flex:none;"></span>
+            <div><div style="font-weight:700; font-size:16px; color:#141225;">Active node</div><div style="font-size:14px; color:#6F6C84; line-height:1.5;">The accent dot is the running stage — the only colored element.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 LOCKUPS -->
+    <section style="padding:72px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">02 — LOCKUPS</div>
+      <h2 style="font-size:34px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Logo &amp; wordmark</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">The wordmark is set in <strong style="color:#141225;">Hanken Grotesk ExtraBold</strong>, tightly tracked. Use the horizontal lockup by default; stacked for square spaces; the mark alone for avatars and favicons.</p>
+
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#9A95B5; margin:44px 0 16px;">LIGHT THEME</div>
+      <div style="display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:20px;">
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:8px; height:200px; display:flex; align-items:center; justify-content:center; gap:18px;">
+          <svg viewBox="0 0 120 120" style="width:60px; height:60px; color:#141225;"><use href="#seg"/></svg>
+          <span style="font-weight:800; font-size:42px; letter-spacing:-0.035em; color:#141225;">OCRFlow</span>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:8px; height:200px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;">
+          <svg viewBox="0 0 120 120" style="width:62px; height:62px; color:#141225;"><use href="#seg"/></svg>
+          <span style="font-weight:800; font-size:28px; letter-spacing:-0.035em; color:#141225;">OCRFlow</span>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:8px; height:200px; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 120 120" style="width:72px; height:72px; color:#141225;"><use href="#seg"/></svg>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:20px; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; color:#9A95B5;">
+        <div>PRIMARY · HORIZONTAL</div><div>STACKED</div><div>LOGOMARK</div>
+      </div>
+
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#9A95B5; margin:40px 0 16px;">DARK THEME</div>
+      <div style="display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:20px;">
+        <div style="background:#15131F; border-radius:8px; height:200px; display:flex; align-items:center; justify-content:center; gap:18px;">
+          <svg viewBox="0 0 120 120" style="width:60px; height:60px; color:#fff;"><use href="#seg"/></svg>
+          <span style="font-weight:800; font-size:42px; letter-spacing:-0.035em; color:#fff;">OCRFlow</span>
+        </div>
+        <div style="background:#15131F; border-radius:8px; height:200px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;">
+          <svg viewBox="0 0 120 120" style="width:62px; height:62px; color:#fff;"><use href="#seg"/></svg>
+          <span style="font-weight:800; font-size:28px; letter-spacing:-0.035em; color:#fff;">OCRFlow</span>
+        </div>
+        <div style="background:#15131F; border-radius:8px; height:200px; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 120 120" style="width:72px; height:72px; color:#fff;"><use href="#seg"/></svg>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:20px; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; color:#9A95B5;">
+        <div>REVERSED · HORIZONTAL</div><div>STACKED</div><div>LOGOMARK</div>
+      </div>
+
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#9A95B5; margin:40px 0 16px;">MONOCHROME · single-color for stamps, etch &amp; one-ink print</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;">
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:8px; height:160px; display:flex; align-items:center; justify-content:center; gap:14px; color:#141225;">
+          <svg viewBox="0 0 120 120" style="width:46px; height:46px; color:inherit;"><use href="#seg"/></svg>
+          <span style="font-weight:800; font-size:30px; letter-spacing:-0.035em;">OCRFlow</span>
+        </div>
+        <div style="background:var(--accent,#5B2EEF); border-radius:8px; height:160px; display:flex; align-items:center; justify-content:center; gap:14px; color:#fff;">
+          <svg viewBox="0 0 120 120" style="width:46px; height:46px; color:inherit;"><use href="#seg"/></svg>
+          <span style="font-weight:800; font-size:30px; letter-spacing:-0.035em;">OCRFlow</span>
+        </div>
+        <div style="background:#141225; border-radius:8px; height:160px; display:flex; align-items:center; justify-content:center; gap:14px; color:#fff;">
+          <svg viewBox="0 0 120 120" style="width:46px; height:46px; color:inherit;"><use href="#seg"/></svg>
+          <span style="font-weight:800; font-size:30px; letter-spacing:-0.035em;">OCRFlow</span>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; color:#9A95B5;">
+        <div>ALL INK</div><div>ALL VIOLET</div><div>ALL WHITE / ON INK</div>
+      </div>
+    </section>
+
+    <!-- 02b IN-PRODUCT -->
+    <section style="padding:72px 80px; border-top:1px solid #ECEAF2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">03 — IN PRODUCT</div>
+      <h2 style="font-size:34px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">On the canvas</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">How the identity behaves in the app — the mark anchors the top bar, the accent marks the running node, and IBM Plex Mono labels the pipeline.</p>
+
+      <div style="margin-top:40px; border-radius:12px; overflow:hidden; border:1px solid #ECEAF2; box-shadow:0 30px 60px -40px rgba(20,18,37,0.5);">
+        <!-- app chrome -->
+        <div style="background:#15131F; display:flex; align-items:center; justify-content:space-between; padding:0 20px; height:56px; border-bottom:1px solid rgba(255,255,255,0.08);">
+          <div style="display:flex; align-items:center; gap:11px;">
+            <svg viewBox="0 0 120 120" style="width:26px; height:26px; color:#fff;"><use href="#seg"/></svg>
+            <span style="font-weight:800; font-size:18px; letter-spacing:-0.03em; color:#fff;">OCRFlow</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6E6A85; margin-left:8px; padding:3px 8px; border:1px solid rgba(255,255,255,0.12); border-radius:5px;">invoice-pipeline.flow</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5; display:flex; align-items:center; gap:6px;"><span style="width:7px; height:7px; border-radius:50%; background:#12A65B;"></span>running</span>
+            <span style="background:var(--accent,#5B2EEF); color:#fff; font-weight:600; font-size:13px; padding:7px 14px; border-radius:7px;">Run</span>
+          </div>
+        </div>
+        <!-- canvas -->
+        <div style="background:#1B1827; background-image:radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size:22px 22px; padding:40px 36px; min-height:300px; position:relative;">
+          <div style="display:flex; align-items:center; gap:0;">
+            <!-- node template -->
+            <div style="background:#262234; border:1px solid #36314A; border-radius:10px; width:150px; flex:none; overflow:hidden;">
+              <div style="padding:10px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #36314A;"><span style="width:8px;height:8px;border-radius:2px;background:#6E6A85;"></span><span style="font-weight:600; font-size:12px; color:#E7E5F0;">Load PDF</span></div>
+              <div style="padding:9px 12px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#8B86A4;">→ document</div>
+            </div>
+            <div style="width:38px; height:2px; background:#4A4463; flex:none;"></div>
+            <div style="background:#262234; border:1px solid #36314A; border-radius:10px; width:150px; flex:none; overflow:hidden;">
+              <div style="padding:10px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #36314A;"><span style="width:8px;height:8px;border-radius:2px;background:#6E6A85;"></span><span style="font-weight:600; font-size:12px; color:#E7E5F0;">Detect Layout</span></div>
+              <div style="padding:9px 12px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#8B86A4;">→ regions[]</div>
+            </div>
+            <div style="width:38px; height:2px; background:var(--accent,#5B2EEF); flex:none;"></div>
+            <!-- active node -->
+            <div style="background:#262234; border:1px solid var(--accent,#5B2EEF); border-radius:10px; width:158px; flex:none; overflow:hidden; box-shadow:0 0 0 4px rgba(91,46,239,0.18);">
+              <div style="padding:10px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #36314A;"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent,#5B2EEF);"></span><span style="font-weight:600; font-size:12px; color:#fff;">Recognize Text</span><span style="margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--accent,#5B2EEF);">●</span></div>
+              <div style="padding:9px 12px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#8B86A4;">running… 64%</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:0; margin-top:26px; margin-left:376px;">
+            <div style="background:#262234; border:1px solid #36314A; border-radius:10px; width:150px; flex:none; overflow:hidden; opacity:0.65;">
+              <div style="padding:10px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #36314A;"><span style="width:8px;height:8px;border-radius:2px;background:#6E6A85;"></span><span style="font-weight:600; font-size:12px; color:#E7E5F0;">Extract Tables</span></div>
+              <div style="padding:9px 12px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#8B86A4;">→ tables[]</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:32px; margin-top:20px; flex-wrap:wrap; font-size:13px; color:#6F6C84;">
+        <div style="display:flex; gap:8px; align-items:center;"><span style="width:10px;height:10px;border-radius:50%;background:var(--accent,#5B2EEF);"></span>Accent = the active / running stage</div>
+        <div style="display:flex; gap:8px; align-items:center;"><span style="width:10px;height:10px;border-radius:2px;background:#6E6A85;"></span>Neutral nodes stay graphite</div>
+      </div>
+    </section>
+
+    <!-- 03 CLEAR SPACE -->
+    <section style="padding:72px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">04 — CLEAR SPACE &amp; SIZING</div>
+      <h2 style="font-size:34px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Give it room</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">Keep clear space of at least <strong style="color:#141225;">one node-diameter (X)</strong> on every side. Never place type, edges, or other marks inside that zone.</p>
+
+      <div style="display:flex; gap:48px; margin-top:48px; flex-wrap:wrap;">
+        <div style="flex:none; width:300px;">
+          <div style="position:relative; width:300px; height:300px; background:#F7F6FB; border-radius:8px;">
+            <div style="position:absolute; inset:46px; border:1.5px dashed rgba(91,46,239,0.45); border-radius:4px;"></div>
+            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+              <svg viewBox="0 0 120 120" style="width:150px; height:150px; color:#141225;"><use href="#seg"/></svg>
+            </div>
+            <span style="position:absolute; top:50px; left:50%; transform:translate(-50%,-50%); background:#fff; padding:1px 7px; border-radius:20px; font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; color:var(--accent,#5B2EEF);">X</span>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em; color:#9A95B5; margin-top:12px;">CLEAR SPACE = X (NODE DIAMETER)</div>
+        </div>
+
+        <div style="flex:1; min-width:280px;">
+          <div style="font-weight:700; font-size:16px; color:#141225; margin-bottom:20px;">Minimum sizes</div>
+          <div style="display:flex; gap:36px; align-items:flex-end;">
+            <div style="text-align:center;">
+              <div style="height:64px; display:flex; align-items:flex-end; justify-content:center;"><svg viewBox="0 0 120 120" style="width:40px; height:40px; color:#141225;"><use href="#seg"/></svg></div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#141225; margin-top:12px; font-weight:600;">24 px</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:3px;">UI / DIGITAL</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="height:64px; display:flex; align-items:flex-end; justify-content:center;"><svg viewBox="0 0 120 120" style="width:24px; height:24px; color:#141225;"><use href="#seg"/></svg></div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#141225; margin-top:12px; font-weight:600;">16 px</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:3px;">FAVICON MIN</div>
+            </div>
+          </div>
+          <p style="font-size:14px; line-height:1.55; color:#6F6C84; margin:28px 0 0; max-width:380px;">Below 16&nbsp;px the gaps close up and the mark loses legibility. For the full lockup, never set the wordmark cap-height below 12&nbsp;px.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 APP ICONS -->
+    <section style="padding:72px 80px; border-top:1px solid #ECEAF2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">05 — APP ICON &amp; FAVICON</div>
+      <h2 style="font-size:34px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Icon system</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">For containers — app icons, avatars, favicons — the mark sits centered on a solid tile at roughly <strong style="color:#141225;">60% optical size</strong>. Use Night for app stores, Pulse Violet for marketing, and the bare mark for favicons.</p>
+
+      <div style="display:flex; gap:40px; margin-top:48px; flex-wrap:wrap; align-items:flex-end;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+          <div style="width:128px; height:128px; border-radius:28px; background:#15131F; display:flex; align-items:center; justify-content:center; box-shadow:0 12px 24px -10px rgba(20,18,37,0.45);">
+            <svg viewBox="0 0 120 120" style="width:74px; height:74px; color:#fff;"><use href="#seg"/></svg>
+          </div>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; letter-spacing:0.06em;">NIGHT · APP</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+          <div style="width:128px; height:128px; border-radius:28px; background:var(--accent,#5B2EEF); display:flex; align-items:center; justify-content:center; box-shadow:0 12px 24px -10px rgba(91,46,239,0.5);">
+            <svg viewBox="0 0 120 120" style="width:74px; height:74px; color:#fff;"><use href="#seg"/></svg>
+          </div>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; letter-spacing:0.06em;">VIOLET · MARKETING</span>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:14px;">
+          <div style="width:128px; height:128px; border-radius:28px; background:#fff; border:1px solid #ECEAF2; display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 120 120" style="width:74px; height:74px; color:#141225;"><use href="#seg"/></svg>
+          </div>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; letter-spacing:0.06em;">PAPER · LIGHT</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:14px; margin-left:8px;">
+          <div style="display:flex; align-items:flex-end; gap:20px;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="width:64px; height:64px; border-radius:14px; background:#15131F; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 120 120" style="width:38px; height:38px; color:#fff;"><use href="#seg"/></svg></div>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:#9A95B5;">64</span>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="width:40px; height:40px; border-radius:9px; background:#15131F; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 120 120" style="width:24px; height:24px; color:#fff;"><use href="#seg"/></svg></div>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:#9A95B5;">32</span>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="width:24px; height:24px; border-radius:6px; background:#15131F; display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 120 120" style="width:15px; height:15px; color:#fff;"><use href="#seg"/></svg></div>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:#9A95B5;">16</span>
+            </div>
+          </div>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; letter-spacing:0.06em;">FAVICON · 64 / 32 / 16 PX</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 COLOR -->
+    <section style="padding:72px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">06 — COLOR</div>
+      <h2 style="font-size:34px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Palette</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">One accent does the talking. <strong style="color:#141225;">Pulse Violet</strong> is reserved for the active node, links, and key actions — everything else is graphite and paper.</p>
+
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:44px;">
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;">
+          <div style="height:120px; background:var(--accent,#5B2EEF);"></div>
+          <div style="padding:14px 16px; background:#fff;"><div style="font-weight:700; font-size:15px; color:#141225;">Pulse Violet</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:4px;">{{ accentHex }}</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">PRIMARY / ACCENT</div></div>
+        </div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;">
+          <div style="height:120px; background:#141225;"></div>
+          <div style="padding:14px 16px; background:#fff;"><div style="font-weight:700; font-size:15px; color:#141225;">Graphite</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:4px;">#141225</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">INK / TEXT</div></div>
+        </div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;">
+          <div style="height:120px; background:#15131F;"></div>
+          <div style="padding:14px 16px; background:#fff;"><div style="font-weight:700; font-size:15px; color:#141225;">Night</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:4px;">#15131F</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">DARK SURFACE</div></div>
+        </div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;">
+          <div style="height:120px; background:#211D30;"></div>
+          <div style="padding:14px 16px; background:#fff;"><div style="font-weight:700; font-size:15px; color:#141225;">Carbon</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:4px;">#211D30</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">ELEVATED DARK</div></div>
+        </div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;">
+          <div style="height:120px; background:#EDE9FE;"></div>
+          <div style="padding:14px 16px; background:#fff;"><div style="font-weight:700; font-size:15px; color:#141225;">Soft Violet</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:4px;">#EDE9FE</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">ACCENT TINT</div></div>
+        </div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;">
+          <div style="height:120px; background:#6F6C84;"></div>
+          <div style="padding:14px 16px; background:#fff;"><div style="font-weight:700; font-size:15px; color:#141225;">Slate</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:4px;">#6F6C84</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">MUTED TEXT</div></div>
+        </div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;">
+          <div style="height:120px; background:#EDEBF2;"></div>
+          <div style="padding:14px 16px; background:#fff;"><div style="font-weight:700; font-size:15px; color:#141225;">Mist</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:4px;">#EDEBF2</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">LIGHT SURFACE</div></div>
+        </div>
+        <div style="border-radius:8px; overflow:hidden; border:1px solid #ECEAF2;">
+          <div style="height:120px; background:#fff; border-bottom:1px solid #ECEAF2;"></div>
+          <div style="padding:14px 16px; background:#fff;"><div style="font-weight:700; font-size:15px; color:#141225;">Paper</div><div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#6F6C84; margin-top:4px;">#FFFFFF</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#9A95B5; margin-top:2px;">BASE</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 TYPOGRAPHY -->
+    <section style="padding:72px 80px; border-top:1px solid #ECEAF2;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">07 — TYPOGRAPHY</div>
+      <h2 style="font-size:34px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Type system</h2>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:44px;">
+        <div style="background:#F7F6FB; border-radius:10px; padding:36px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:var(--accent,#5B2EEF);">PRIMARY</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">400 · 500 · 600 · 700 · 800</span>
+          </div>
+          <div style="font-weight:800; font-size:96px; line-height:1; letter-spacing:-0.04em; color:#141225; margin:18px 0 6px;">Aa</div>
+          <div style="font-weight:700; font-size:24px; color:#141225;">Hanken Grotesk</div>
+          <p style="font-size:15px; line-height:1.5; color:#6F6C84; margin:8px 0 18px;">Wordmark, display &amp; all UI headings. Warm, geometric, confident.</p>
+          <div style="font-weight:800; font-size:20px; color:#141225; letter-spacing:-0.01em;">The quick brown fox</div>
+          <div style="font-weight:600; font-size:17px; color:#3A3550; margin-top:4px;">jumps over the lazy dog</div>
+          <div style="font-weight:400; font-size:15px; color:#6F6C84; margin-top:4px;">Composable document understanding, 0123456789</div>
+        </div>
+
+        <div style="background:#F7F6FB; border-radius:10px; padding:36px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:var(--accent,#5B2EEF);">TECHNICAL</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#9A95B5;">400 · 500 · 600</span>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:96px; line-height:1; letter-spacing:-0.02em; color:#141225; margin:18px 0 6px;">Aa</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:24px; color:#141225;">IBM Plex Mono</div>
+          <p style="font-size:15px; line-height:1.5; color:#6F6C84; margin:8px 0 18px;">Code, node labels, API keys &amp; metadata. The voice of the canvas.</p>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:14px; color:#3A3550; line-height:1.7;">node: layout.detect<br>→ recognize.text<br>→ table.extract &nbsp;<span style="color:var(--accent,#5B2EEF);">// active</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 MISUSE -->
+    <section style="padding:72px 80px; border-top:1px solid #ECEAF2; background:#FAFAFC;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent,#5B2EEF); font-weight:600;">08 — MISUSE</div>
+      <h2 style="font-size:34px; font-weight:700; letter-spacing:-0.025em; color:#141225; margin:14px 0 0;">Don't do this</h2>
+      <p style="font-size:16px; line-height:1.55; color:#6F6C84; max-width:620px; margin:14px 0 0;">The mark holds up when it's left alone. Protect its geometry, color, and spacing.</p>
+
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:44px;">
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:8px; overflow:hidden;">
+          <div style="height:150px; display:flex; align-items:center; justify-content:center; position:relative;">
+            <svg viewBox="0 0 120 120" style="width:84px; height:84px; color:#E0245E;"><use href="#seg"/></svg>
+            <span style="position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%; background:#E0245E; color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center;">✕</span>
+          </div>
+          <div style="padding:14px 16px; font-size:13px; color:#6F6C84; border-top:1px solid #ECEAF2;">Don't recolor the mark off-brand.</div>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:8px; overflow:hidden;">
+          <div style="height:150px; display:flex; align-items:center; justify-content:center; position:relative;">
+            <svg viewBox="0 0 120 120" style="width:120px; height:70px; color:#141225;"><use href="#seg"/></svg>
+            <span style="position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%; background:#E0245E; color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center;">✕</span>
+          </div>
+          <div style="padding:14px 16px; font-size:13px; color:#6F6C84; border-top:1px solid #ECEAF2;">Don't stretch or distort it.</div>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:8px; overflow:hidden;">
+          <div style="height:150px; display:flex; align-items:center; justify-content:center; position:relative;">
+            <svg viewBox="0 0 120 120" style="width:84px; height:84px; color:#141225; transform:rotate(32deg);"><use href="#seg"/></svg>
+            <span style="position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%; background:#E0245E; color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center;">✕</span>
+          </div>
+          <div style="padding:14px 16px; font-size:13px; color:#6F6C84; border-top:1px solid #ECEAF2;">Don't rotate the mark.</div>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:8px; overflow:hidden;">
+          <div style="height:150px; display:flex; align-items:center; justify-content:center; gap:10px; position:relative;">
+            <svg viewBox="0 0 120 120" style="width:54px; height:54px; color:#141225;"><use href="#seg"/></svg>
+            <span style="font-family:Georgia,serif; font-weight:700; font-size:30px; font-style:italic; color:#141225;">OCRFlow</span>
+            <span style="position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%; background:#E0245E; color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center;">✕</span>
+          </div>
+          <div style="padding:14px 16px; font-size:13px; color:#6F6C84; border-top:1px solid #ECEAF2;">Don't swap the wordmark font.</div>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:8px; overflow:hidden;">
+          <div style="height:150px; display:flex; align-items:center; justify-content:center; position:relative; background:linear-gradient(120deg,#5B2EEF,#FF5A2C);">
+            <svg viewBox="0 0 120 120" style="width:84px; height:84px; color:#fff;"><use href="#seg"/></svg>
+            <span style="position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%; background:#E0245E; color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center;">✕</span>
+          </div>
+          <div style="padding:14px 16px; font-size:13px; color:#6F6C84; border-top:1px solid #ECEAF2;">Don't place it on busy or low-contrast grounds.</div>
+        </div>
+        <div style="background:#fff; border:1px solid #ECEAF2; border-radius:8px; overflow:hidden;">
+          <div style="height:150px; display:flex; align-items:center; justify-content:center; position:relative;">
+            <svg viewBox="0 0 120 120" style="width:84px; height:84px; color:#141225; filter:drop-shadow(0 6px 6px rgba(0,0,0,0.45));"><use href="#seg"/></svg>
+            <span style="position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%; background:#E0245E; color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center;">✕</span>
+          </div>
+          <div style="padding:14px 16px; font-size:13px; color:#6F6C84; border-top:1px solid #ECEAF2;">Don't add shadows or effects.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <section style="background:#15131F; color:#fff; padding:56px 80px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <svg viewBox="0 0 120 120" style="width:40px; height:40px; color:#fff;"><use href="#seg"/></svg>
+        <span style="font-weight:800; font-size:26px; letter-spacing:-0.035em;">OCRFlow</span>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#9A95B5; letter-spacing:0.04em;">Composable OCR pipelines, fully under your control.</div>
+    </section>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1200, &quot;height&quot;: 900}, &quot;accent&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#5B2EEF&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;#5B2EEF&quot;, &quot;#2F6BFF&quot;, &quot;#12A65B&quot;, &quot;#FF5A2C&quot;, &quot;#E0245E&quot;]}, &quot;showGrid&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#5B2EEF';
+    return {
+      accentVar: accent,
+      accentHex: String(accent).toUpperCase(),
+      showGrid: this.props.showGrid ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>
