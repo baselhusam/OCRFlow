@@ -1,0 +1,52 @@
+---
+description: OCRFlow frontend conventions and stack
+alwaysApply: true
+---
+
+# OCRFlow Frontend
+
+## Stack
+
+- **Next.js** (App Router, latest) with TypeScript
+- **Tailwind CSS v4** for styling
+- **shadcn/ui** (Base UI primitives) for components — add via `npx shadcn@latest add <component>`
+- **Framer Motion** for animations
+
+## Routing
+
+- `/` — marketing landing page (public)
+- `/app` — main application (canvas, projects, pipelines)
+
+Never send users directly to `/app` without a landing entry point.
+
+## Brand
+
+Brand assets live in `../branding/` (sibling repo). Copied assets are in `public/brand/`.
+
+Use the OCRFlow 2026 design system (Segment mark + Pulse Violet):
+
+| Token | Hex | Use |
+|-------|-----|-----|
+| pulse / primary | `#5B2EEF` | Accent, CTAs, active nodes |
+| soft-violet | `#EDE9FE` | Tint, focus rings (light) |
+| night | `#15131F` | Dark background |
+| carbon | `#211D30` | Dark cards, panels |
+| graphite | `#141225` | Primary text (light) |
+| slate | `#6F6C84` / `#9A95B5` | Captions, muted text |
+| mist | `#ECEAF2` / `#36314A` | Borders, dividers |
+| paper | `#FAFAFC` | Light background |
+
+**Logos:** Use `logo-lockup-light.svg` on light backgrounds, `logo-lockup.svg` on dark. `LogoLockup` switches automatically via theme. `SegmentMark` for inline SVG usage.
+
+**Theme:** Dark is default. Toggle via `ThemeToggle` in the header.
+
+**Typography:** Hanken Grotesk (display/body, weight 800 for wordmark), IBM Plex Mono (labels/code — uppercase, letter-spaced).
+
+**Logo:** Horizontal lockup is primary. Segment mark (3 arcs + accent dot) for favicons and compact UI.
+
+## Conventions
+
+- Components in `src/components/` grouped by domain (`landing/`, `brand/`, `ui/`)
+- Use `@/` import alias
+- Match existing code style; minimal scope per change
+- Canvas parity: anything doable in the UI must be doable headless via API/SDK (future)
