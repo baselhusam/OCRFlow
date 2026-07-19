@@ -1,0 +1,1068 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-sans);
+
+  /* OCRFlow brand palette (2026 design system) */
+  --color-pulse: #5b2eef;
+  --color-soft-violet: var(--accent-tint);
+  --color-night: #15131f;
+  --color-carbon: #211d30;
+  --color-graphite: #141225;
+  --color-slate: var(--muted-foreground);
+  --color-mist: #eceaf2;
+  --color-subtle: var(--subtle-foreground);
+
+  /* Legacy aliases (canvas/app — follow-up rebrand) */
+  --color-ink: #101116;
+  --color-surface: #181b23;
+  --color-surface-2: #1f2330;
+  --color-bone: #e8e6e1;
+  --color-bone-dim: #a9a9a2;
+  --color-bronze: #b0895a;
+  --color-bronze-dim: #8e6e48;
+  --color-hairline: var(--border);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --bronze: #b0895a;
+  --bronze-dim: #8e6e48;
+  --pulse: #5b2eef;
+  --accent-tint: #ede9fe;
+
+  --background: #fafafc;
+  --foreground: #141225;
+  --subtle-foreground: #3a3550;
+  --card: #ffffff;
+  --card-foreground: #141225;
+  --popover: #ffffff;
+  --popover-foreground: #141225;
+  --primary: #5b2eef;
+  --primary-foreground: #ffffff;
+  --secondary: #ede9fe;
+  --secondary-foreground: #141225;
+  --muted: #ede9fe;
+  --muted-foreground: #6f6c84;
+  --accent: #5b2eef;
+  --accent-foreground: #ffffff;
+  --destructive: #e0245e;
+  --border: #eceaf2;
+  --input: #d8d5e4;
+  --ring: #5b2eef;
+  --chart-1: #5b2eef;
+  --chart-2: #6f6c84;
+  --chart-3: #141225;
+  --chart-4: #2f6bff;
+  --chart-5: #ede9fe;
+  --radius: 0.4375rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #141225;
+  --sidebar-primary: #5b2eef;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ede9fe;
+  --sidebar-accent-foreground: #141225;
+  --sidebar-border: #eceaf2;
+  --sidebar-ring: #5b2eef;
+
+  --landing-dot: rgba(20, 18, 37, 0.05);
+  --landing-glow: var(--accent-tint);
+  --landing-node-bg: #ffffff;
+  --landing-node-border: #eceaf2;
+  --landing-ring: var(--accent-tint);
+  --landing-ghost-bg: #ffffff;
+  --landing-ghost-border: #d8d5e4;
+  --landing-hairline: #eceaf2;
+
+  /* Workspace shell — light sidebar in light theme */
+  --workspace-sidebar-bg: #ffffff;
+  --workspace-sidebar-fg: #141225;
+  --workspace-sidebar-muted: #6f6c84;
+  --workspace-sidebar-label: #9a95b5;
+  --workspace-sidebar-active: #ede9fe;
+  --workspace-sidebar-active-fg: #5b2eef;
+  --workspace-sidebar-border: #eceaf2;
+  --workspace-sidebar-hover: #f4f2f8;
+  --workspace-soft-violet: #ede9fe;
+}
+
+.dark {
+  --accent-tint: rgba(91, 46, 239, 0.2);
+
+  --background: #15131f;
+  --foreground: #ffffff;
+  --subtle-foreground: #c9c5da;
+  --card: #211d30;
+  --card-foreground: #ffffff;
+  --popover: #211d30;
+  --popover-foreground: #ffffff;
+  --primary: #5b2eef;
+  --primary-foreground: #ffffff;
+  --secondary: #36314a;
+  --secondary-foreground: #ffffff;
+  --muted: #36314a;
+  --muted-foreground: #9a95b5;
+  --accent: #5b2eef;
+  --accent-foreground: #ffffff;
+  --destructive: #e0245e;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: #36314a;
+  --ring: #5b2eef;
+  --chart-1: #5b2eef;
+  --chart-2: #9a95b5;
+  --chart-3: #ffffff;
+  --chart-4: #2f6bff;
+  --chart-5: #36314a;
+  --sidebar: #211d30;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #5b2eef;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #36314a;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-ring: #5b2eef;
+
+  --landing-dot: rgba(255, 255, 255, 0.05);
+  --landing-glow: rgba(91, 46, 239, 0.16);
+  --landing-node-bg: #211d30;
+  --landing-node-border: #36314a;
+  --landing-ring: rgba(91, 46, 239, 0.2);
+  --landing-ghost-bg: rgba(255, 255, 255, 0.06);
+  --landing-ghost-border: rgba(255, 255, 255, 0.16);
+  --landing-hairline: rgba(255, 255, 255, 0.12);
+
+  /* Workspace shell — elevated from page bg for contrast in dark mode */
+  --workspace-sidebar-bg: #211d30;
+  --workspace-sidebar-fg: #ffffff;
+  --workspace-sidebar-muted: #9a95b5;
+  --workspace-sidebar-label: #6e6a85;
+  --workspace-sidebar-active: rgba(91, 46, 239, 0.28);
+  --workspace-sidebar-active-fg: #ffffff;
+  --workspace-sidebar-border: rgba(255, 255, 255, 0.12);
+  --workspace-sidebar-hover: rgba(255, 255, 255, 0.06);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans scroll-smooth;
+  }
+  ::selection {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+}
+
+@layer components {
+  /* Category accent colors for pipeline nodes */
+  :root {
+    --status-ok: #3fa266;
+    --status-warn: #8e6e48;
+    --node-default: #767a85;
+    --node-preprocess: #767a85;
+    --node-page-loader: #3685bf;
+    --node-layout-detection: #7754d9;
+    --node-text-detection: #1f8a65;
+    --node-text-recognition: #3fa266;
+    --node-reading-order: #c08532;
+    --node-table-detection: #db704b;
+    --node-table-structure: #d08770;
+    --node-table-cell-ocr: #b0895a;
+    --node-formula-detection: #b8448b;
+    --node-formula-recognition: #b48ead;
+    --node-figure-classification: #5a6cc0;
+    --node-figure-captioning: #9386f2;
+    --node-vlm-convert: #3685bf;
+    --node-assembler: #8e6e48;
+    --node-llm-extract: #7754d9;
+    --node-export: #b8448b;
+  }
+
+  .dark {
+    --status-ok: #52b896;
+    --status-warn: #b0895a;
+    --node-default: #767a85;
+    --node-preprocess: #767a85;
+    --node-page-loader: #7bafe9;
+    --node-layout-detection: #9386f2;
+    --node-text-detection: #3fa266;
+    --node-text-recognition: #52b896;
+    --node-reading-order: #f1b467;
+    --node-table-detection: #d08770;
+    --node-table-structure: #db704b;
+    --node-table-cell-ocr: #b0895a;
+    --node-formula-detection: #b48ead;
+    --node-formula-recognition: #c85898;
+    --node-figure-classification: #9aaadc;
+    --node-figure-captioning: #aa98d8;
+    --node-vlm-convert: #7bafe9;
+    --node-assembler: #b0895a;
+    --node-llm-extract: #9386f2;
+    --node-export: #b48ead;
+  }
+
+  .ocrflow-canvas {
+    width: 100%;
+    height: 100%;
+
+    /* React Flow — replace default blue selection chrome with brand tokens */
+    --xy-selection-background-color: color-mix(in srgb, var(--pulse) 10%, transparent);
+    --xy-selection-border: 1px solid color-mix(in srgb, var(--pulse) 42%, transparent);
+    --xy-node-boxshadow-selected: none;
+  }
+
+  .ocrflow-canvas .react-flow__node.selectable.selected,
+  .ocrflow-canvas .react-flow__node.selectable:focus,
+  .ocrflow-canvas .react-flow__node.selectable:focus-visible {
+    box-shadow: none;
+    outline: none;
+  }
+
+  .ocrflow-canvas .react-flow__nodesselection-rect,
+  .ocrflow-canvas .react-flow__selection {
+    opacity: 0;
+    pointer-events: none;
+    border: none;
+    background: transparent;
+  }
+
+  .ocrflow-canvas--select-mode .react-flow__selection {
+    opacity: 1;
+    pointer-events: none;
+    border: 1px dashed color-mix(in srgb, var(--pulse) 55%, transparent);
+    background: color-mix(in srgb, var(--pulse) 10%, transparent);
+    border-radius: 2px;
+  }
+
+  .ocrflow-canvas--pan-mode .react-flow__pane {
+    cursor: grab;
+  }
+
+  .ocrflow-canvas--pan-mode .react-flow__pane:active {
+    cursor: grabbing;
+  }
+
+  .ocrflow-canvas .react-flow__background pattern circle {
+    fill: color-mix(in srgb, #dad7e6 100%, transparent);
+  }
+
+  .dark .ocrflow-canvas .react-flow__background pattern circle {
+    fill: color-mix(in srgb, var(--border) 70%, transparent);
+  }
+
+  .ocrflow-canvas .react-flow__controls {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    background: var(--card);
+    box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--foreground) 18%, transparent);
+    overflow: hidden;
+  }
+
+  .ocrflow-canvas .react-flow__controls-button {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 7px;
+    color: color-mix(in srgb, var(--foreground) 65%, transparent);
+    background: transparent;
+  }
+
+  .ocrflow-canvas .react-flow__controls-button:hover {
+    background: color-mix(in srgb, var(--foreground) 5%, transparent);
+    color: var(--foreground);
+  }
+
+  .ocrflow-canvas .react-flow__controls-button svg {
+    fill: currentColor;
+    max-width: 16px;
+    max-height: 16px;
+  }
+
+  .ocrflow-palette-scroll::-webkit-scrollbar,
+  .ocrflow-inspector-scroll::-webkit-scrollbar,
+  .ocrflow-canvas-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .ocrflow-node-output-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .ocrflow-node-output-scroll::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .ocrflow-palette-scroll::-webkit-scrollbar-thumb,
+  .ocrflow-inspector-scroll::-webkit-scrollbar-thumb,
+  .ocrflow-canvas-scroll::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--border) 90%, var(--foreground));
+    border-radius: 8px;
+    border: 2px solid var(--background);
+  }
+
+  .ocrflow-palette-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .ocrflow-pipeline-node {
+    --node-accent: var(--node-default);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+    overflow: visible;
+    border-radius: 0.75rem;
+  }
+
+  .ocrflow-pipeline-node.selected > div:first-child,
+  .ocrflow-pipeline-node.selected .ocrflow-pipeline-node-shell {
+    outline: none;
+  }
+
+  .dark .ocrflow-pipeline-node.selected .ocrflow-pipeline-node-shell {
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--pulse) 38%, transparent),
+      0 0 32px -4px color-mix(in srgb, var(--pulse) 30%, transparent),
+      0 16px 36px -14px color-mix(in srgb, black 42%, transparent);
+  }
+
+  @keyframes ocrflow-node-focus-pulse {
+    0%,
+    100% {
+      border-color: color-mix(in srgb, var(--pulse) 70%, var(--border));
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--pulse) 34%, transparent),
+        0 0 28px -4px color-mix(in srgb, var(--pulse) 26%, transparent);
+    }
+    50% {
+      border-color: var(--pulse);
+      box-shadow:
+        0 0 0 5px color-mix(in srgb, var(--pulse) 42%, transparent),
+        0 0 36px -2px color-mix(in srgb, var(--pulse) 34%, transparent);
+    }
+  }
+
+  @keyframes ocrflow-node-progress {
+    0% {
+      transform: translateX(-120%);
+    }
+    100% {
+      transform: translateX(320%);
+    }
+  }
+
+  .ocrflow-pipeline-node.focus-pulse .ocrflow-pipeline-node-shell {
+    outline: none;
+    animation: ocrflow-node-focus-pulse 0.8s ease-in-out 3;
+  }
+
+  .ocrflow-pipeline-node:hover:not(.selected) .ocrflow-pipeline-node-shell {
+    box-shadow: 0 4px 12px -2px color-mix(in srgb, var(--foreground) 5%, transparent);
+  }
+
+  .ocrflow-pipeline-node[data-category="preprocess"] { --node-accent: var(--node-preprocess); }
+  .ocrflow-pipeline-node[data-category="page_loader"] { --node-accent: var(--node-page-loader); }
+  .ocrflow-pipeline-node[data-category="layout_detection"] { --node-accent: var(--node-layout-detection); }
+  .ocrflow-pipeline-node[data-category="text_detection"] { --node-accent: var(--node-text-detection); }
+  .ocrflow-pipeline-node[data-category="text_recognition"] { --node-accent: var(--node-text-recognition); }
+  .ocrflow-pipeline-node[data-category="reading_order"] { --node-accent: var(--node-reading-order); }
+  .ocrflow-pipeline-node[data-category="table_detection"] { --node-accent: var(--node-table-detection); }
+  .ocrflow-pipeline-node[data-category="table_structure"] { --node-accent: var(--node-table-structure); }
+  .ocrflow-pipeline-node[data-category="table_cell_ocr"] { --node-accent: var(--node-table-cell-ocr); }
+  .ocrflow-pipeline-node[data-category="formula_detection"] { --node-accent: var(--node-formula-detection); }
+  .ocrflow-pipeline-node[data-category="formula_recognition"] { --node-accent: var(--node-formula-recognition); }
+  .ocrflow-pipeline-node[data-category="figure_classification"] { --node-accent: var(--node-figure-classification); }
+  .ocrflow-pipeline-node[data-category="figure_captioning"] { --node-accent: var(--node-figure-captioning); }
+  .ocrflow-pipeline-node[data-category="vlm_convert"] { --node-accent: var(--node-vlm-convert); }
+  .ocrflow-pipeline-node[data-category="assembler"] { --node-accent: var(--node-assembler); }
+  .ocrflow-pipeline-node[data-category="llm_extract"] { --node-accent: var(--node-llm-extract); }
+  .ocrflow-pipeline-node[data-category="export"] { --node-accent: var(--node-export); }
+
+  .ocrflow-pipeline-node-output-shell {
+    pointer-events: auto;
+  }
+
+  .ocrflow-page-at-output-card {
+    position: relative;
+    background: color-mix(in srgb, var(--card) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--node-accent) 22%, var(--border));
+    box-shadow:
+      0 4px 24px color-mix(in srgb, var(--foreground) 7%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--foreground) 4%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .ocrflow-page-at-output-card::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 50%;
+    width: 14px;
+    height: 2px;
+    border-radius: 1px;
+    background: linear-gradient(
+      to left,
+      color-mix(in srgb, var(--node-accent) 70%, transparent),
+      color-mix(in srgb, var(--node-accent) 20%, transparent)
+    );
+    pointer-events: none;
+  }
+
+  .ocrflow-port-legend-node {
+    border: 2px solid var(--node-accent);
+    background: var(--card);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--node-accent) 25%, transparent);
+  }
+
+  .ocrflow-port-legend-row {
+    background: #8b5cf6;
+    border: 2px solid #c4b5fd;
+    box-shadow: 0 0 8px color-mix(in srgb, #8b5cf6 45%, transparent);
+  }
+
+  .ocrflow-pipeline-node-output.has-page-at-ports {
+    width: 176px;
+    min-width: 176px;
+  }
+
+  .ocrflow-page-at-connect-hint {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .ocrflow-page-branch-node.ocrflow-page-at-output-card::before {
+    display: none;
+  }
+
+  .ocrflow-page-branch-panel {
+    overflow: hidden;
+  }
+
+  .ocrflow-page-branch-scroll {
+    overflow-x: hidden;
+  }
+
+  .ocrflow-page-branch-row-anchor {
+    min-height: 0;
+  }
+
+  .ocrflow-page-branch-port {
+    pointer-events: auto;
+  }
+
+  .ocrflow-page-branch-panel .ocrflow-pipeline-node-output.has-page-at-ports {
+    width: 100%;
+    min-width: 0;
+    max-height: none;
+    height: 100%;
+  }
+
+  .ocrflow-caption-text-output-card {
+    position: relative;
+    background: color-mix(in srgb, var(--card) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--node-accent) 22%, var(--border));
+    box-shadow:
+      0 4px 24px color-mix(in srgb, var(--foreground) 7%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--foreground) 4%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .ocrflow-classification-output-card {
+    position: relative;
+    background: color-mix(in srgb, var(--card) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--node-accent) 22%, var(--border));
+    box-shadow:
+      0 4px 24px color-mix(in srgb, var(--foreground) 7%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--foreground) 4%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .ocrflow-classification-output-card::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 50%;
+    width: 14px;
+    height: 2px;
+    border-radius: 1px;
+    background: linear-gradient(
+      to left,
+      color-mix(in srgb, var(--node-accent) 70%, transparent),
+      color-mix(in srgb, var(--node-accent) 20%, transparent)
+    );
+    pointer-events: none;
+  }
+
+  .ocrflow-document-output-card {
+    position: relative;
+    background: color-mix(in srgb, var(--card) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--node-accent) 22%, var(--border));
+    box-shadow:
+      0 4px 24px color-mix(in srgb, var(--foreground) 7%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--foreground) 4%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .ocrflow-document-converter-markdown {
+    background: color-mix(in srgb, var(--card) 78%, transparent);
+    border-color: color-mix(in srgb, var(--foreground) 5%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
+  }
+
+  .dark .ocrflow-document-converter-markdown {
+    background: color-mix(in srgb, var(--card) 58%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 4%, transparent);
+  }
+
+  .ocrflow-document-branch-panel {
+    overflow: hidden;
+  }
+
+  .ocrflow-document-branch-scroll {
+    overflow-x: hidden;
+  }
+
+  .ocrflow-caption-branch-panel {
+    overflow: hidden;
+  }
+
+  .ocrflow-caption-branch-scroll {
+    overflow-x: hidden;
+  }
+
+  .ocrflow-caption-text-document {
+    background: color-mix(in srgb, var(--card) 78%, transparent);
+    border-color: color-mix(in srgb, var(--foreground) 5%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
+  }
+
+  .dark .ocrflow-caption-text-document {
+    background: color-mix(in srgb, var(--card) 58%, transparent);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 4%, transparent);
+  }
+
+  .ocrflow-caption-markdown > :first-child {
+    margin-top: 0;
+  }
+
+  .ocrflow-caption-markdown > :last-child {
+    margin-bottom: 0;
+  }
+
+  .ocrflow-caption-markdown p,
+  .ocrflow-caption-markdown ul,
+  .ocrflow-caption-markdown ol,
+  .ocrflow-caption-markdown blockquote,
+  .ocrflow-caption-markdown pre {
+    margin: 0.45em 0;
+  }
+
+  .ocrflow-caption-markdown h1,
+  .ocrflow-caption-markdown h2,
+  .ocrflow-caption-markdown h3,
+  .ocrflow-caption-markdown h4,
+  .ocrflow-caption-markdown h5,
+  .ocrflow-caption-markdown h6 {
+    margin: 0.65em 0 0.35em;
+    font-weight: 600;
+    line-height: 1.35;
+    color: color-mix(in srgb, var(--foreground) 96%, transparent);
+  }
+
+  .ocrflow-caption-markdown h1 {
+    font-size: 1.15em;
+  }
+
+  .ocrflow-caption-markdown h2 {
+    font-size: 1.08em;
+  }
+
+  .ocrflow-caption-markdown h3,
+  .ocrflow-caption-markdown h4,
+  .ocrflow-caption-markdown h5,
+  .ocrflow-caption-markdown h6 {
+    font-size: 1em;
+  }
+
+  .ocrflow-caption-markdown ul,
+  .ocrflow-caption-markdown ol {
+    padding-left: 1.15em;
+  }
+
+  .ocrflow-caption-markdown li + li {
+    margin-top: 0.2em;
+  }
+
+  .ocrflow-caption-markdown code {
+    border-radius: 0.25rem;
+    background: color-mix(in srgb, var(--foreground) 8%, transparent);
+    padding: 0.05em 0.3em;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.92em;
+  }
+
+  .ocrflow-caption-markdown pre {
+    overflow-x: auto;
+    border-radius: 0.375rem;
+    border: 1px solid color-mix(in srgb, var(--foreground) 8%, transparent);
+    background: color-mix(in srgb, var(--foreground) 5%, transparent);
+    padding: 0.55em 0.65em;
+  }
+
+  .ocrflow-caption-markdown pre code {
+    background: transparent;
+    padding: 0;
+  }
+
+  .ocrflow-caption-markdown blockquote {
+    border-left: 2px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+    padding-left: 0.65em;
+    color: color-mix(in srgb, var(--foreground) 78%, transparent);
+  }
+
+  .ocrflow-caption-markdown a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .ocrflow-caption-markdown strong {
+    font-weight: 600;
+    color: color-mix(in srgb, var(--foreground) 96%, transparent);
+  }
+
+  .ocrflow-region-branch-panel {
+    overflow: hidden;
+  }
+
+  .ocrflow-region-branch-scroll {
+    overflow-x: hidden;
+  }
+
+  .ocrflow-region-branch-row-anchor {
+    min-height: 0;
+  }
+
+  .ocrflow-region-branch-port {
+    pointer-events: auto;
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle.ocrflow-page-item-output-handle {
+    width: 11px !important;
+    height: 11px !important;
+    background: #8b5cf6 !important;
+    border-color: #ddd6fe !important;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, #6d28d9 35%, transparent),
+      0 0 10px color-mix(in srgb, #8b5cf6 50%, transparent) !important;
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle.ocrflow-page-item-output-handle:hover,
+  .ocrflow-pipeline-node .react-flow__handle.ocrflow-page-port-active {
+    transform: scale(1.22) !important;
+    background: #7c3aed !important;
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, #8b5cf6 45%, transparent),
+      0 0 14px color-mix(in srgb, #8b5cf6 55%, transparent) !important;
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle.ocrflow-node-border-output-handle {
+    z-index: 10;
+    cursor: crosshair;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--node-accent) 25%, transparent),
+      0 0 8px color-mix(in srgb, var(--node-accent) 15%, transparent);
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle.ocrflow-node-border-output-handle:hover {
+    transform: scale(1.14) !important;
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--node-accent) 35%, transparent),
+      0 0 12px color-mix(in srgb, var(--node-accent) 25%, transparent);
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle.ocrflow-node-output-handle-page-at {
+    background: var(--card) !important;
+    border-color: var(--node-accent) !important;
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--node-accent) 35%, transparent),
+      0 0 10px color-mix(in srgb, var(--node-accent) 25%, transparent);
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle.ocrflow-node-output-handle-page-at:hover {
+    transform: scale(1.14) !important;
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--node-accent) 40%, transparent),
+      0 0 14px color-mix(in srgb, var(--node-accent) 35%, transparent);
+  }
+
+  .ocrflow-pipeline-node-output {
+    width: 148px;
+    min-width: 148px;
+    max-height: 360px;
+    overflow: visible;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .dark .ocrflow-pipeline-node-output {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .ocrflow-pipeline-node-output.has-regions {
+    width: 192px;
+    min-width: 192px;
+  }
+
+  .ocrflow-pipeline-node-output.has-layout-page {
+    width: 224px;
+    min-width: 224px;
+  }
+
+  .ocrflow-pipeline-node-output.has-document-preview {
+    width: 280px;
+    min-width: 280px;
+  }
+
+  .ocrflow-output-glass-card {
+    background: color-mix(in srgb, var(--card) 70%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid color-mix(in srgb, var(--foreground) 6%, transparent);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--foreground) 4%, transparent);
+  }
+
+  .dark .ocrflow-output-glass-card {
+    background: color-mix(in srgb, var(--card) 50%, transparent);
+    border-color: color-mix(in srgb, white 10%, transparent);
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle {
+    width: 10px;
+    height: 10px;
+    border-width: 2px;
+    background: var(--card);
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle-left {
+    left: -5px;
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle-right {
+    right: -5px;
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle.ocrflow-item-output-handle {
+    width: 12px;
+    height: 12px;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    transform: none !important;
+    z-index: 2;
+    cursor: crosshair;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--foreground) 20%, transparent);
+  }
+
+  .ocrflow-pipeline-node .react-flow__handle.ocrflow-item-output-handle:hover {
+    transform: scale(1.15) !important;
+  }
+
+
+  .ocrflow-flow-edge-track {
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .ocrflow-flow-edge-track-valid {
+    stroke: color-mix(in srgb, var(--pulse) 20%, transparent);
+    stroke-width: 2.5;
+  }
+
+  .ocrflow-flow-edge-track-invalid {
+    stroke: color-mix(in srgb, var(--muted-foreground) 14%, transparent);
+    stroke-dasharray: 8 6;
+  }
+
+  .ocrflow-flow-edge-stream {
+    stroke-width: 2;
+    stroke-linecap: round;
+    fill: none;
+  }
+
+  .ocrflow-flow-edge-stream-valid {
+    stroke: var(--pulse);
+    stroke-dasharray: 5 7;
+    animation: ocrflow-edge-flow 0.9s linear infinite;
+  }
+
+  .ocrflow-flow-edge-stream-active {
+    stroke: var(--pulse);
+  }
+
+  .ocrflow-canvas.is-running .ocrflow-flow-edge-stream-valid {
+    animation-duration: 0.42s;
+  }
+
+  .ocrflow-flow-edge-stream-invalid {
+    stroke: var(--muted-foreground);
+    stroke-dasharray: 5 7;
+    animation: ocrflow-edge-flow 1.6s linear infinite;
+  }
+
+  .ocrflow-flow-edge-stream-selected {
+    stroke-width: 2.5;
+  }
+
+  .ocrflow-flow-edge-arrow {
+    pointer-events: none;
+  }
+
+  @keyframes ocrflow-edge-flow {
+    from {
+      stroke-dashoffset: 0;
+    }
+    to {
+      stroke-dashoffset: -24;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ocrflow-flow-edge-stream-valid,
+    .ocrflow-flow-edge-stream-invalid {
+      animation: none;
+      stroke-dasharray: none;
+    }
+  }
+
+  .ocrflow-canvas .react-flow__connection-path {
+    stroke: var(--pulse);
+    stroke-width: 2;
+    stroke-dasharray: 5 7;
+    stroke-linecap: round;
+    animation: ocrflow-edge-flow 0.9s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ocrflow-canvas .react-flow__connection-path {
+      animation: none;
+    }
+  }
+
+  .ocrflow-pipeline-node[data-category="page_loader"] .ocrflow-upload-dropzone:focus-visible {
+    outline: 1px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  .ocrflow-pipeline-node[data-category="page_loader"] .ocrflow-page-preview img {
+    display: block;
+  }
+
+  /* Landing page backdrop */
+  .ocrflow-landing-backdrop {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .ocrflow-landing-backdrop-dots {
+    background-image: radial-gradient(var(--landing-dot) 1px, transparent 1px);
+    background-size: 26px 26px;
+  }
+
+  .ocrflow-landing-backdrop-glow {
+    background: radial-gradient(
+      900px 540px at 50% 18%,
+      var(--landing-glow),
+      transparent 70%
+    );
+  }
+
+  @keyframes ocrflow-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.55;
+      transform: scale(0.82);
+    }
+  }
+
+  @keyframes ocrflow-dash {
+    to {
+      stroke-dashoffset: -16;
+    }
+  }
+
+  .ocrflow-animate-pulse {
+    animation: ocrflow-pulse 2.4s ease-in-out infinite;
+  }
+
+  .ocrflow-animate-dash {
+    animation: ocrflow-dash 0.9s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ocrflow-animate-pulse,
+    .ocrflow-animate-dash {
+      animation: none;
+    }
+  }
+
+  .dashboard-stat-card {
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgba(20, 18, 37, 0.05);
+    transform: translate3d(0, 0, 0);
+    transition:
+      border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .dark .dashboard-stat-card {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .dashboard-stat-card:hover {
+    border-color: rgba(91, 46, 239, 0.22);
+    background-color: var(--card);
+    box-shadow:
+      0 1px 2px rgba(20, 18, 37, 0.04),
+      0 10px 28px -14px rgba(91, 46, 239, 0.2);
+  }
+
+  .dark .dashboard-stat-card:hover {
+    border-color: rgba(91, 46, 239, 0.35);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.15),
+      0 12px 32px -12px rgba(91, 46, 239, 0.32);
+  }
+
+  .dashboard-stat-card__icon {
+    color: color-mix(in srgb, var(--muted-foreground) 55%, transparent);
+    transition: color 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .dashboard-stat-card:hover .dashboard-stat-card__icon {
+    color: color-mix(in srgb, var(--primary) 65%, var(--muted-foreground));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dashboard-stat-card,
+    .dashboard-stat-card__icon {
+      transition: none;
+    }
+  }
+
+  .project-card {
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgba(20, 18, 37, 0.05);
+    transform: translate3d(0, 0, 0);
+    transition:
+      border-color 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .dark .project-card {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .project-card:hover {
+    border-color: rgba(91, 46, 239, 0.22);
+    box-shadow:
+      0 1px 2px rgba(20, 18, 37, 0.04),
+      0 10px 28px -14px rgba(91, 46, 239, 0.2);
+  }
+
+  .dark .project-card:hover {
+    border-color: rgba(91, 46, 239, 0.35);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.15),
+      0 12px 32px -12px rgba(91, 46, 239, 0.32);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-card {
+      transition: none;
+    }
+  }
+
+  /* Ensure main content reflows when sidebar collapses to icon mode */
+  [data-slot="sidebar"][data-state="collapsed"][data-collapsible="icon"]
+    [data-slot="sidebar-gap"] {
+    width: var(--sidebar-width-icon);
+  }
+
+  [data-slot="sidebar"][data-state="collapsed"][data-collapsible="icon"]
+    [data-slot="sidebar-container"] {
+    width: var(--sidebar-width-icon);
+  }
+}
