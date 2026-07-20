@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { NodePalettePanel } from "@/components/canvas/node-palette-panel";
 import { PipelineCanvas } from "@/components/canvas/pipeline-canvas";
+import { RuntimeAvailabilityProvider } from "@/components/canvas/runtime-availability-context";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { filterDoneModels } from "@/lib/canvas/model-utils";
 import {
@@ -11,7 +12,11 @@ import {
   writePaletteCollapsed,
 } from "@/lib/canvas/palette-prefs";
 import { BLOCKED_PIPELINE_MODELS } from "@/lib/canvas/wire-types";
-import type { CategoryMeta, ModelCatalogEntry } from "@/lib/canvas/types";
+import type {
+  CategoryMeta,
+  ModelCatalogEntry,
+  RuntimeAvailability,
+} from "@/lib/canvas/types";
 
 type CanvasShellProps = {
   entity: import("@/lib/canvas/types").GraphEntityContext;
@@ -20,6 +25,7 @@ type CanvasShellProps = {
   initialGraph: Record<string, unknown>;
   models: ModelCatalogEntry[];
   categories: CategoryMeta[];
+  runtime?: RuntimeAvailability | null;
   readOnly?: boolean;
   userPipelines?: import("@/lib/api/client").Pipeline[];
 };
@@ -31,6 +37,7 @@ export function CanvasShell({
   initialGraph,
   models,
   categories,
+  runtime = null,
   readOnly = false,
   userPipelines = [],
 }: CanvasShellProps) {
@@ -54,36 +61,40 @@ export function CanvasShell({
 
   return (
     <TooltipProvider delay={400}>
-      <div className="flex h-full min-h-0 flex-col">
-        <div className="relative flex min-h-0 flex-1">
-          {!readOnly ? (
-            <div className="hidden shrink-0 md:flex">
-              <NodePalettePanel
+      <RuntimeAvailabilityProvider runtime={runtime}>
+        <div className="flex h-full min-h-0 flex-col">
+          <div className="relative flex min-h-0 flex-1">
+            {!readOnly ? (
+              <div className="hidden shrink-0 md:flex">
+                <NodePalettePanel
+                  models={paletteModels}
+                  categories={categories}
+                  paletteMode={
+                    entity.kind === "pipeline" ? "pipeline" : "project"
+                  }
+                  userPipelines={
+                    entity.kind === "project" ? userPipelines : undefined
+                  }
+                  collapsed={paletteCollapsed}
+                  onCollapsedChange={handlePaletteCollapsedChange}
+                />
+              </div>
+            ) : null}
+            <div className="relative min-h-0 min-w-0 flex-1">
+              <PipelineCanvas
+                entity={entity}
+                entityName={entityName}
+                entityUpdatedAt={entityUpdatedAt}
+                initialGraph={initialGraph}
                 models={paletteModels}
                 categories={categories}
-                paletteMode={entity.kind === "pipeline" ? "pipeline" : "project"}
-                userPipelines={
-                  entity.kind === "project" ? userPipelines : undefined
-                }
-                collapsed={paletteCollapsed}
-                onCollapsedChange={handlePaletteCollapsedChange}
+                readOnly={readOnly}
+                userPipelines={userPipelines}
               />
             </div>
-          ) : null}
-          <div className="relative min-h-0 min-w-0 flex-1">
-            <PipelineCanvas
-              entity={entity}
-              entityName={entityName}
-              entityUpdatedAt={entityUpdatedAt}
-              initialGraph={initialGraph}
-              models={paletteModels}
-              categories={categories}
-              readOnly={readOnly}
-              userPipelines={userPipelines}
-            />
           </div>
         </div>
-      </div>
+      </RuntimeAvailabilityProvider>
     </TooltipProvider>
   );
 }

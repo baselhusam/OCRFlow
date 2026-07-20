@@ -248,11 +248,47 @@ const pageModels: Array<{
   },
   { id: "surya/text-detection", path: "/api/v1/models/surya/text-detection", kind: "lines" },
   { id: "surya/table-recognition", path: "/api/v1/models/surya/table-recognition", kind: "tables" },
+  {
+    id: "paddle/doclayout-s",
+    path: "/api/v1/models/paddle/doclayout-s",
+    opts: ["confidence_threshold"],
+    kind: "regions",
+  },
+  {
+    id: "paddle/ocr-v6-small",
+    path: "/api/v1/models/paddle/ocr-v6-small",
+    opts: ["confidence_threshold"],
+    kind: "lines",
+  },
 ];
 
 for (const { id, path, opts, kind } of pageModels) {
   REGISTRY[id] = pageOnlyModel(path, opts ?? [], kind ?? "regions");
 }
+
+REGISTRY["paddle/pp-structure"] = {
+  apiPath: "/api/v1/models/paddle/pp-structure",
+  buildPayload(ctx) {
+    const page = extractPageImageFromCtx(ctx);
+    if (!page) return null;
+    return { page };
+  },
+  extractOutput(_id, response) {
+    const regions = (response.regions as unknown[]) ?? [];
+    const lines = (response.lines as Array<{ text?: string }>) ?? [];
+    const tables = (response.tables as unknown[]) ?? [];
+    return {
+      kind: "regions",
+      raw: response,
+      // Full document parse on one page: regions + text lines + tables.
+      preview: {
+        itemCount: regions.length,
+        pageCount: tables.length,
+        textSnippets: lines.map((l) => l.text).filter(Boolean) as string[],
+      },
+    };
+  },
+};
 
 REGISTRY["surya/reading-order"] = {
   apiPath: "/api/v1/models/surya/reading-order",

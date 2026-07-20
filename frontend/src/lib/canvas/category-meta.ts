@@ -89,6 +89,9 @@ export const DEFAULT_NODE_PARAMS: Record<
   },
   "docling/ocr-auto": { langs: "eng", confidence_threshold: 0.5 },
   "surya/text-recognition": { langs: "en", confidence_threshold: 0.5 },
+  "paddle/doclayout-s": { device: "cuda", confidence_threshold: 0.5 },
+  "paddle/ocr-v6-small": { confidence_threshold: 0.5 },
+  "paddle/pp-structure": {},
   export: { pretty: true },
 };
 

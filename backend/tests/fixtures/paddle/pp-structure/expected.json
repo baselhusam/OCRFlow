@@ -1,0 +1,7 @@
+{
+  "model_id": "paddle/pp-structure",
+  "notes": "Golden output placeholder. Populate regions/lines/tables from a real GPU smoke run.",
+  "regions": [],
+  "lines": [],
+  "tables": []
+}

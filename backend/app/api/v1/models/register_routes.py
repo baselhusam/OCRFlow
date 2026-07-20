@@ -15,8 +15,7 @@ from app.db.models.user import User
 from app.db.session import get_db
 from app.models.base import ModelConfig
 from app.models.cache import get_runner_cache
-from app.models.registry import ModelNotFoundError
-from app.models.runner_factory import RUNNER_FACTORIES, get_cached_runner
+from app.models.runner_factory import build_runner, get_cached_runner
 from app.services.analytics_recorder import record_inference_event
 
 InputT = TypeVar("InputT", bound=BaseModel)
@@ -73,9 +72,6 @@ def register_model_routes(
         if cached is not None:
             result = await cached.health()
             return result.model_dump()
-        factory = RUNNER_FACTORIES.get(model_id)
-        if factory is None:
-            raise ModelNotFoundError(f"No runner registered for model id: {model_id}")
-        runner = factory()
+        runner = build_runner(model_id)
         result = await runner.health()
         return result.model_dump()

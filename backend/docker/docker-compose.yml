@@ -1,3 +1,34 @@
+# OCRFlow model-serving stack.
+#
+# Infra (postgres, redis) has no profile, so it always starts. The gateway and
+# the per-provider services are gated behind profiles so you can run all of them
+# or just a subset:
+#
+#   docker compose --profile gateway --profile paddle up --build   # gateway + paddle
+#   docker compose --profile all up --build                        # everything
+#
+# GPU overlay:
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml --profile all up
+#
+# Build context is the backend/ directory (one level up from this file).
+
+x-service-base: &service-base
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile
+  restart: unless-stopped
+  environment: &service-env
+    OCRFLOW_MODEL_CACHE: /models
+    HF_HOME: /models/hf
+    OCRFLOW_UPLOAD_DIR: /data/uploads
+    OCRFLOW_DEFAULT_DEVICE: cpu
+  healthcheck:
+    test: ["CMD", "curl", "-fsS", "http://localhost:8000/internal/health"]
+    interval: 10s
+    timeout: 3s
+    retries: 5
+    start_period: 30s
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -30,6 +61,92 @@ services:
       timeout: 5s
       retries: 5
 
+  # --- Gateway (thin API; forwards inference to provider services) ---------- #
+  gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: gateway
+    container_name: ocrflow-gateway
+    restart: unless-stopped
+    profiles: ["gateway", "all"]
+    env_file:
+      - .env
+    environment:
+      OCRFLOW_RUNNER_MODE: remote
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-ocrflow}:${POSTGRES_PASSWORD:-ocrflow_dev}@postgres:5432/${POSTGRES_DB:-ocrflow}
+      REDIS_URL: redis://redis:6379/0
+      OCRFLOW_DOCLING_SERVICE_URL: http://docling:8000
+      OCRFLOW_SURYA_SERVICE_URL: http://surya:8000
+      OCRFLOW_PADDLE_SERVICE_URL: http://paddle:8000
+      OCRFLOW_UPLOAD_DIR: /data/uploads
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ocrflow_uploads:/data/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+  # --- Provider services (internal only; no published ports) ---------------- #
+  paddle:
+    <<: *service-base
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: paddle
+    container_name: ocrflow-paddle
+    profiles: ["paddle", "all"]
+    environment:
+      <<: *service-env
+      OCRFLOW_SERVICE_PROVIDER: paddle
+    volumes:
+      - ocrflow_paddle_models:/models
+      - ocrflow_uploads:/data/uploads:ro
+
+  docling:
+    <<: *service-base
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: docling
+    container_name: ocrflow-docling
+    profiles: ["docling", "all"]
+    environment:
+      <<: *service-env
+      OCRFLOW_SERVICE_PROVIDER: docling
+    volumes:
+      - ocrflow_docling_models:/models
+      - ocrflow_uploads:/data/uploads:ro
+
+  surya:
+    <<: *service-base
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: surya
+    container_name: ocrflow-surya
+    profiles: ["surya", "all"]
+    environment:
+      <<: *service-env
+      OCRFLOW_SERVICE_PROVIDER: surya
+    volumes:
+      - ocrflow_surya_models:/models
+      - ocrflow_uploads:/data/uploads:ro
+
 volumes:
   ocrflow_pg_data:
   ocrflow_redis_data:
+  ocrflow_uploads:
+  ocrflow_paddle_models:
+  ocrflow_docling_models:
+  ocrflow_surya_models:

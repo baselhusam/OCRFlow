@@ -109,6 +109,8 @@ export const WIRE_KIND_DISPLAY_LABELS: Record<WireKind, string> = {
 export const MODEL_OUTPUT_DISPLAY_OVERRIDES: Record<string, string> = {
   "docling/ocr-auto": "TextLine[] (with text)",
   "surya/text-recognition": "TextLine[] (with text)",
+  "paddle/ocr-v6-small": "TextLine[] (with text)",
+  "paddle/pp-structure": "PageArtifact + regions/lines/tables",
   "docling/picture-description-smolvlm": "TextLine[] (with text)",
   "docling/code-formula-v2": "Formula[] (with LaTeX)",
   "surya/latex-ocr": "Formula[] (with LaTeX)",
@@ -159,6 +161,9 @@ export const MODEL_WIRE_KINDS: Record<
   "loader/page-branch": { input: "page_artifact_array", output: "page_artifact" },
   "surya/layout": { input: "page_artifact", output: "page_artifact_regions" },
   "docling/layout-heron": { input: "page_artifact", output: "page_artifact_regions" },
+  "paddle/doclayout-s": { input: "page_artifact", output: "page_artifact_regions" },
+  "paddle/ocr-v6-small": { input: "page_artifact", output: "text_line_array" },
+  "paddle/pp-structure": { input: "page_artifact", output: "page_artifact_regions" },
   "layout/region-branch": {
     input: "page_artifact_regions",
     output: "page_artifact_regions",
@@ -217,6 +222,9 @@ const MODEL_CATEGORIES: Record<string, string> = {
   "loader/page-branch": "page_loader",
   "surya/layout": "layout_detection",
   "docling/layout-heron": "layout_detection",
+  "paddle/doclayout-s": "layout_detection",
+  "paddle/ocr-v6-small": "text_recognition",
+  "paddle/pp-structure": "table_structure",
   "layout/region-branch": "layout_detection",
   "figure/caption-branch": "figure_captioning",
   "surya/text-detection": "text_detection",
