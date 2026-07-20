@@ -99,7 +99,25 @@ git clone https://github.com/baselhusam/OCRFlow.git
 cd OCRFlow
 ```
 
-### 2. Backend
+### 2. Run the whole stack with Docker (recommended)
+
+The fastest path. Brings up the frontend, API gateway, model-provider services,
+Postgres, and Redis together. Requires Docker (with Compose v2) and `make` — no
+local Python/Node/Postgres/Redis needed.
+
+```bash
+cp backend/docker/.env.example backend/docker/.env   # Postgres creds + gateway config
+
+make up            # build + start everything (frontend :3000, API :8000)
+make db-migrate    # apply database migrations
+
+make logs          # follow logs   ·   make down to stop   ·   make help for all targets
+```
+
+On an NVIDIA host, use `make gpu-up` to enable CUDA for the provider services.
+See [Development](#-development) for the full list of `make` targets.
+
+### 3. Backend (manual / host dev)
 
 ```bash
 cd backend
@@ -115,24 +133,35 @@ uvicorn app.main:app --reload            # API at http://localhost:8000
 Start a Celery worker in a second terminal for background jobs:
 
 ```bash
-celery -A app.worker worker --loglevel=info
+celery -A app.celery_app:celery_app worker --loglevel=info
 ```
 
-### 3. Frontend
+### 4. Frontend (manual / host dev)
 
 ```bash
 cd frontend
 npm install
-cp .env.local.example .env.local          # point NEXT_PUBLIC_API_URL at the backend
+cp .env.local.example .env.local          # point API_URL at the backend
 
 npm run dev                               # app at http://localhost:3000
 ```
 
-> ℹ️ Exact module paths (`app.main`, `app.worker`) may differ — check `backend/app/` and `backend/docs/` for the current entrypoints.
-
 ---
 
 ## 🧪 Development
+
+Common workflows are wrapped in the root `Makefile` — run `make help` for the
+full list. A few highlights:
+
+```bash
+make up / make down        # start / stop the full Docker stack
+make db-migrate            # run migrations inside the gateway container
+make test                  # backend + frontend test suites
+make be-api / make fe-dev  # host-based backend API / frontend dev servers
+make be-worker             # Celery worker for background jobs
+```
+
+Or run the tools directly:
 
 ```bash
 # Backend

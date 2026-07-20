@@ -1,0 +1,22 @@
+# Keep the build context small and reproducible.
+node_modules
+.next
+out
+build
+coverage
+
+# Local env + secrets (API_URL is injected at runtime by compose).
+.env*
+
+# VCS / editor / OS noise
+.git
+.gitignore
+.DS_Store
+*.tsbuildinfo
+.vercel
+
+# Tooling artefacts not needed to build
+Dockerfile
+.dockerignore
+README.md
+npm-debug.log*

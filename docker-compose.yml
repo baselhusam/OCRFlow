@@ -1,0 +1,48 @@
+# OCRFlow — full-stack orchestration (repo-root entrypoint).
+#
+# This is the single top-level entrypoint for running the whole app in Docker.
+# It pulls in the backend model-serving stack (postgres, redis, the API gateway,
+# and the per-provider paddle/docling/surya services) from
+# backend/docker/docker-compose.yml via `include`, then layers the Next.js
+# frontend on top. The backend file stays the source of truth — its build
+# contexts and env_file paths resolve relative to its own location, untouched.
+#
+# The stack keeps the backend's profile scheme, so the usual entrypoint is the
+# `all` profile (what `make up` uses):
+#
+#   docker compose --profile all up -d --build      # frontend + gateway + providers + db
+#
+# Run a subset by naming profiles, e.g. gateway + one provider + frontend:
+#
+#   docker compose --profile gateway --profile paddle --profile frontend up --build
+#
+# GPU overlay (NVIDIA host + NVIDIA Container Toolkit):
+#
+#   docker compose -f docker-compose.yml -f backend/docker/docker-compose.gpu.yml \
+#     --profile all up -d --build
+#
+# Prefer the Makefile (`make help`) over invoking compose directly.
+
+name: ocrflow
+
+include:
+  - backend/docker/docker-compose.yml
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ocrflow-frontend
+    restart: unless-stopped
+    profiles: ["frontend", "all"]
+    environment:
+      NODE_ENV: production
+      # Server-side base URL the Next.js route handlers use to reach the API.
+      # On the compose network the gateway is reachable by service name.
+      API_URL: http://gateway:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      gateway:
+        condition: service_healthy
