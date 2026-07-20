@@ -95,8 +95,7 @@ function PortStatusDot({ status }: { status: "ok" | "warn" | "error" | "none" })
 }
 
 function PipelineNodeComponent(props: NodeProps) {
-  const { id, data, selected } = props;
-  const nodeData = data as PipelineNodeData;
+  const nodeData = props.data as PipelineNodeData;
   if (isPageBranchNode(nodeData.modelId)) {
     return <PageBranchPipelineNode {...props} />;
   }
@@ -109,6 +108,16 @@ function PipelineNodeComponent(props: NodeProps) {
   if (isDocumentBranchNode(nodeData.modelId)) {
     return <DocumentBranchPipelineNode {...props} />;
   }
+  return <DefaultPipelineNode {...props} />;
+}
+
+// Default node body — rendered for every model that isn't one of the branch
+// node types dispatched above. Extracted into its own component so the Hooks
+// below always run unconditionally; the model-type early returns live in the
+// dispatcher (PipelineNodeComponent), keeping this component's Hook order stable.
+function DefaultPipelineNode(props: NodeProps) {
+  const { id, data, selected } = props;
+  const nodeData = data as PipelineNodeData;
 
   const isPageLoader = nodeData.category === "page_loader";
   const isPageAt = isPageAtAnchor(nodeData.modelId);

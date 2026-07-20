@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 
 import { ItemOutputHandle } from "@/components/canvas/nodes/output/item-output-handle";
@@ -15,7 +15,7 @@ const itemVariants = {
   }),
 };
 
-const documentVariants = {
+const documentVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,

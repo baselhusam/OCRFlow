@@ -435,7 +435,7 @@ function PipelineCanvasInner({
   );
 
   const onNodeDragStart = useCallback(
-    (_event: React.MouseEvent, node: Node<PipelineNodeData>) => {
+    (_event: MouseEvent | TouchEvent, node: Node<PipelineNodeData>) => {
       if (readOnly) return;
 
       const isDuplicateDrag = _event.metaKey || _event.ctrlKey;

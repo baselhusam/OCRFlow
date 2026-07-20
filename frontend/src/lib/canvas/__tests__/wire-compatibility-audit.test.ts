@@ -18,7 +18,8 @@ import {
   getNodeWireKinds,
   MODEL_WIRE_KINDS,
 } from "@/lib/canvas/wire-types";
-import type { Node, PipelineNodeData } from "@xyflow/react";
+import type { Node } from "@xyflow/react";
+import type { PipelineNodeData } from "@/lib/canvas/types";
 
 function buildNode(
   entry: (typeof AUDIT_DONE_MODELS)[number],

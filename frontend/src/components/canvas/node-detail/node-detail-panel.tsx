@@ -127,6 +127,7 @@ function NodeDetailBody({
       modelId: null,
       sourceHandle: null,
       edgeId: null,
+      assetId: null,
     };
 
     return (
