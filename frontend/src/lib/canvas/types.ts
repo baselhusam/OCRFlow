@@ -48,6 +48,18 @@ export type CategoryMeta = {
   status: string;
 };
 
+export type ProviderRuntime = {
+  provider: string;
+  running: boolean;
+  mode: string;
+  detail: string | null;
+};
+
+export type RuntimeAvailability = {
+  mode: string;
+  providers: ProviderRuntime[];
+};
+
 export type NodeRunErrorCode =
   | "model_load"
   | "model_inference"

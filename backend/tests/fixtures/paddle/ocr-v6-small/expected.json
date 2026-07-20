@@ -1,0 +1,5 @@
+{
+  "model_id": "paddle/ocr-v6-small",
+  "notes": "Golden output placeholder. Populate recognized lines from a real GPU smoke run.",
+  "lines": []
+}

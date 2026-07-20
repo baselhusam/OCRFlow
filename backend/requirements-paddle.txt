@@ -1,0 +1,6 @@
+-r requirements.txt
+# PaddlePaddle wheels are platform-specific (CPU vs CUDA build, limited Apple-Silicon
+# support). Default to the CPU build; GPU users should install the matching
+# paddlepaddle-gpu wheel per https://www.paddlepaddle.org.cn/install
+paddlepaddle>=3.0.0
+paddleocr>=3.0.0

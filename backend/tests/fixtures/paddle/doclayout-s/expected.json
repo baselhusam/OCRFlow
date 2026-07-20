@@ -1,0 +1,5 @@
+{
+  "model_id": "paddle/doclayout-s",
+  "notes": "Golden output placeholder. Populate region bboxes/labels from a real GPU smoke run.",
+  "regions": []
+}

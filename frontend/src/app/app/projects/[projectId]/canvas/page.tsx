@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { CanvasShell } from "@/components/canvas/canvas-shell";
-import { fetchModelCatalog, fetchModelCategories } from "@/lib/api/models";
+import {
+  fetchModelCatalog,
+  fetchModelCategories,
+  fetchRuntimeAvailability,
+} from "@/lib/api/models";
 import type { PipelineList, Project, User } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
 import { canWrite } from "@/lib/auth/roles";
@@ -26,9 +30,10 @@ export default async function CanvasPage({ params }: CanvasPageProps) {
     notFound();
   }
 
-  const [models, categories, pipelinesResponse] = await Promise.all([
+  const [models, categories, runtime, pipelinesResponse] = await Promise.all([
     fetchModelCatalog(),
     fetchModelCategories(),
+    fetchRuntimeAvailability(),
     authenticatedApiFetch<PipelineList>("/api/v1/pipelines"),
   ]);
   const pipelines = pipelinesResponse.data.items;
@@ -41,6 +46,7 @@ export default async function CanvasPage({ params }: CanvasPageProps) {
       initialGraph={project.graph}
       models={models}
       categories={categories}
+      runtime={runtime}
       readOnly={!canWrite(user)}
       userPipelines={pipelines}
     />

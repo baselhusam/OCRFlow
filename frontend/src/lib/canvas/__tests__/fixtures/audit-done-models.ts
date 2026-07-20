@@ -56,6 +56,9 @@ export const AUDIT_DONE_MODELS: ModelCatalogEntry[] = [
   model("docling/picture-description-smolvlm", "figure_captioning", "docling", "Docling Picture Description"),
   model("docling/vlm-granite-docling", "vlm_convert", "docling", "Granite-Docling VLM"),
   model("docling/convert-pipeline", "assembler", "docling", "Docling DocumentConverter"),
+  model("paddle/doclayout-s", "layout_detection", "paddle", "PaddleOCR PP-DocLayout-S"),
+  model("paddle/ocr-v6-small", "text_recognition", "paddle", "PaddleOCR PP-OCR small"),
+  model("paddle/pp-structure", "table_structure", "paddle", "PaddleOCR PP-StructureV3"),
 ];
 
 const REGION_CONSUMERS = [
@@ -68,7 +71,20 @@ const REGION_CONSUMERS = [
   "docling/picture-classifier-v2.5",
 ];
 
-const LAYOUT_NODES = ["docling/layout-heron", "surya/layout"];
+// All region producers (input PageArtifact → output PageArtifact + regions).
+// paddle/doclayout-s and paddle/pp-structure are wire-identical to the layout nodes.
+const LAYOUT_NODES = [
+  "docling/layout-heron",
+  "surya/layout",
+  "paddle/doclayout-s",
+  "paddle/pp-structure",
+];
+
+// Page-OCR nodes: input PageArtifact → output TextLine[].
+const PAGE_OCR_NODES = ["docling/ocr-auto", "paddle/ocr-v6-small"];
+
+// Everything that consumes a raw PageArtifact (layout + page-OCR nodes).
+const PAGE_CONSUMERS = [...LAYOUT_NODES, ...PAGE_OCR_NODES];
 
 const PAGE_SOURCES = ["loader/pdf", "loader/image", "loader/page-at"];
 
@@ -81,11 +97,15 @@ export const EXPECTED_UPSTREAM: Record<string, string[]> = {
   "docling/layout-heron": PAGE_SOURCES,
   "surya/layout": PAGE_SOURCES,
   "docling/ocr-auto": PAGE_SOURCES,
+  "paddle/doclayout-s": PAGE_SOURCES,
+  "paddle/ocr-v6-small": PAGE_SOURCES,
+  "paddle/pp-structure": PAGE_SOURCES,
   "surya/text-detection": [...LAYOUT_NODES, "loader/page-at"],
   "surya/text-recognition": [
     "docling/ocr-auto",
     "surya/text-detection",
     "docling/picture-description-smolvlm",
+    "paddle/ocr-v6-small",
   ],
   "surya/reading-order": [...LAYOUT_NODES, "loader/page-at"],
   "docling/tableformer-accurate": [...LAYOUT_NODES, "loader/page-at"],
@@ -104,35 +124,22 @@ export const EXPECTED_DOWNSTREAM: Record<string, string[]> = {
     "loader/page-at",
     "docling/convert-pipeline",
     "docling/vlm-granite-docling",
-    "docling/layout-heron",
-    "surya/layout",
-    "docling/ocr-auto",
+    ...PAGE_CONSUMERS,
   ],
   "loader/image": [
     "loader/page-at",
     "docling/convert-pipeline",
     "docling/vlm-granite-docling",
-    "docling/layout-heron",
-    "surya/layout",
-    "docling/ocr-auto",
+    ...PAGE_CONSUMERS,
   ],
-  "loader/page-at": [
-    "loader/page-branch",
-    "docling/layout-heron",
-    "surya/layout",
-    "docling/ocr-auto",
-    ...REGION_CONSUMERS,
-  ],
-  "loader/page-branch": [
-    "loader/page-at",
-    "docling/layout-heron",
-    "surya/layout",
-    "docling/ocr-auto",
-    ...REGION_CONSUMERS,
-  ],
+  "loader/page-at": ["loader/page-branch", ...PAGE_CONSUMERS, ...REGION_CONSUMERS],
+  "loader/page-branch": ["loader/page-at", ...PAGE_CONSUMERS, ...REGION_CONSUMERS],
   "docling/layout-heron": REGION_CONSUMERS,
   "surya/layout": REGION_CONSUMERS,
+  "paddle/doclayout-s": REGION_CONSUMERS,
+  "paddle/pp-structure": REGION_CONSUMERS,
   "docling/ocr-auto": ["surya/text-recognition"],
+  "paddle/ocr-v6-small": ["surya/text-recognition"],
   "surya/text-detection": ["surya/text-recognition"],
   "surya/text-recognition": [],
   "surya/reading-order": [],

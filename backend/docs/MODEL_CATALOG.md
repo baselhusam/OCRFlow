@@ -736,14 +736,14 @@ Brief entries — expand into full checklists when we reach their phase.
 
 | ID | Model | Compute | Status |
 |----|-------|---------|--------|
-| `paddle/doclayout-s` | PP-DocLayout-S (1.2M) | cpu/gpu-low | planned |
+| `paddle/doclayout-s` | PP-DocLayout-S (1.2M) | cpu/gpu-low | done |
 | `paddle/doclayout-m` | PP-DocLayout-M | gpu-low | planned |
 
 ## Text detection / recognition
 
 | ID | Model | Compute | Status |
 |----|-------|---------|--------|
-| `paddle/ocr-v6-small` | PP-OCRv6-small det+rec | cpu/gpu-low | planned |
+| `paddle/ocr-v6-small` | PP-OCRv6-small det+rec | cpu/gpu-low | done |
 | `tesseract/default` | Tesseract 5.x | cpu | planned |
 | `rapidocr/default` | RapidOCR ONNX | cpu | planned |
 | `easyocr/default` | EasyOCR | gpu-low | deferred |
@@ -756,7 +756,7 @@ Brief entries — expand into full checklists when we reach their phase.
 |----|-------|--------|
 | `microsoft/tatr-detection` | Table Transformer detection | planned |
 | `microsoft/tatr-structure` | Table Transformer structure | planned |
-| `paddle/pp-structure` | PP-StructureV3 | planned |
+| `paddle/pp-structure` | PP-StructureV3 | done |
 
 ## Formula
 
@@ -909,3 +909,67 @@ Install: `pip install -r requirements-surya.txt`
 | RAM (CPU inference) | ~2–4 GB during inference |
 | VRAM (CUDA/MPS) | ~1–2 GB |
 | Known limits | `max_image_dimension` default 4096; timeout default 120s |
+
+---
+
+# Provider: PaddleOCR (Phase 3)
+
+**Why:** Permissive (Apache-2.0) self-hostable stack covering layout, OCR, and full
+document parsing. Wraps PaddleOCR/PaddlePaddle via the standard adapter pattern — the
+heavy `paddleocr` import is lazy (inside each runner's `_load_impl`), so the app boots
+and CPU tests run without paddle installed.
+
+**Install:** `pip install -r requirements-paddle.txt`
+(PaddlePaddle wheels are platform-specific; the file pins the CPU build. GPU users
+install the matching `paddlepaddle-gpu` wheel per <https://www.paddlepaddle.org.cn/install>.)
+
+**Device mapping:** `Device.cuda` → paddle `gpu`; `Device.cpu`/`Device.mps` → `cpu`
+(PaddlePaddle has no MPS backend). Weights download to `OCRFLOW_MODEL_CACHE/paddle`.
+
+## `paddle/doclayout-s` — layout detection ⭐
+
+| | |
+|--|--|
+| Model | PP-DocLayout-S | Status | `done` |
+| Category | `layout_detection` | Compute | cpu / gpu-low |
+
+- **Input:** `DocLayoutInput{page, options{confidence_threshold=0.5}}`
+- **Output:** `DocLayoutOutput{page_index, regions[], meta}` — each `Region` carries the
+  mapped `LayoutLabel`, normalized `bbox` (0..1), `confidence`, and the raw paddle label
+  in `provider_label`.
+- **Label mapping:** `app/models/paddle/_label_map.py` (`text`→paragraph, `table`→table,
+  `figure`→figure, `formula`→formula, …; unknown → `other`).
+
+## `paddle/ocr-v6-small` — text recognition
+
+| | |
+|--|--|
+| Model | PaddleOCR small/mobile det+rec (PP-OCRv5 mobile until v6 ships) | Status | `done` |
+| Category | `text_recognition` | Compute | cpu / gpu-low |
+
+- **Input:** `PaddleOcrInput{page, regions[]=[], languages=["en"], options{use_angle_cls, confidence_threshold}}`
+- **Output:** `PaddleOcrOutput{page_index, lines[], meta}` (`TextLine` with bbox + polygon + text + confidence).
+- **Regions:** empty → full-page det+rec; supplied → crops each region and returns one line per region.
+
+## `paddle/pp-structure` — document parsing (full page artifact)
+
+| | |
+|--|--|
+| Model | PP-StructureV3 | Status | `done` |
+| Category | `table_structure` (returns full page artifact) | Compute | cpu / gpu-low |
+
+- **Input:** `PpStructureInput{page, options{do_ocr=true}}`
+- **Output:** `PpStructureOutput{page_index, regions[], lines[], tables[], meta}` — a
+  flattened `PageArtifact`: layout `regions`, OCR `lines`, and `tables` (`TableStructure`
+  with `html`). Table `cells` are left empty (HTML preserved) pending cell parsing.
+
+## Resource notes — PaddleOCR
+
+| Resource | Estimate |
+|----------|----------|
+| First-run download | ~10–100 MB per model to `OCRFLOW_MODEL_CACHE/paddle` |
+| RAM (CPU inference) | ~1–3 GB; PP-StructureV3 higher (multi-model pipeline) |
+| VRAM (CUDA) | ~1–3 GB (`doclayout-s`/`ocr-v6-small`), more for `pp-structure` |
+| Known limits | `max_image_dimension` default 4096; timeout default 120s; smoke tests are `@pytest.mark.gpu` and skip without paddle installed |
+
+*Last updated: 2026-07-19 — PaddleOCR doclayout-s, ocr-v6-small, pp-structure implemented.*

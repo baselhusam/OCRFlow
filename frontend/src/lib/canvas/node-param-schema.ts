@@ -169,6 +169,9 @@ const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
     { key: "keep_empty_clusters", label: "Keep empty clusters", type: "boolean" },
     { key: "skip_cell_assignment", label: "Skip cell assignment", type: "boolean" },
   ],
+  "paddle/doclayout-s": [CONFIDENCE_FIELD],
+  "paddle/ocr-v6-small": [CONFIDENCE_FIELD],
+  "paddle/pp-structure": [],
   "surya/text-recognition": [LANGS_SELECT_FIELD, CONFIDENCE_FIELD],
   "docling/ocr-auto": [DOCLING_LANGS_SELECT_FIELD, CONFIDENCE_FIELD],
   "docling/tableformer-accurate": [

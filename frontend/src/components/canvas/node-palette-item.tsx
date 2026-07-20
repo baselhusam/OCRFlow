@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ProviderLogo } from "@/components/canvas/provider-logo";
+import { useRuntimeAvailability } from "@/components/canvas/runtime-availability-context";
 import { getModelWireTypes } from "@/lib/canvas/model-utils";
 import { formatWireLabel } from "@/lib/canvas/wire-labels";
 import {
@@ -32,8 +33,15 @@ export function NodePaletteItem({
   const wire = getModelWireTypes(model);
   const description = getModelDescription(model);
   const accent = categoryColor ?? "var(--border)";
+  const { getModelStatus } = useRuntimeAvailability();
+  const runtime = getModelStatus(model);
+  const offline = runtime.offline;
 
   const handleDragStart = (event: React.DragEvent) => {
+    if (offline) {
+      event.preventDefault();
+      return;
+    }
     event.dataTransfer.setData(
       DRAG_MODEL_MIME,
       JSON.stringify({ type: "model", modelId: model.id }),
@@ -42,6 +50,7 @@ export function NodePaletteItem({
   };
 
   const handleClick = () => {
+    if (offline) return;
     requestPaletteAdd(model.id);
   };
 
@@ -51,35 +60,50 @@ export function NodePaletteItem({
         render={
           <button
             type="button"
-            draggable
+            draggable={!offline}
             onDragStart={handleDragStart}
             onClick={handleClick}
+            aria-disabled={offline}
+            data-offline={offline || undefined}
             className={cn(
-              "flex w-full cursor-grab items-center gap-2.5 rounded-lg border border-border/60 bg-muted/20 px-2.5 py-2 text-left",
-              "transition-colors hover:bg-muted/40 active:cursor-grabbing",
+              "flex w-full items-center gap-2.5 rounded-lg border border-border/60 bg-muted/20 px-2.5 py-2 text-left",
+              offline
+                ? "cursor-not-allowed opacity-50"
+                : "cursor-grab transition-colors hover:bg-muted/40 active:cursor-grabbing",
             )}
             style={{ borderLeftWidth: 2.5, borderLeftColor: accent }}
-            title={description}
+            title={offline ? runtime.message : description}
           >
             <ProviderLogo
               provider={model.provider}
               size={24}
               className="shrink-0"
+              status={offline ? "offline" : undefined}
             />
             <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-foreground">
               {getModelLabel(model)}
             </span>
-            <GripVertical
-              className="size-3.5 shrink-0 text-muted-foreground/50"
-              aria-hidden
-            />
+            {offline ? (
+              <span className="shrink-0 rounded-full bg-amber-500/15 px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-wide text-amber-600 uppercase dark:text-amber-400">
+                offline
+              </span>
+            ) : (
+              <GripVertical
+                className="size-3.5 shrink-0 text-muted-foreground/50"
+                aria-hidden
+              />
+            )}
           </button>
         }
       />
       <TooltipContent side="right" align="start" className="max-w-xs">
         <div className="space-y-1.5">
           <p className="font-medium">{getModelLabel(model)}</p>
-          <p className="text-background/80">{description}</p>
+          {offline ? (
+            <p className="text-amber-300">{runtime.message}</p>
+          ) : (
+            <p className="text-background/80">{description}</p>
+          )}
           <p className="font-mono text-[10px] text-background/70">
             {model.provider} · {formatComputeTier(model.compute)}
           </p>

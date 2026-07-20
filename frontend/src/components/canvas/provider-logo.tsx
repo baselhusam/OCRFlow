@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const PROVIDER_LOGOS: Record<string, string | undefined> = {
   docling: "/models_logos/docling.png",
   surya: "/models_logos/surya_ocr_svg.svg",
+  paddle: "/models_logos/paddle_ocr_logo.png",
 };
 
 /** Native OCRFlow pipeline providers (loaders, export, transforms, etc.). */
@@ -38,16 +39,33 @@ function isOcrflowPlatformProvider(provider: string): boolean {
   return OCRFLOW_PLATFORM_PROVIDERS.has(provider);
 }
 
+type ProviderStatus = "online" | "offline";
+
 type ProviderLogoProps = {
   provider: string;
   size?: number;
   className?: string;
+  /** When set, overlays a small runtime status dot on the logo. */
+  status?: ProviderStatus;
 };
+
+function StatusDot({ status }: { status: ProviderStatus }) {
+  return (
+    <span
+      className={cn(
+        "absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2 ring-background",
+        status === "online" ? "bg-emerald-500" : "bg-amber-500",
+      )}
+      aria-hidden
+    />
+  );
+}
 
 export function ProviderLogo({
   provider,
   size = 18,
   className,
+  status,
 }: ProviderLogoProps) {
   const [failed, setFailed] = useState(false);
   const src = PROVIDER_LOGOS[provider];
@@ -55,39 +73,52 @@ export function ProviderLogo({
     PROVIDER_MONOGRAMS[provider] ??
     provider.slice(0, 2).toUpperCase();
 
-  if (!src || failed) {
-    if (isOcrflowPlatformProvider(provider)) {
+  const inner = (() => {
+    if (!src || failed) {
+      if (isOcrflowPlatformProvider(provider)) {
+        return (
+          <SegmentMark
+            size={size}
+            className={cn("text-foreground", className)}
+          />
+        );
+      }
+
       return (
-        <SegmentMark
-          size={size}
-          className={cn("text-foreground", className)}
-        />
+        <span
+          className={cn(
+            "inline-flex shrink-0 items-center justify-center font-mono text-[9px] font-medium tracking-wide text-muted-foreground uppercase",
+            className,
+          )}
+          style={{ width: size, height: size }}
+          aria-hidden
+        >
+          {monogram}
+        </span>
       );
     }
 
     return (
-      <span
-        className={cn(
-          "inline-flex shrink-0 items-center justify-center font-mono text-[9px] font-medium tracking-wide text-muted-foreground uppercase",
-          className,
-        )}
-        style={{ width: size, height: size }}
+      <Image
+        src={src}
+        alt=""
+        width={size}
+        height={size}
+        className={cn("shrink-0 object-contain", className)}
+        onError={() => setFailed(true)}
         aria-hidden
-      >
-        {monogram}
-      </span>
+      />
     );
+  })();
+
+  if (!status) {
+    return inner;
   }
 
   return (
-    <Image
-      src={src}
-      alt=""
-      width={size}
-      height={size}
-      className={cn("shrink-0 object-contain", className)}
-      onError={() => setFailed(true)}
-      aria-hidden
-    />
+    <span className="relative inline-flex shrink-0" style={{ width: size, height: size }}>
+      {inner}
+      <StatusDot status={status} />
+    </span>
   );
 }
