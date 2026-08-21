@@ -190,7 +190,7 @@ OCRFlow/
 │   ├── scripts/             #   utility scripts
 │   ├── tests/               #   pytest suite
 │   ├── docs/                #   model catalog & implementation plan
-│   └── requirements*.txt    #   core / dev / docling / surya deps
+│   └── requirements*.txt    #   core / dev / docling / surya / paddle deps
 ├── frontend/                # Next.js app
 │   ├── src/
 │   │   ├── app/             #   App Router pages

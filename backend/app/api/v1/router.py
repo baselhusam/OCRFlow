@@ -6,6 +6,7 @@ from app.api.v1 import (
     analytics,
     auth,
     members,
+    pipeline_jobs,
     pipeline_runs,
     pipelines,
     project_assets,
@@ -24,6 +25,16 @@ api_router.include_router(
     pipeline_runs.router,
     prefix="/pipelines",
     tags=["pipeline-runs"],
+)
+api_router.include_router(
+    pipeline_jobs.pipeline_jobs_router,
+    prefix="/pipelines",
+    tags=["pipeline-jobs"],
+)
+api_router.include_router(
+    pipeline_jobs.jobs_router,
+    prefix="/jobs",
+    tags=["pipeline-jobs"],
 )
 api_router.include_router(
     project_assets.router,

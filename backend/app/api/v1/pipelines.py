@@ -226,3 +226,71 @@ async def remove_pipeline_logo(
 
     settings = get_settings()
     delete_pipeline_logo(settings.upload_dir, str(pipeline_id))
+
+
+_MAX_BATCH_FILES = 50
+
+
+@router.post(
+    "/{pipeline_id}/assets",
+    response_model=AssetUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_pipeline_asset(
+    pipeline_id: uuid.UUID,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> AssetUploadResponse:
+    """Upload a document into the pipeline's asset namespace for headless runs."""
+    require_write_access(current_user)
+    pipeline = await get_accessible_pipeline(db, pipeline_id, current_user)
+    if pipeline is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pipeline not found")
+
+    settings = get_settings()
+    namespace = resolve_asset_project_id(pipeline_id=pipeline.id, explicit_project_id=None)
+    return await save_project_asset(
+        upload_dir=settings.upload_dir,
+        project_id=namespace,
+        file=file,
+    )
+
+
+@router.post(
+    "/{pipeline_id}/assets/batch",
+    response_model=AssetBatchUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_pipeline_assets_batch(
+    pipeline_id: uuid.UUID,
+    files: list[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> AssetBatchUploadResponse:
+    """Upload many documents to apply this pipeline to."""
+    require_write_access(current_user)
+    pipeline = await get_accessible_pipeline(db, pipeline_id, current_user)
+    if pipeline is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pipeline not found")
+    if not files:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No files provided")
+    if len(files) > _MAX_BATCH_FILES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Too many files (max {_MAX_BATCH_FILES})",
+        )
+
+    settings = get_settings()
+    namespace = resolve_asset_project_id(pipeline_id=pipeline.id, explicit_project_id=None)
+    items: list[AssetUploadResponse] = []
+    for file in files:
+        items.append(
+            await save_project_asset(
+                upload_dir=settings.upload_dir,
+                project_id=namespace,
+                file=file,
+            )
+        )
+    return AssetBatchUploadResponse(items=items)
+
