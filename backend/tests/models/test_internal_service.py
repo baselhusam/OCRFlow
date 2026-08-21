@@ -81,3 +81,19 @@ async def test_internal_health_ok():
         response = await client.get("/internal/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+async def test_model_health_when_optional_dep_missing(monkeypatch):
+    async def fake_probe(model_id: str):
+        from app.models.base import ModelHealth
+
+        return ModelHealth(model_id=model_id, loaded=False, message="missing docling")
+
+    monkeypatch.setattr(internal_app, "probe_runner_health", fake_probe)
+    transport = ASGITransport(app=_app())
+    async with AsyncClient(transport=transport, base_url="http://svc") as client:
+        response = await client.get("/internal/models/docling/layout-heron/health")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["model_id"] == "docling/layout-heron"
+    assert body["loaded"] is False

@@ -46,6 +46,7 @@ def test_layout_heron_health_endpoint():
     assert response.status_code == 200
     body = response.json()
     assert body["model_id"] == "docling/layout-heron"
+    assert isinstance(body["loaded"], bool)
 
 
 def test_list_surya_models_in_catalog():

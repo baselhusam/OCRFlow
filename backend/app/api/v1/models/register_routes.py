@@ -14,8 +14,7 @@ from app.api.v1.models.deps import get_model_config
 from app.db.models.user import User
 from app.db.session import get_db
 from app.models.base import ModelConfig
-from app.models.cache import get_runner_cache
-from app.models.runner_factory import build_runner, get_cached_runner
+from app.models.runner_factory import get_cached_runner, probe_runner_health
 from app.services.analytics_recorder import record_inference_event
 
 InputT = TypeVar("InputT", bound=BaseModel)
@@ -67,11 +66,6 @@ def register_model_routes(
         return result
 
     @router.post(f"{path}/health", tags=tags)
-    async def health(config: ModelConfig = Depends(get_model_config)) -> dict:
-        cached = await get_runner_cache().get(model_id)
-        if cached is not None:
-            result = await cached.health()
-            return result.model_dump()
-        runner = build_runner(model_id)
-        result = await runner.health()
+    async def health(_config: ModelConfig = Depends(get_model_config)) -> dict:
+        result = await probe_runner_health(model_id)
         return result.model_dump()

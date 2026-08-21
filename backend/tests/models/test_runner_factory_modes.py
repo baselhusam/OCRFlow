@@ -7,6 +7,7 @@ import pytest
 from app.core.config import get_settings
 from app.models import runner_factory
 from app.models.base_runner import BaseRunner
+from app.models.errors import ModelLoadError
 from app.models.remote_runner import RemoteModelRunner
 
 
@@ -59,3 +60,45 @@ def test_unknown_model_raises(monkeypatch, reset_settings):
 
     with pytest.raises(Exception):
         runner_factory.build_runner("nope/not-a-model")
+
+
+def test_missing_optional_import_is_model_load_error(monkeypatch, reset_settings):
+    monkeypatch.setenv("OCRFLOW_RUNNER_MODE", "local")
+    get_settings.cache_clear()
+
+    def _missing(_name: str):
+        raise ImportError("No module named 'docling'")
+
+    monkeypatch.setattr(runner_factory.importlib, "import_module", _missing)
+
+    with pytest.raises(ModelLoadError, match="docling"):
+        runner_factory.build_runner("docling/layout-heron")
+
+
+@pytest.mark.asyncio
+async def test_probe_health_when_optional_dep_missing(monkeypatch, reset_settings):
+    monkeypatch.setenv("OCRFLOW_RUNNER_MODE", "local")
+    get_settings.cache_clear()
+
+    def _missing(_name: str):
+        raise ImportError("No module named 'docling'")
+
+    monkeypatch.setattr(runner_factory.importlib, "import_module", _missing)
+
+    health = await runner_factory.probe_runner_health("docling/layout-heron")
+    assert health.model_id == "docling/layout-heron"
+    assert health.loaded is False
+    assert health.message is not None
+    assert "docling" in health.message.lower()
+
+
+@pytest.mark.asyncio
+async def test_probe_health_when_remote_provider_url_missing(monkeypatch, reset_settings):
+    monkeypatch.setenv("OCRFLOW_RUNNER_MODE", "remote")
+    monkeypatch.setenv("OCRFLOW_PADDLE_SERVICE_URL", "")
+    get_settings.cache_clear()
+
+    health = await runner_factory.probe_runner_health("paddle/doclayout-s")
+    assert health.model_id == "paddle/doclayout-s"
+    assert health.loaded is False
+    assert health.message is not None

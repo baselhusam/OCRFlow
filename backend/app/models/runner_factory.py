@@ -16,9 +16,10 @@ import importlib
 from collections.abc import Callable
 
 from app.core.config import RunnerMode, get_settings
-from app.models.base import ModelConfig
+from app.models.base import ModelConfig, ModelHealth
 from app.models.base_runner import BaseRunner
 from app.models.cache import get_runner_cache
+from app.models.errors import ModelLoadError
 from app.models.remote_runner import RemoteModelRunner
 from app.models.registry import ModelNotFoundError
 from app.models.servable import get_servable_model, is_remote_provider
@@ -29,9 +30,14 @@ def _lazy(module_path: str, class_name: str) -> Callable[[], BaseRunner]:
     """Build a factory that imports and constructs a runner on first call."""
 
     def factory() -> BaseRunner:
-        module = importlib.import_module(module_path)
-        runner_cls = getattr(module, class_name)
-        return runner_cls()
+        try:
+            module = importlib.import_module(module_path)
+            runner_cls = getattr(module, class_name)
+            return runner_cls()
+        except ImportError as exc:
+            raise ModelLoadError(
+                f"Optional dependency missing while loading {module_path}: {exc}"
+            ) from exc
 
     return factory
 
@@ -126,6 +132,28 @@ def build_runner(model_id: str) -> BaseRunner:
     provider's heavy local runner.
     """
     return _resolve_factory(model_id)()
+
+
+async def probe_runner_health(model_id: str) -> ModelHealth:
+    """Report health without crashing when an optional provider is absent.
+
+    Construction of some runners (notably Docling) imports the provider package
+    at module load time. CI and lightweight installs omit those extras, so
+    health must return ``loaded=False`` instead of raising ``ImportError``.
+    """
+    cached = await get_runner_cache().get(model_id)
+    if cached is not None:
+        return await cached.health()
+    try:
+        runner = build_runner(model_id)
+    except (ModelLoadError, ProviderServiceUnavailableError) as exc:
+        return ModelHealth(
+            model_id=model_id,
+            loaded=False,
+            device=None,
+            message=str(exc),
+        )
+    return await runner.health()
 
 
 async def get_cached_runner(model_id: str, config: ModelConfig) -> BaseRunner:

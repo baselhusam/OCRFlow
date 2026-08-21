@@ -18,7 +18,7 @@ from app.api.v1.models.errors import register_model_exception_handlers
 from app.core.config import get_settings
 from app.models.device import resolve_device
 from app.models.registry import ModelNotFoundError
-from app.models.runner_factory import build_runner, get_cached_runner
+from app.models.runner_factory import get_cached_runner, probe_runner_health
 from app.models.servable import get_servable_model
 
 
@@ -68,8 +68,7 @@ def create_internal_app() -> FastAPI:
     @app.get("/internal/models/{model_id:path}/health")
     async def model_health(model_id: str) -> JSONResponse:
         _resolve_servable(model_id)
-        runner = build_runner(model_id)
-        result = await runner.health()
+        result = await probe_runner_health(model_id)
         return JSONResponse(result.model_dump())
 
     @app.post("/internal/models/{model_id:path}")
