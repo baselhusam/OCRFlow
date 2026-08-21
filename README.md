@@ -108,14 +108,18 @@ local Python/Node/Postgres/Redis needed.
 ```bash
 cp backend/docker/.env.example backend/docker/.env   # Postgres creds + gateway config
 
-make up            # build + start everything (frontend :3000, API :8000)
+make up            # build + start core (frontend :3000, API :8000; no OCR)
+make detect        # show OS / GPU vendor / compose overlay
+make ocr-up        # start Surya + Docling + Paddle (GPU auto-detected)
 make db-migrate    # apply database migrations
 
 make logs          # follow logs   ·   make down to stop   ·   make help for all targets
 ```
 
-On an NVIDIA host, use `make gpu-up` to enable CUDA for the provider services.
-See [Development](#-development) for the full list of `make` targets.
+`make up-all` or `make gpu-up` starts the core stack **and** every OCR
+microservice, using NVIDIA CUDA, AMD ROCm, or Apple Metal/MPS according to the
+host. Override with `ACCELERATOR=cpu|nvidia|amd|mlx`. See
+[containerized serving](backend/docs/CONTAINERIZED_SERVING.md).
 
 ### 3. Backend (manual / host dev)
 

@@ -80,6 +80,22 @@ The `gateway` profile also starts a **Celery worker** (`worker` service) that
 consumes pipeline/project run jobs from Redis. OCR provider services stay off
 unless you add their profiles (or use `--profile all`).
 
+From the repo root, **`make detect`** prints the OS, GPU vendor, device string,
+and compose overlay that will be used. `make ocr-up`, `make ocr-surya` /
+`ocr-docling` / `ocr-paddle`, and `make up-all` / `make gpu-up` all honor that
+detection (override with `ACCELERATOR=cpu|nvidia|amd|mlx`).
+
+| Host | How OCR runs | GPU |
+|------|----------------|-----|
+| Linux / Windows (WSL2) + NVIDIA | Docker + `docker-compose.nvidia.yml` | CUDA torch + `paddlepaddle-gpu` |
+| Linux + AMD ROCm | Docker + `docker-compose.amd.yml` | PyTorch ROCm for Docling/Surya; Paddle CPU (no 3.x ROCm wheel) |
+| macOS Apple Silicon | Host processes for Docling/Surya; Docker `linux/amd64` for Paddle | Metal/MPS for Docling/Surya; Paddle CPU |
+| Anything else | Docker CPU images | CPU |
+
+Apple GPU is **not** available inside Docker Desktop's Linux VM, so MLX/Metal
+acceleration is host-native. PaddlePaddle 3.x has no ARM64 or Apple GPU wheel,
+so Paddle stays in an emulated `linux/amd64` container on Mac.
+
 ### Hybrid local development (recommended)
 
 Keep the FastAPI gateway on the host (`uvicorn`) and start OCR engines as
@@ -89,10 +105,14 @@ optional Docker microservices. They are **not** loaded into the gateway process.
 2. Copy `backend/.env.example` → `backend/.env` (includes `OCRFLOW_RUNNER_MODE=remote`
    and localhost service URLs on ports `8101` / `8102` / `8103`).
 3. Gateway: `cd backend && uvicorn app.main:app --reload`
-4. Start only the OCR engines you need from the repo root:
+4. Start only the OCR engines you need from the repo root (`make detect` first):
    - `make ocr-surya` → `http://127.0.0.1:8101`
    - `make ocr-docling` → `http://127.0.0.1:8102`
    - `make ocr-paddle` → `http://127.0.0.1:8103`
+   - `make ocr-up` / `make ocr-down` for all three
+   On Apple Silicon, Docling/Surya start as host processes so they can use
+   Metal/MPS; Paddle still starts in Docker. Force CPU containers with
+   `ACCELERATOR=cpu`.
 5. Frontend: `cd frontend && npm run dev`
 6. Celery (for full project runs): `make be-worker`
 
@@ -130,15 +150,39 @@ the broker is unreachable).
 
 ### GPU
 
-The default images install CPU framework wheels. On an NVIDIA host with the
-NVIDIA Container Toolkit, overlay the GPU file to reserve GPUs and switch
-inference to CUDA:
+Provider images install CPU wheels by default. `make gpu-up` / `make ocr-up`
+detect the host accelerator and apply the matching overlay (or host processes
+on Apple Silicon).
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.gpu.yml --profile all up --build
+make detect              # OS, GPU vendor, overlay, serve mode
+make ocr-up              # all three providers, GPU auto-detected
+make ocr-surya           # one provider
+make gpu-up              # full stack including OCR, GPU auto-detected
+make nvidia-up           # force NVIDIA CUDA overlay
+make amd-up              # force AMD ROCm overlay
+make ocr-up ACCELERATOR=cpu   # force CPU images
 ```
 
-For real GPU acceleration the provider images also need GPU-enabled wheels
-(e.g. `paddlepaddle-gpu`, a CUDA torch build) — add them to the corresponding
-`requirements-<provider>.txt` and pass a CUDA-capable Python base via the
-`PYTHON_BASE` build arg. The gateway stays CPU-only; it does no inference.
+Manual compose (NVIDIA host + NVIDIA Container Toolkit):
+
+```bash
+docker compose -f docker-compose.yml -f backend/docker/docker-compose.nvidia.yml \
+  --profile all up --build
+```
+
+AMD ROCm (Linux; `/dev/kfd` + `/dev/dri`):
+
+```bash
+docker compose -f docker-compose.yml -f backend/docker/docker-compose.amd.yml \
+  --profile all up --build
+```
+
+The NVIDIA overlay rebuilds Docling/Surya with CUDA torch and Paddle with
+`paddlepaddle-gpu`. The AMD overlay rebuilds Docling/Surya with ROCm torch;
+Paddle stays CPU because PaddlePaddle 3.x has no ROCm wheel. The gateway stays
+CPU-only; it does no inference.
+
+`OCRFLOW_DEFAULT_DEVICE` on a provider service can be `cpu`, `cuda`, `rocm`,
+`mps`, `mlx`, or `auto`. `mlx` is accepted as an alias for Apple GPU and maps
+to PyTorch `mps` (upstream Docling/Surya do not ship an MLX backend).

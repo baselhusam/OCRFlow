@@ -7,8 +7,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.roles import UserRole
-from app.db.models.project import Project
 from app.db.models.pipeline import Pipeline
+from app.db.models.pipeline_job import PipelineJob
+from app.db.models.project import Project
 from app.db.models.user import User
 
 
