@@ -52,7 +52,7 @@ function DashboardStat({
         <p className="mt-3 font-mono text-[11px] text-muted-foreground">
           {hintWithDot ? (
             <span className="inline-flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-[#12a65b]" />
+              <span className="size-1.5 rounded-full bg-[var(--status-ok)]" />
               {hint}
             </span>
           ) : (
@@ -124,7 +124,7 @@ export function DashboardOverview({
           <p className="font-mono text-xs font-semibold tracking-[0.16em] text-primary uppercase">
             Workspace
           </p>
-          <h1 className="mt-3.5 text-4xl font-extrabold tracking-[-0.035em] leading-[1.02]">
+          <h1 className="mt-3.5 text-[40px] font-extrabold tracking-[-0.035em] leading-[1.02]">
             {greeting}, {displayName}
           </h1>
           <p className="mt-3.5 max-w-[560px] text-base leading-[1.55] text-muted-foreground">

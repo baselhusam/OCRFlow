@@ -78,7 +78,7 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
           </Button>
         }
       />
-      <DialogContent className="rounded-sm sm:max-w-md">
+      <DialogContent className="rounded-xl sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit project</DialogTitle>
           <DialogDescription>

@@ -36,7 +36,7 @@ export function ApertureMotif({ className }: ApertureMotifProps) {
         y="93"
         width="14"
         height="14"
-        fill="var(--bronze)"
+        fill="var(--pulse)"
         opacity="0.5"
       />
     </svg>

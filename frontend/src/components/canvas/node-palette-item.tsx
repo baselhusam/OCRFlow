@@ -67,9 +67,10 @@ export function NodePaletteItem({
             data-offline={offline || undefined}
             className={cn(
               "flex w-full items-center gap-2.5 rounded-lg border border-border/60 bg-muted/20 px-2.5 py-2 text-left",
+              "focus-visible:ring-2 focus-visible:ring-[var(--pulse)]/45 focus-visible:ring-offset-1 focus-visible:ring-offset-card focus-visible:outline-none",
               offline
-                ? "cursor-not-allowed opacity-50"
-                : "cursor-grab transition-colors hover:bg-muted/40 active:cursor-grabbing",
+                ? "cursor-not-allowed opacity-70"
+                : "cursor-grab transition-colors hover:border-border hover:bg-muted/45 active:cursor-grabbing",
             )}
             style={{ borderLeftWidth: 2.5, borderLeftColor: accent }}
             title={offline ? runtime.message : description}
@@ -84,7 +85,7 @@ export function NodePaletteItem({
               {getModelLabel(model)}
             </span>
             {offline ? (
-              <span className="shrink-0 rounded-full bg-amber-500/15 px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-wide text-amber-600 uppercase dark:text-amber-400">
+              <span className="shrink-0 rounded-md border border-[var(--status-warn)]/35 bg-[var(--status-warn)]/12 px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-[0.08em] text-[var(--status-warn)] uppercase">
                 offline
               </span>
             ) : (
@@ -100,7 +101,7 @@ export function NodePaletteItem({
         <div className="space-y-1.5">
           <p className="font-medium">{getModelLabel(model)}</p>
           {offline ? (
-            <p className="text-amber-300">{runtime.message}</p>
+            <p className="font-medium text-background">{runtime.message}</p>
           ) : (
             <p className="text-background/80">{description}</p>
           )}

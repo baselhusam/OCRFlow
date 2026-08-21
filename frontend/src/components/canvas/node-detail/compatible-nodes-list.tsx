@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { GripVertical } from "lucide-react";
 
 import { ProviderLogo } from "@/components/canvas/provider-logo";
+import { useRuntimeAvailability } from "@/components/canvas/runtime-availability-context";
 import { getCategoryColor } from "@/lib/canvas/category-meta";
 import { getCompatibleDownstreamModels } from "@/lib/canvas/compatible-downstream-models";
 import { getCompatibleUpstreamModels } from "@/lib/canvas/compatible-upstream-models";
@@ -47,7 +48,15 @@ function CompatibleNodeItem({
   wireDirection,
   categoryColor,
 }: CompatibleNodeItemProps) {
+  const { getModelStatus } = useRuntimeAvailability();
+  const runtime = getModelStatus(model);
+  const offline = runtime.offline;
+
   const handleDragStart = (event: React.DragEvent) => {
+    if (offline) {
+      event.preventDefault();
+      return;
+    }
     event.dataTransfer.setData(
       DRAG_MODEL_MIME,
       JSON.stringify({ type: "model", modelId: model.id }),
@@ -56,6 +65,7 @@ function CompatibleNodeItem({
   };
 
   const handleClick = () => {
+    if (offline) return;
     requestPaletteAdd(model.id);
   };
 
@@ -63,17 +73,29 @@ function CompatibleNodeItem({
     <li>
       <button
         type="button"
-        draggable
+        draggable={!offline}
         onDragStart={handleDragStart}
         onClick={handleClick}
+        aria-disabled={offline}
         className={cn(
-          "flex w-full cursor-grab items-center gap-2.5 rounded-lg border border-border/60 bg-card/80 px-2.5 py-2 text-left",
-          "transition-colors hover:border-primary/30 hover:bg-muted/35 active:cursor-grabbing",
+          "flex w-full items-center gap-2.5 rounded-lg border border-border/60 bg-card/80 px-2.5 py-2 text-left",
+          offline
+            ? "cursor-not-allowed opacity-50"
+            : "cursor-grab transition-colors hover:border-primary/30 hover:bg-muted/35 active:cursor-grabbing",
         )}
         style={{ borderLeftWidth: 2.5, borderLeftColor: categoryColor }}
-        title={`Drag to canvas · ${wireDirection === "in" ? "accepts" : "sends"} ${formatWireLabel(wireType)}`}
+        title={
+          offline
+            ? runtime.message
+            : `Drag to canvas · ${wireDirection === "in" ? "accepts" : "sends"} ${formatWireLabel(wireType)}`
+        }
       >
-        <ProviderLogo provider={model.provider} size={22} className="shrink-0" />
+        <ProviderLogo
+          provider={model.provider}
+          size={22}
+          className="shrink-0"
+          status={offline ? "offline" : undefined}
+        />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium text-foreground">
             {getModelLabel(model)}

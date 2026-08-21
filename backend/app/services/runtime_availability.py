@@ -4,24 +4,39 @@ The static catalog status (``ModelStatus.done`` etc.) says what the platform
 *supports* at build time. This module answers a different, runtime question:
 which provider backends are actually reachable right now?
 
-* In ``local`` mode everything runs in-process, so every remote provider is
-  reported as running.
 * In ``remote`` mode the gateway probes each provider service's health endpoint
-  and reports what responds.
+  and reports what responds. OCR providers are optional microservices — if the
+  user has not started them, they show as offline.
+* In ``local`` mode models run in-process. Availability is based on whether the
+  provider's Python package is importable (so missing extras are not reported
+  as running). Prefer ``remote`` mode for the microservice / enterprise layout.
 
-The frontend uses this to gate canvas nodes: offline providers are shown but
-disabled with a "start the service" hint.
+The frontend uses this to gate canvas nodes: offline providers are hidden from
+the default palette (with an optional reveal) and disabled if shown.
 """
 
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 
 import httpx
 from pydantic import BaseModel
 
 from app.core.config import RunnerMode, Settings
 from app.models.servable import REMOTE_PROVIDERS
+
+#: Importable top-level modules that indicate a provider stack is installed
+#: for in-process (``local``) mode. Mirrors the optional requirements-*.txt
+#: extras. ``paddleocr`` is the public package name; ``paddle`` alone is not
+#: enough to run the OCR runners.
+_LOCAL_PROVIDER_MODULES: dict[str, tuple[str, ...]] = {
+    "docling": ("docling",),
+    "surya": ("surya",),
+    "paddle": ("paddleocr",),
+}
+
+_HEALTH_PATH = "/internal/health"
 
 
 class ProviderRuntime(BaseModel):
@@ -36,7 +51,22 @@ class RuntimeAvailability(BaseModel):
     providers: list[ProviderRuntime]
 
 
-_HEALTH_PATH = "/internal/health"
+def _local_provider_runtime(provider: str) -> ProviderRuntime:
+    modules = _LOCAL_PROVIDER_MODULES.get(provider, ())
+    missing = [name for name in modules if importlib.util.find_spec(name) is None]
+    if missing:
+        return ProviderRuntime(
+            provider=provider,
+            running=False,
+            mode=RunnerMode.local.value,
+            detail=f"missing package(s): {', '.join(missing)}",
+        )
+    return ProviderRuntime(
+        provider=provider,
+        running=True,
+        mode=RunnerMode.local.value,
+        detail="in-process",
+    )
 
 
 async def _probe_provider(
@@ -75,15 +105,7 @@ async def get_runtime_availability(settings: Settings) -> RuntimeAvailability:
     if settings.runner_mode != RunnerMode.remote:
         return RuntimeAvailability(
             mode=RunnerMode.local.value,
-            providers=[
-                ProviderRuntime(
-                    provider=provider,
-                    running=True,
-                    mode=RunnerMode.local.value,
-                    detail="in-process",
-                )
-                for provider in providers
-            ],
+            providers=[_local_provider_runtime(provider) for provider in providers],
         )
 
     timeout = settings.runtime_health_timeout_seconds

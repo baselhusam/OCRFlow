@@ -13,7 +13,7 @@ celery_app = Celery(
     "ocrflow",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["app.tasks.pipeline_runs"],
+    include=["app.tasks.pipeline_runs", "app.tasks.pipeline_api_runs"],
 )
 
 celery_app.conf.update(
@@ -26,4 +26,5 @@ celery_app.conf.update(
 
 celery_app.autodiscover_tasks(["app.tasks"], force=True)
 
+from app.tasks import pipeline_api_runs as _pipeline_api_runs  # noqa: E402,F401
 from app.tasks import pipeline_runs as _pipeline_runs  # noqa: E402,F401

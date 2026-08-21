@@ -61,7 +61,7 @@ export function PipelineNodeHeader({
           <p className="truncate text-xs font-semibold text-foreground leading-tight">
             {data.label}
           </p>
-          <p className="truncate text-[9px] text-muted-foreground mt-0.5 uppercase tracking-wider">
+          <p className="mt-0.5 truncate font-mono text-[9px] tracking-[0.12em] text-muted-foreground uppercase">
             {data.categoryLabel}
           </p>
         </div>
@@ -76,6 +76,7 @@ export function PipelineNodeHeader({
               aria-pressed={outputOpen}
               className={cn(
                 "nodrag nopan relative flex size-6 items-center justify-center rounded-md border transition-all duration-200",
+                "focus-visible:ring-2 focus-visible:ring-[var(--pulse)]/45 focus-visible:ring-offset-1 focus-visible:ring-offset-card focus-visible:outline-none",
                 outputOpen
                   ? "border-[var(--primary)]/40 bg-[var(--primary)]/10 text-[var(--primary)] shadow-[0_0_12px_color-mix(in_srgb,var(--primary)_25%,transparent)]"
                   : "border-border/60 bg-background text-muted-foreground hover:border-muted-foreground/40 hover:bg-secondary/40 hover:text-foreground",
@@ -85,10 +86,10 @@ export function PipelineNodeHeader({
               {outputItemCount > 0 && (
                 <span
                   className={cn(
-                    "absolute -top-1 -right-1 flex min-w-[14px] items-center justify-center rounded-full px-0.5 font-mono text-[8px] leading-none border border-background",
+                    "absolute -top-1 -right-1 flex min-w-[14px] items-center justify-center rounded-full border border-background px-0.5 font-mono text-[8px] leading-none",
                     outputOpen
-                      ? "bg-[var(--primary)] text-white"
-                      : "bg-secondary text-foreground/70",
+                      ? "bg-[var(--primary)] text-primary-foreground"
+                      : "bg-secondary text-foreground",
                   )}
                 >
                   {outputItemCount > 99 ? "99+" : outputItemCount}

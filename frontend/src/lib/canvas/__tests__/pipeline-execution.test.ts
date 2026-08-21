@@ -42,7 +42,7 @@ describe("getPipelineReadiness", () => {
     const readiness = getPipelineReadiness(nodes, edges, "project-1");
 
     expect(readiness.ready).toBe(false);
-    expect(readiness.issues).toContain("layout: Run the from node first");
+    expect(readiness.issues).toContain("layout: Run the upstream node first");
   });
 
   it("allows full pipeline run when upstream is connected but not yet run", () => {

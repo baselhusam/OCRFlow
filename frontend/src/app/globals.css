@@ -180,7 +180,7 @@
   --workspace-sidebar-muted: #9a95b5;
   --workspace-sidebar-label: #6e6a85;
   --workspace-sidebar-active: rgba(91, 46, 239, 0.28);
-  --workspace-sidebar-active-fg: #ffffff;
+  --workspace-sidebar-active-fg: #c4b5fd;
   --workspace-sidebar-border: rgba(255, 255, 255, 0.12);
   --workspace-sidebar-hover: rgba(255, 255, 255, 0.06);
 }
@@ -204,8 +204,8 @@
 @layer components {
   /* Category accent colors for pipeline nodes */
   :root {
-    --status-ok: #3fa266;
-    --status-warn: #8e6e48;
+    --status-ok: #2f8455;
+    --status-warn: #b45309;
     --node-default: #767a85;
     --node-preprocess: #767a85;
     --node-page-loader: #3685bf;
@@ -227,8 +227,8 @@
   }
 
   .dark {
-    --status-ok: #52b896;
-    --status-warn: #b0895a;
+    --status-ok: #5fc9a4;
+    --status-warn: #f0b357;
     --node-default: #767a85;
     --node-preprocess: #767a85;
     --node-page-loader: #7bafe9;
@@ -260,10 +260,14 @@
   }
 
   .ocrflow-canvas .react-flow__node.selectable.selected,
-  .ocrflow-canvas .react-flow__node.selectable:focus,
-  .ocrflow-canvas .react-flow__node.selectable:focus-visible {
+  .ocrflow-canvas .react-flow__node.selectable:focus {
     box-shadow: none;
-    outline: none;
+  }
+
+  .ocrflow-canvas .react-flow__node.selectable:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+    border-radius: 0.75rem;
   }
 
   .ocrflow-canvas .react-flow__nodesselection-rect,
@@ -319,6 +323,11 @@
   .ocrflow-canvas .react-flow__controls-button:hover {
     background: color-mix(in srgb, var(--foreground) 5%, transparent);
     color: var(--foreground);
+  }
+
+  .ocrflow-canvas .react-flow__controls-button:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
   }
 
   .ocrflow-canvas .react-flow__controls-button svg {
@@ -404,6 +413,14 @@
   .ocrflow-pipeline-node.focus-pulse .ocrflow-pipeline-node-shell {
     outline: none;
     animation: ocrflow-node-focus-pulse 0.8s ease-in-out 3;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ocrflow-pipeline-node.focus-pulse .ocrflow-pipeline-node-shell,
+    .ocrflow-pipeline-node [class*="animate-pulse"],
+    .ocrflow-pipeline-node [class*="animate-spin"] {
+      animation: none;
+    }
   }
 
   .ocrflow-pipeline-node:hover:not(.selected) .ocrflow-pipeline-node-shell {

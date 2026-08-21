@@ -19,10 +19,12 @@ export function ThemeToggle() {
       <Button
         variant="outline"
         size="icon-sm"
-        className="rounded-sm border-border"
+        className="border-border text-muted-foreground"
         aria-label="Toggle theme"
         disabled
-      />
+      >
+        <Moon className="opacity-40" />
+      </Button>
     );
   }
 
@@ -32,7 +34,7 @@ export function ThemeToggle() {
     <Button
       variant="outline"
       size="icon-sm"
-      className="rounded-sm border-border text-foreground hover:border-primary hover:text-primary"
+      className="border-border text-foreground hover:border-primary hover:text-primary"
       aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >

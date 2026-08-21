@@ -183,7 +183,7 @@ export function RegionThumbnailPanel({
           className={cn(
             "nodrag nopan min-w-0 flex-1 overflow-hidden text-left transition-colors",
             isCompact
-              ? "ocrflow-output-glass-card rounded-lg border border-white/20 hover:border-white/40 dark:border-white/10 dark:hover:border-white/25"
+              ? "ocrflow-output-glass-card rounded-lg border border-border/60 hover:border-border dark:border-white/10 dark:hover:border-white/25"
               : "rounded-sm border",
             !isCompact &&
               (selected

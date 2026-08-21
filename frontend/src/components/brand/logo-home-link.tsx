@@ -34,7 +34,7 @@ export function LogoHomeLink({
       {variant === "mark" ? (
         <LogoMark className={logoClassName} />
       ) : (
-        <LogoLockup className={logoClassName} />
+        <LogoLockup className={logoClassName} priority />
       )}
     </Link>
   );

@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CanvasToast } from "@/components/canvas/canvas-toast";
+import { BatchDocumentsDialog } from "@/components/canvas/batch-documents-dialog";
 import { NodeErrorPanel } from "@/components/canvas/node-detail/node-error-panel";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
 import { NodePalettePanel } from "@/components/canvas/node-palette-panel";
@@ -53,6 +54,8 @@ type CanvasProjectHeaderProps = {
   projectName: string;
   models: ModelCatalogEntry[];
   categories: CategoryMeta[];
+  userPipelines?: import("@/lib/api/client").Pipeline[];
+  readOnly?: boolean;
 };
 
 function HeaderDivider() {
@@ -68,6 +71,8 @@ export function CanvasProjectHeader({
   projectName,
   models,
   categories,
+  userPipelines = [],
+  readOnly = false,
 }: CanvasProjectHeaderProps) {
   const {
     nodes,
@@ -83,6 +88,8 @@ export function CanvasProjectHeader({
     pipelineSteps,
     focusNode,
     autoLayout,
+    projectId,
+    entity,
   } = usePipelineGraphActions();
 
   const [toast, setToast] = useState<{
@@ -134,7 +141,7 @@ export function CanvasProjectHeader({
       );
   }, [nodes.length, pipelineSteps]);
 
-  const runIsDisabled = !canRun || isRunning;
+  const runIsDisabled = readOnly || !canRun || isRunning;
 
   const hasAnyRunState = nodes.some(
     (n) =>
@@ -175,6 +182,7 @@ export function CanvasProjectHeader({
       : "Cannot run yet";
 
   const handleSave = useCallback(async () => {
+    if (readOnly) return;
     const saved = await saveNow();
     setToast(
       saved
@@ -184,7 +192,7 @@ export function CanvasProjectHeader({
             variant: "error",
           },
     );
-  }, [saveNow]);
+  }, [readOnly, saveNow]);
 
   const handleGoToBlocker = useCallback(() => {
     if (!activeBlocker) return;
@@ -214,13 +222,13 @@ export function CanvasProjectHeader({
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "s") {
         event.preventDefault();
-        if (!isSaving) void handleSave();
+        if (!isSaving && !readOnly) void handleSave();
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleSave, isSaving]);
+  }, [handleSave, isSaving, readOnly]);
 
   return (
     <>
@@ -360,7 +368,7 @@ export function CanvasProjectHeader({
                   variant="outline"
                   size="sm"
                   className="hidden h-9 rounded-lg sm:inline-flex"
-                  disabled={nodes.length === 0}
+                  disabled={readOnly || nodes.length === 0}
                   onClick={() => autoLayout()}
                 />
               }
@@ -383,7 +391,7 @@ export function CanvasProjectHeader({
                   variant="outline"
                   size="sm"
                   className="h-9 rounded-lg border-border text-[13px] font-semibold"
-                  disabled={isSaving}
+                  disabled={readOnly || isSaving}
                   onClick={() => void handleSave()}
                 />
               }
@@ -403,7 +411,7 @@ export function CanvasProjectHeader({
             </TooltipContent>
           </Tooltip>
 
-          {!canRun && nodes.length > 0 ? (
+          {!readOnly && !canRun && nodes.length > 0 ? (
             <Tooltip>
               <TooltipTrigger
                 render={
@@ -436,7 +444,7 @@ export function CanvasProjectHeader({
             </Tooltip>
           ) : null}
 
-          {hasAnyRunState && !isRunning ? (
+          {!readOnly && hasAnyRunState && !isRunning ? (
             <Tooltip>
               <TooltipTrigger
                 render={
@@ -456,6 +464,18 @@ export function CanvasProjectHeader({
                 Un-run all nodes and clear all cached outputs
               </TooltipContent>
             </Tooltip>
+          ) : null}
+
+          {entity?.kind === "project" ? (
+            <BatchDocumentsDialog
+              projectId={projectId}
+              disabled={readOnly || isRunning}
+              hasFileLoader={nodes.some(
+                (n) =>
+                  n.data.modelId === "loader/pdf" ||
+                  n.data.modelId === "loader/image",
+              )}
+            />
           ) : null}
 
           <Tooltip>
@@ -572,7 +592,7 @@ export function CanvasProjectHeader({
 
           <ThemeToggle />
 
-          <Sheet>
+          {!readOnly ? <Sheet>
             <SheetTrigger
               render={
                 <Button
@@ -598,12 +618,18 @@ export function CanvasProjectHeader({
               <NodePalettePanel
                 models={doneModels}
                 categories={categories}
+                paletteMode={
+                  entity?.kind === "pipeline" ? "pipeline" : "project"
+                }
+                userPipelines={
+                  entity?.kind === "project" ? userPipelines : undefined
+                }
                 className="min-h-0 w-full flex-1 border-r-0"
                 showHeader={false}
                 showBrandBar={false}
               />
             </SheetContent>
-          </Sheet>
+          </Sheet> : null}
         </div>
       </header>
     </>

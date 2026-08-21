@@ -32,7 +32,7 @@ export function AccountIdentityCard({ user }: AccountIdentityCardProps) {
       )}
     >
       <div className="relative shrink-0">
-        <span className="flex size-[88px] items-center justify-center rounded-full bg-primary/10 text-3xl font-bold text-primary shadow-[0_0_0_3px_var(--soft,#ede9fe)]">
+        <span className="flex size-[88px] items-center justify-center rounded-full bg-primary/10 text-3xl font-bold text-primary shadow-[0_0_0_3px_var(--accent-tint)]">
           {getUserAvatarInitial(user)}
         </span>
       </div>

@@ -86,6 +86,7 @@ export function LayoutDetectionOutput({
               <button
                 type="button"
                 className="nodrag nopan inline-flex items-center gap-0.5 rounded-sm px-1 py-0.5 font-mono text-[8px] tracking-wide text-muted-foreground uppercase transition-colors hover:bg-secondary/60 hover:text-foreground"
+                aria-label="Expand annotated page"
                 title="Expand annotated page"
               >
                 <Expand className="size-2.5" />

@@ -10,13 +10,25 @@ from app.services import runtime_availability
 from app.services.runtime_availability import get_runtime_availability
 
 
-async def test_local_mode_reports_all_providers_running():
+async def test_local_mode_reports_importable_providers(monkeypatch):
     settings = Settings(runner_mode="local")
+
+    def fake_find_spec(name: str):
+        if name in {"docling", "surya"}:
+            return object()
+        return None
+
+    monkeypatch.setattr(
+        runtime_availability.importlib.util, "find_spec", fake_find_spec
+    )
+
     result = await get_runtime_availability(settings)
 
     assert result.mode == "local"
-    assert {p.provider for p in result.providers} == {"docling", "surya", "paddle"}
-    assert all(p.running for p in result.providers)
+    running = {p.provider: p.running for p in result.providers}
+    assert running == {"docling": True, "surya": True, "paddle": False}
+    paddle = next(p for p in result.providers if p.provider == "paddle")
+    assert paddle.detail and "paddleocr" in paddle.detail
 
 
 async def test_remote_mode_reports_reachable_providers(monkeypatch):

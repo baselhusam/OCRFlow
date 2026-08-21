@@ -26,7 +26,7 @@ export function AppHeader() {
           variant="outline"
           size="sm"
           onClick={handleLogout}
-          className="h-auto gap-2 rounded-lg border-border px-4 py-2 text-[13px] font-semibold"
+          className="h-auto gap-2 rounded-lg border-border px-4 py-2 text-[13px] font-semibold hover:border-primary/40 hover:text-primary"
         >
           <LogOut className="size-[15px]" aria-hidden />
           Sign out

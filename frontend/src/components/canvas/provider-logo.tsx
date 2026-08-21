@@ -53,8 +53,10 @@ function StatusDot({ status }: { status: ProviderStatus }) {
   return (
     <span
       className={cn(
-        "absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2 ring-background",
-        status === "online" ? "bg-emerald-500" : "bg-amber-500",
+        "absolute -right-0.5 -bottom-0.5 size-2 rounded-full ring-2 ring-card",
+        status === "online"
+          ? "bg-[var(--status-ok)]"
+          : "bg-[var(--status-warn)]",
       )}
       aria-hidden
     />
@@ -87,7 +89,7 @@ export function ProviderLogo({
       return (
         <span
           className={cn(
-            "inline-flex shrink-0 items-center justify-center font-mono text-[9px] font-medium tracking-wide text-muted-foreground uppercase",
+            "inline-flex shrink-0 items-center justify-center font-mono text-[9px] font-medium tracking-[0.08em] text-muted-foreground uppercase",
             className,
           )}
           style={{ width: size, height: size }}
@@ -105,6 +107,7 @@ export function ProviderLogo({
         width={size}
         height={size}
         className={cn("shrink-0 object-contain", className)}
+        style={{ width: size, height: "auto" }}
         onError={() => setFailed(true)}
         aria-hidden
       />

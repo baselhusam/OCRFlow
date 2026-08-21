@@ -34,6 +34,11 @@ class PipelineProgress:
     current_node_id: str | None
     completed_count: int
     total_count: int
+    event: str = "progress"
+    model_id: str | None = None
+    message: str | None = None
+    page_count: int | None = None
+    output_kind: str | None = None
 
 
 @dataclass(frozen=True)
@@ -80,6 +85,15 @@ class PipelineExecutor:
         graph = parse_pipeline_graph(graph_raw)
         return await self._execute_graph(graph, initial_output=None)
 
+    async def execute_with_input(
+        self,
+        graph_raw: dict[str, Any],
+        initial_output: NodeCachedOutput,
+    ) -> PipelineExecutionResult:
+        """Execute a reusable pipeline graph with an API-adapted entry input."""
+        graph = parse_pipeline_graph(graph_raw)
+        return await self._execute_graph(graph, initial_output=initial_output)
+
     async def _execute_graph(
         self,
         graph: PipelineGraph,
@@ -102,7 +116,14 @@ class PipelineExecutor:
 
         for node_id in readiness.ordered_node_ids:
             node = node_by_id[node_id]
-            await self._emit_progress(node_id, completed, total)
+            await self._emit_progress(
+                node_id,
+                completed,
+                total,
+                event="node_started",
+                model_id=node.modelId,
+                message=f"Running {node.modelId}",
+            )
             self._mark_node_running(node)
 
             upstream = get_upstream_context(graph, node_id, outputs)
@@ -119,6 +140,14 @@ class PipelineExecutor:
                 output = await self._execute_node(node, upstream)
             except Exception as exc:
                 self._mark_node_error(node, exc)
+                await self._emit_progress(
+                    node_id,
+                    completed,
+                    total,
+                    event="node_failed",
+                    model_id=node.modelId,
+                    message=str(exc),
+                )
                 raise PipelineExecutionError(
                     str(exc),
                     graph=graph,
@@ -130,7 +159,18 @@ class PipelineExecutor:
             outputs[node.id] = output
             self._mark_node_success(node, output)
             completed += 1
-            await self._emit_progress(node_id, completed, total)
+            preview = output.preview or {}
+            page_count = preview.get("pageCount") or preview.get("itemCount")
+            await self._emit_progress(
+                node_id,
+                completed,
+                total,
+                event="node_succeeded",
+                model_id=node.modelId,
+                message=f"Finished {node.modelId}",
+                page_count=page_count if isinstance(page_count, int) else None,
+                output_kind=output.kind,
+            )
 
         final_output = outputs.get(readiness.ordered_node_ids[-1]) if readiness.ordered_node_ids else None
         return PipelineExecutionResult(
@@ -195,6 +235,12 @@ class PipelineExecutor:
         current_node_id: str | None,
         completed_count: int,
         total_count: int,
+        *,
+        event: str = "progress",
+        model_id: str | None = None,
+        message: str | None = None,
+        page_count: int | None = None,
+        output_kind: str | None = None,
     ) -> None:
         if self.on_progress is None:
             return
@@ -203,6 +249,11 @@ class PipelineExecutor:
                 current_node_id=current_node_id,
                 completed_count=completed_count,
                 total_count=total_count,
+                event=event,
+                model_id=model_id,
+                message=message,
+                page_count=page_count,
+                output_kind=output_kind,
             )
         )
         if maybe_awaitable is not None:

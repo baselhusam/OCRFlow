@@ -39,12 +39,12 @@ export function PipelinePreview() {
             {stages.map((stage, index) => (
               <motion.div
                 key={stage.id}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 1, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
+                viewport={{ once: true, amount: 0.2 }}
                 transition={{
-                  duration: 0.5,
-                  delay: index * 0.08,
+                  duration: 0.45,
+                  delay: index * 0.06,
                   ease: [0.22, 1, 0.36, 1],
                 }}
                 className="group relative border-b border-[var(--landing-node-border)] p-6 transition-colors last:border-b-0 hover:bg-primary/[0.04] md:border-b-0"
@@ -55,7 +55,7 @@ export function PipelinePreview() {
                     className="absolute top-1/2 -right-2 z-10 hidden h-px w-4 bg-primary md:block"
                   />
                 )}
-                <span className="font-mono text-[11px] tracking-[0.15em] text-muted-foreground">
+                <span className="font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
                   {stage.id}
                 </span>
                 <h3 className="mt-3 font-mono text-sm tracking-wide text-foreground uppercase">

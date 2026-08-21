@@ -25,7 +25,7 @@ type PageLoaderNodeBodyProps = {
 const ACCEPT = "application/pdf,image/png,image/jpeg,image/webp";
 
 export function PageLoaderNodeBody({ nodeId, data }: PageLoaderNodeBodyProps) {
-  const { projectId, updateNodeConfig, updateNodeData, getUpstream } =
+  const { projectId, updateNodeConfig, updateNodeData, getUpstream, runNode } =
     usePipelineGraphActions();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -68,13 +68,29 @@ export function PageLoaderNodeBody({ nodeId, data }: PageLoaderNodeBodyProps) {
           runStatus: "idle",
           runResult: undefined,
         });
+
+        let autoRun = false;
+        try {
+          const meRes = await fetch("/api/auth/me", { credentials: "include" });
+          if (meRes.ok) {
+            const me = (await meRes.json()) as {
+              preferences?: { auto_run_on_upload?: boolean };
+            };
+            autoRun = Boolean(me.preferences?.auto_run_on_upload);
+          }
+        } catch {
+          // Preference lookup is best-effort; upload already succeeded.
+        }
+        if (autoRun) {
+          void runNode(nodeId);
+        }
       } catch (error) {
         setUploadError(error instanceof Error ? error.message : "Upload failed");
       } finally {
         setUploading(false);
       }
     },
-    [nodeId, projectId, updateNodeConfig, updateNodeData],
+    [nodeId, projectId, runNode, updateNodeConfig, updateNodeData],
   );
 
   return (

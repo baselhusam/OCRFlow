@@ -36,12 +36,14 @@ type PipelineDefinitionHeaderProps = {
   pipelineName: string;
   boundaryValidation: PipelineBoundaryResult | null;
   saveValidationError: string | null;
+  readOnly?: boolean;
 };
 
 export function PipelineDefinitionHeader({
   pipelineName,
   boundaryValidation,
   saveValidationError,
+  readOnly = false,
 }: PipelineDefinitionHeaderProps) {
   const {
     nodes,
@@ -77,6 +79,7 @@ export function PipelineDefinitionHeader({
         : "Save pipeline";
 
   const handleSave = useCallback(async () => {
+    if (readOnly) return;
     const saved = await saveNow();
     setToast(
       saved
@@ -88,18 +91,18 @@ export function PipelineDefinitionHeader({
             variant: "error",
           },
     );
-  }, [saveNow, saveValidationError]);
+  }, [readOnly, saveNow, saveValidationError]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "s") {
         event.preventDefault();
-        if (!isSaving) void handleSave();
+        if (!isSaving && !readOnly) void handleSave();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleSave, isSaving]);
+  }, [handleSave, isSaving, readOnly]);
 
   return (
     <>
@@ -213,7 +216,7 @@ export function PipelineDefinitionHeader({
                   size="icon-sm"
                   className="text-muted-foreground"
                   onClick={autoLayout}
-                  disabled={nodes.length === 0}
+                  disabled={readOnly || nodes.length === 0}
                 />
               }
             >
@@ -230,7 +233,9 @@ export function PipelineDefinitionHeader({
                   variant="outline"
                   size="sm"
                   className="gap-1.5"
-                  disabled={isSaving || (!hasUnsavedChanges && !saveFailed)}
+                  disabled={
+                    readOnly || isSaving || (!hasUnsavedChanges && !saveFailed)
+                  }
                   onClick={() => void handleSave()}
                 />
               }

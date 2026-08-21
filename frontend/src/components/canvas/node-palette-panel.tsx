@@ -9,6 +9,8 @@ import {
   PipelinePaletteSection,
 } from "@/components/canvas/pipeline-palette-section";
 import { NodePaletteSection } from "@/components/canvas/node-palette-section";
+import { ProviderLogo } from "@/components/canvas/provider-logo";
+import { useRuntimeAvailability } from "@/components/canvas/runtime-availability-context";
 import { LogoHomeLink } from "@/components/brand/logo-home-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,10 @@ import { SPAWN_ONLY_MODELS } from "@/lib/canvas/page-branch-meta";
 import { REGION_SPAWN_ONLY_MODELS } from "@/lib/canvas/region-branch-meta";
 import { CAPTION_SPAWN_ONLY_MODELS } from "@/lib/canvas/caption-branch-meta";
 import { writePaletteSectionPref } from "@/lib/canvas/palette-prefs";
+import {
+  providerDisplayName,
+  REMOTE_PROVIDER_ORDER,
+} from "@/lib/canvas/provider-availability";
 import type { Pipeline } from "@/lib/api/client";
 import { isPipelineReady } from "@/lib/api/pipelines";
 import type { CategoryMeta, ModelCatalogEntry } from "@/lib/canvas/types";
@@ -39,7 +45,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const paletteIconButtonClassName =
-  "shrink-0 bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-muted-foreground";
+  "shrink-0 rounded-md bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-[var(--pulse)]/45 focus-visible:ring-offset-1 focus-visible:ring-offset-card aria-expanded:bg-transparent aria-expanded:text-muted-foreground";
+
+const paletteTextButtonClassName =
+  "rounded-md px-1.5 py-0.5 font-mono text-[9px] tracking-[0.08em] text-muted-foreground uppercase transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-[var(--pulse)]/45 focus-visible:ring-offset-1 focus-visible:ring-offset-card focus-visible:outline-none";
 
 type NodePalettePanelProps = {
   models: ModelCatalogEntry[];
@@ -67,9 +76,11 @@ export function NodePalettePanel({
   collapsible = true,
 }: NodePalettePanelProps) {
   const [query, setQuery] = useState("");
+  const [showOffline, setShowOffline] = useState(false);
   const pendingSearchFocusRef = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const isSearching = query.trim().length > 0;
+  const { offlineProviders, runtime, getModelStatus } = useRuntimeAvailability();
 
   const paletteModels = useMemo(
     () =>
@@ -82,9 +93,22 @@ export function NodePalettePanel({
     [models],
   );
 
+  const visibleModels = useMemo(() => {
+    if (showOffline || offlineProviders.size === 0) {
+      return paletteModels;
+    }
+    return paletteModels.filter((model) => !getModelStatus(model).offline);
+  }, [paletteModels, showOffline, offlineProviders, getModelStatus]);
+
+  const offlineModelCount = useMemo(
+    () =>
+      paletteModels.filter((model) => getModelStatus(model).offline).length,
+    [paletteModels, getModelStatus],
+  );
+
   const filtered = useMemo(
-    () => filterModels(paletteModels, categories, query),
-    [paletteModels, categories, query],
+    () => filterModels(visibleModels, categories, query),
+    [visibleModels, categories, query],
   );
 
   const groups = useMemo(
@@ -101,6 +125,14 @@ export function NodePalettePanel({
     () => userPipelines.filter((pipeline) => isPipelineReady(pipeline)),
     [userPipelines],
   );
+
+  const providerStatuses = useMemo(() => {
+    return REMOTE_PROVIDER_ORDER.map((provider) => {
+      const entry = runtime?.providers.find((p) => p.provider === provider);
+      const online = entry ? entry.running : !offlineProviders.has(provider);
+      return { provider, online };
+    });
+  }, [runtime, offlineProviders]);
 
   const toggleCollapsed = () => {
     onCollapsedChange?.(!collapsed);
@@ -229,7 +261,7 @@ export function NodePalettePanel({
                 {flatItems.length}
               </span>
             </div>
-            <div className="mt-3 flex items-center gap-2.5 rounded-[9px] border border-border/80 bg-muted/40 px-3 py-2.5">
+            <div className="mt-3 flex items-center gap-2.5 rounded-lg border border-border/80 bg-muted/40 px-3 py-2.5 transition-colors focus-within:border-[var(--pulse)]/45 focus-within:bg-muted/60">
               <Search
                 className="size-[15px] shrink-0 text-muted-foreground"
                 aria-hidden
@@ -243,13 +275,63 @@ export function NodePalettePanel({
                 aria-label="Search models"
               />
             </div>
+            {runtime ? (
+              <div className="mt-3 space-y-2">
+                <p className="font-mono text-[9px] tracking-[0.08em] text-muted-foreground uppercase">
+                  OCR services
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {providerStatuses.map(({ provider, online }) => (
+                    <span
+                      key={provider}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-md border px-1.5 py-1",
+                        online
+                          ? "border-[var(--status-ok)]/35 bg-[var(--status-ok)]/12"
+                          : "border-border bg-muted/50",
+                      )}
+                      title={
+                        online
+                          ? `${providerDisplayName(provider)} is running`
+                          : `Start the ${providerDisplayName(provider)} service`
+                      }
+                    >
+                      <ProviderLogo
+                        provider={provider}
+                        size={14}
+                        status={online ? "online" : "offline"}
+                      />
+                      <span
+                        className={cn(
+                          "font-mono text-[9px] tracking-[0.08em] uppercase",
+                          online ? "text-foreground" : "text-muted-foreground",
+                        )}
+                      >
+                        {providerDisplayName(provider)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+                {offlineModelCount > 0 ? (
+                  <button
+                    type="button"
+                    className={cn(paletteTextButtonClassName, "-mx-1.5")}
+                    onClick={() => setShowOffline((value) => !value)}
+                  >
+                    {showOffline
+                      ? "Hide offline models"
+                      : `Show ${offlineModelCount} offline`}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
             {showHeader &&
             !isSearching &&
             (groups.length > 0 || readyPipelines.length > 0) ? (
               <div className="mt-2 flex justify-end gap-2 px-0.5">
                 <button
                   type="button"
-                  className="font-mono text-[9px] tracking-wide text-muted-foreground uppercase hover:text-foreground"
+                  className={paletteTextButtonClassName}
                   onClick={() => {
                     if (readyPipelines.length > 0) {
                       writePaletteSectionPref(PIPELINE_PALETTE_SECTION_ID, true);
@@ -263,7 +345,7 @@ export function NodePalettePanel({
                 </button>
                 <button
                   type="button"
-                  className="font-mono text-[9px] tracking-wide text-muted-foreground uppercase hover:text-foreground"
+                  className={paletteTextButtonClassName}
                   onClick={() => {
                     if (readyPipelines.length > 0) {
                       writePaletteSectionPref(PIPELINE_PALETTE_SECTION_ID, false);
@@ -289,7 +371,11 @@ export function NodePalettePanel({
               ) : null}
               {flatItems.length === 0 ? (
                 <p className="px-2 py-6 text-center text-xs text-muted-foreground">
-                  No models match &ldquo;{query.trim()}&rdquo;
+                  {isSearching
+                    ? `No models match “${query.trim()}”`
+                    : offlineModelCount > 0 && !showOffline
+                      ? "No online OCR models yet. Start a service or show offline models."
+                      : "No models available"}
                 </p>
               ) : isSearching ? (
                 <ul className="flex flex-col gap-1.5">

@@ -1,0 +1,12 @@
+# Force the Paddle service onto linux/amd64.
+#
+# PaddlePaddle 3.x wheels are x86_64-only (no official ARM64 / Apple GPU
+# build). On Apple Silicon this overlay runs Paddle under Docker's
+# QEMU/Rosetta emulation so `make ocr-paddle` still works, CPU-only.
+#
+# Applied automatically by the Makefile when detect-accelerator.sh reports
+# paddle-platform=linux/amd64. Skip on native x86_64.
+
+services:
+  paddle:
+    platform: linux/amd64

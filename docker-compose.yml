@@ -16,10 +16,11 @@
 #
 #   docker compose --profile gateway --profile paddle --profile frontend up --build
 #
-# GPU overlay (NVIDIA host + NVIDIA Container Toolkit):
+# GPU overlays (prefer `make detect` / `make gpu-up` / `make ocr-up`):
 #
-#   docker compose -f docker-compose.yml -f backend/docker/docker-compose.gpu.yml \
-#     --profile all up -d --build
+#   NVIDIA:  -f docker-compose.yml -f backend/docker/docker-compose.nvidia.yml
+#   AMD:     -f docker-compose.yml -f backend/docker/docker-compose.amd.yml
+#   Apple:   host OCR (`make ocr-up`) — Metal/MLX is not available in Docker
 #
 # Prefer the Makefile (`make help`) over invoking compose directly.
 

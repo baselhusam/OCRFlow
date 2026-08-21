@@ -1,6 +1,7 @@
 -r requirements.txt
-# PaddlePaddle wheels are platform-specific (CPU vs CUDA build, limited Apple-Silicon
-# support). Default to the CPU build; GPU users should install the matching
-# paddlepaddle-gpu wheel per https://www.paddlepaddle.org.cn/install
+# PaddlePaddle wheels are platform-specific (CPU vs CUDA). Default to the CPU
+# build. Docker/Make swap in paddlepaddle-gpu on NVIDIA hosts via
+# docker/install-paddle.sh. There is no 3.x ROCm or Apple GPU wheel — those
+# hosts keep this CPU package. See https://www.paddlepaddle.org.cn/install
 paddlepaddle>=3.0.0
 paddleocr>=3.0.0

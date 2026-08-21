@@ -7,9 +7,10 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isAppRoute = pathname === "/app" || pathname.startsWith("/app/");
+  const isStudioRoute = pathname === "/studio" || pathname.startsWith("/studio/");
   const isAuthRoute = pathname === "/login" || pathname === "/signup";
 
-  if (isAppRoute && !token) {
+  if ((isAppRoute || isStudioRoute) && !token) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
@@ -24,5 +25,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/app/:path*", "/login", "/signup"],
+  matcher: ["/app/:path*", "/studio/:path*", "/login", "/signup"],
 };

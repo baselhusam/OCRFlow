@@ -18,7 +18,7 @@ def reset_settings():
 
 
 def test_local_mode_uses_local_runner(monkeypatch, reset_settings):
-    monkeypatch.delenv("OCRFLOW_RUNNER_MODE", raising=False)
+    monkeypatch.setenv("OCRFLOW_RUNNER_MODE", "local")
     get_settings.cache_clear()
 
     runner = runner_factory.build_runner("paddle/doclayout-s")
@@ -44,13 +44,13 @@ def test_remote_mode_keeps_loaders_local(monkeypatch, reset_settings):
     assert not isinstance(runner, RemoteModelRunner)
 
 
-def test_remote_mode_missing_url_falls_back_to_local(monkeypatch, reset_settings):
+def test_remote_mode_missing_url_raises(monkeypatch, reset_settings):
     monkeypatch.setenv("OCRFLOW_RUNNER_MODE", "remote")
     monkeypatch.setenv("OCRFLOW_PADDLE_SERVICE_URL", "")
     get_settings.cache_clear()
 
-    runner = runner_factory.build_runner("paddle/doclayout-s")
-    assert not isinstance(runner, RemoteModelRunner)
+    with pytest.raises(runner_factory.ProviderServiceUnavailableError):
+        runner_factory.build_runner("paddle/doclayout-s")
 
 
 def test_unknown_model_raises(monkeypatch, reset_settings):

@@ -52,8 +52,8 @@ export function TablePreview({ tables, pageImageBase64 }: TablePreviewProps) {
                   y={y0}
                   width={x1 - x0}
                   height={y1 - y0}
-                  fill="rgba(59, 130, 246, 0.12)"
-                  stroke="rgb(59, 130, 246)"
+                  fill="color-mix(in srgb, var(--primary) 12%, transparent)"
+                  stroke="var(--primary)"
                   strokeWidth={0.003}
                 />
               );

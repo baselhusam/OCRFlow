@@ -62,7 +62,7 @@ export function CreateProjectDialog() {
           </Button>
         }
       />
-      <DialogContent className="rounded-sm sm:max-w-md">
+      <DialogContent className="rounded-xl sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create project</DialogTitle>
           <DialogDescription>

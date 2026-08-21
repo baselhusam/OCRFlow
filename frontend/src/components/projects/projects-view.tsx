@@ -152,7 +152,7 @@ export function ProjectsView({ projects, canWrite = true }: ProjectsViewProps) {
         </Select>
       </div>
 
-      <p className="mt-7 mb-4 font-mono text-[11px] tracking-[0.12em] text-muted-foreground">
+      <p className="mt-7 mb-4 font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
         {countLabel}
       </p>
 

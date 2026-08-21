@@ -77,6 +77,7 @@ export function FormulaPreview({ formulas, pageImageBase64 }: FormulaPreviewProp
                 variant="ghost"
                 size="sm"
                 className="h-6 px-1.5"
+                aria-label={`Copy ${formula.id ?? `formula-${i}`} LaTeX`}
                 onClick={() => void navigator.clipboard.writeText(formula.latex ?? "")}
               >
                 <Copy className="size-3" />

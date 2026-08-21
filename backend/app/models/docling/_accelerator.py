@@ -6,17 +6,13 @@ from pathlib import Path
 
 from docling.datamodel.accelerator_options import AcceleratorDevice, AcceleratorOptions
 
-from app.models.base import Device, ModelConfig
+from app.models.base import ModelConfig
+from app.models.device import device_to_torch
 
 
 def build_accelerator_options(config: ModelConfig) -> AcceleratorOptions:
-    device_map = {
-        Device.cpu: AcceleratorDevice.CPU,
-        Device.cuda: AcceleratorDevice.CUDA,
-        Device.mps: AcceleratorDevice.MPS,
-    }
     return AcceleratorOptions(
-        device=device_map.get(config.device, AcceleratorDevice.CPU),
+        device=AcceleratorDevice(device_to_torch(config.device)),
         num_threads=4,
     )
 

@@ -1,5 +1,5 @@
 export const STORAGE_KEY = "theme";
-export const DEFAULT_THEME = "light";
+export const DEFAULT_THEME = "dark";
 export const LANDING_THEME = "light";
 
 export type ThemeSetting = "system" | "light" | "dark";

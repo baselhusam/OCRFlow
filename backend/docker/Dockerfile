@@ -9,8 +9,9 @@
 #
 # The provider stages install ONLY their own provider's requirements on top of
 # base, keeping their mutually-incompatible dependency stacks isolated in
-# separate images. CPU wheels are installed by default; see docker-compose.gpu.yml
-# for the GPU overlay.
+# separate images. CPU wheels are installed by default. Pass
+# ACCELERATOR=cuda|rocm (see docker-compose.nvidia.yml / docker-compose.amd.yml)
+# to swap in GPU-enabled torch / paddlepaddle-gpu wheels.
 #
 # Build context is the `backend/` directory (see docker-compose.yml).
 
@@ -54,26 +55,33 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 # --------------------------------------------------------------------------- #
 FROM base AS paddle
 
+ARG ACCELERATOR=cpu
 ENV OCRFLOW_SERVICE_PROVIDER=paddle
-COPY requirements-paddle.txt ./
-RUN pip install -r requirements-paddle.txt
+COPY requirements-paddle.txt docker/install-paddle.sh ./
+RUN chmod +x install-paddle.sh && ./install-paddle.sh "${ACCELERATOR}"
 EXPOSE 8000
 CMD ["uvicorn", "app.internal_service.app:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # --------------------------------------------------------------------------- #
 FROM base AS docling
 
+ARG ACCELERATOR=cpu
 ENV OCRFLOW_SERVICE_PROVIDER=docling
-COPY requirements-docling.txt ./
-RUN pip install -r requirements-docling.txt
+COPY requirements-docling.txt docker/install-accelerator.sh ./
+RUN pip install -r requirements-docling.txt \
+    && chmod +x install-accelerator.sh \
+    && ./install-accelerator.sh "${ACCELERATOR}"
 EXPOSE 8000
 CMD ["uvicorn", "app.internal_service.app:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # --------------------------------------------------------------------------- #
 FROM base AS surya
 
+ARG ACCELERATOR=cpu
 ENV OCRFLOW_SERVICE_PROVIDER=surya
-COPY requirements-surya.txt ./
-RUN pip install -r requirements-surya.txt
+COPY requirements-surya.txt docker/install-accelerator.sh ./
+RUN pip install -r requirements-surya.txt \
+    && chmod +x install-accelerator.sh \
+    && ./install-accelerator.sh "${ACCELERATOR}"
 EXPOSE 8000
 CMD ["uvicorn", "app.internal_service.app:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,13 +1,12 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useMemo, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 
 import { NodePaletteItem } from "@/components/canvas/node-palette-item";
 import { getCategoryColor } from "@/lib/canvas/category-meta";
 import {
-  parsePaletteSectionPrefs,
-  readPaletteSectionPrefsSnapshot,
+  readPaletteSectionPrefs,
   subscribePaletteSectionPrefs,
   writePaletteSectionPref,
 } from "@/lib/canvas/palette-prefs";
@@ -24,21 +23,30 @@ function defaultSectionOpenForIndex(index: number): boolean {
   return index < 3;
 }
 
+function resolveSectionOpen(categoryId: string, sectionIndex: number): boolean {
+  const prefs = readPaletteSectionPrefs();
+  if (categoryId in prefs) return prefs[categoryId] ?? false;
+  return defaultSectionOpenForIndex(sectionIndex);
+}
+
 export function NodePaletteSection({
   group,
   showTopDivider = false,
   sectionIndex = 0,
 }: NodePaletteSectionProps) {
-  const prefsSnapshot = useSyncExternalStore(
-    subscribePaletteSectionPrefs,
-    readPaletteSectionPrefsSnapshot,
-    () => "{}",
+  // Default open state must match SSR; hydrate prefs after mount to avoid
+  // localStorage mismatches (React hydration error on aria-expanded/chevron).
+  const [open, setOpen] = useState(() =>
+    defaultSectionOpenForIndex(sectionIndex),
   );
-  const open = useMemo(() => {
-    const prefs = parsePaletteSectionPrefs(prefsSnapshot);
-    if (group.categoryId in prefs) return prefs[group.categoryId] ?? false;
-    return defaultSectionOpenForIndex(sectionIndex);
-  }, [group.categoryId, prefsSnapshot, sectionIndex]);
+
+  useEffect(() => {
+    setOpen(resolveSectionOpen(group.categoryId, sectionIndex));
+    return subscribePaletteSectionPrefs(() => {
+      setOpen(resolveSectionOpen(group.categoryId, sectionIndex));
+    });
+  }, [group.categoryId, sectionIndex]);
+
   const accent = getCategoryColor(group.categoryId);
 
   const toggle = () => {

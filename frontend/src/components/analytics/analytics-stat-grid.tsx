@@ -18,7 +18,7 @@ export function AnalyticsStat({
   return (
     <div className="border border-border bg-card px-5 py-5">
       <div className="flex items-start justify-between gap-3">
-        <p className="font-mono text-[10px] tracking-[0.2em] text-bronze-dim uppercase">
+        <p className="font-mono text-[10px] tracking-[0.2em] text-primary uppercase">
           {label}
         </p>
         <Icon className="size-4 shrink-0 text-muted-foreground/70" aria-hidden />

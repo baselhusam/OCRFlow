@@ -46,7 +46,7 @@ export function ReadingOrderPreview({
                     y={y0}
                     width={x1 - x0}
                     height={y1 - y0}
-                    fill="rgba(180, 120, 60, 0.12)"
+                    fill="color-mix(in srgb, var(--primary) 12%, transparent)"
                     stroke="var(--primary)"
                     strokeWidth={0.002}
                   />

@@ -1,0 +1,56 @@
+# NVIDIA GPU overlay for the OCRFlow provider services.
+#
+# Requires the NVIDIA Container Toolkit (Linux) or Docker Desktop GPU support
+# (Windows WSL2). Usage is normally:
+#
+#   make ocr-up          # auto-detects NVIDIA and applies this overlay
+#   make gpu-up          # full stack with this overlay
+#
+# Manual:
+#   docker compose -f docker-compose.yml -f backend/docker/docker-compose.nvidia.yml \
+#     --profile all up -d --build
+#
+# Rebuilds provider images with CUDA torch / paddlepaddle-gpu wheels. The
+# gateway stays CPU-only: it forwards requests and does no inference.
+
+x-nvidia-reservation: &nvidia-reservation
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: ["gpu"]
+
+x-nvidia-build: &nvidia-build-args
+  ACCELERATOR: cuda
+
+x-nvidia-env: &nvidia-env
+  OCRFLOW_DEFAULT_DEVICE: cuda
+  NVIDIA_VISIBLE_DEVICES: all
+  NVIDIA_DRIVER_CAPABILITIES: compute,utility
+
+services:
+  paddle:
+    <<: *nvidia-reservation
+    build:
+      args:
+        <<: *nvidia-build-args
+    environment:
+      <<: *nvidia-env
+
+  docling:
+    <<: *nvidia-reservation
+    build:
+      args:
+        <<: *nvidia-build-args
+    environment:
+      <<: *nvidia-env
+
+  surya:
+    <<: *nvidia-reservation
+    build:
+      args:
+        <<: *nvidia-build-args
+    environment:
+      <<: *nvidia-env

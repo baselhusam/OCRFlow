@@ -67,6 +67,7 @@ export type NodeRunErrorCode =
   | "no_input"
   | "payload_build"
   | "readiness"
+  | "provider_offline"
   | "unknown";
 
 export type NodeRunErrorContext = {

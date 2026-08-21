@@ -37,6 +37,8 @@ import {
   collectRegionBranchCascadeRemovalIds,
   findRegionBranchForAnchor,
 } from "@/lib/canvas/region-branch-graph";
+import { useRuntimeAvailability } from "@/components/canvas/runtime-availability-context";
+import { providerOfflineMessage } from "@/lib/canvas/provider-availability";
 import {
   getLinkedPageSelectorPartnerId,
   getParentSelectPageId,
@@ -257,6 +259,7 @@ export function usePipelineGraph({
   userPipelines = [],
 }: UsePipelineGraphOptions) {
   const { getInternalNode } = useReactFlow();
+  const { getModelStatus } = useRuntimeAvailability();
   const isPipelineDefinition = entity.kind === "pipeline";
   const isProjectCanvas = entity.kind === "project";
   const contextId = entity.id;
@@ -466,13 +469,14 @@ export function usePipelineGraph({
   const saveNow = useCallback(async (): Promise<boolean> => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     if (viewportSaveTimerRef.current) clearTimeout(viewportSaveTimerRef.current);
+    if (readOnly) return false;
     const graph = serializePipelineGraph(
       nodesRef.current,
       edgesRef.current,
       viewportRef.current,
     );
     return persistGraph(graph);
-  }, [persistGraph]);
+  }, [persistGraph, readOnly]);
 
   const scheduleGraphSave = useCallback(() => {
     if (readOnly) return;
@@ -489,6 +493,7 @@ export function usePipelineGraph({
   }, [persistGraph, readOnly]);
 
   const scheduleViewportSave = useCallback(() => {
+    if (readOnly) return;
     setHasUnsavedChanges(true);
     if (viewportSaveTimerRef.current) clearTimeout(viewportSaveTimerRef.current);
     viewportSaveTimerRef.current = setTimeout(() => {
@@ -499,7 +504,7 @@ export function usePipelineGraph({
       );
       void persistGraph(graph);
     }, 2500);
-  }, [persistGraph]);
+  }, [persistGraph, readOnly]);
 
   const evaluateConnection = useCallback(
     (connection: Connection, currentNodes: Node<PipelineNodeData>[]) => {
@@ -1005,6 +1010,32 @@ export function usePipelineGraph({
       const node = nodesRef.current.find((n) => n.id === nodeId);
       if (!node) return false;
 
+      const catalogEntry = modelMap.get(node.data.modelId);
+      if (catalogEntry) {
+        const runtimeStatus = getModelStatus(catalogEntry);
+        if (runtimeStatus.offline) {
+          updateNodeData(
+            nodeId,
+            {
+              runStatus: "error",
+              lastRunAt: new Date().toISOString(),
+              runResult: {
+                error:
+                  runtimeStatus.message ??
+                  providerOfflineMessage(catalogEntry.provider),
+                errorCode: "provider_offline",
+                errorContext: {
+                  modelId: node.data.modelId,
+                  nodeLabel: node.data.label,
+                },
+              },
+            },
+            true,
+          );
+          return false;
+        }
+      }
+
       if (isCustomPipelineNodeData(node.data)) {
         if (!isProjectCanvas || !node.data.pipelineId) return false;
 
@@ -1246,7 +1277,9 @@ export function usePipelineGraph({
     [
       categories,
       contextId,
+      getModelStatus,
       isProjectCanvas,
+      modelMap,
       models,
       pipelineMap,
       updateNodeData,

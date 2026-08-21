@@ -98,7 +98,7 @@ export function AnalyticsDashboard({
                 Workspace intelligence
               </p>
             </div>
-            <h1 className="mt-4 text-[44px] font-extrabold leading-[1.05] tracking-[-0.04em] text-foreground md:text-[52px]">
+            <h1 className="mt-4 text-[40px] font-extrabold leading-[1.05] tracking-[-0.035em] text-foreground">
               Pipeline analytics
             </h1>
             <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-muted-foreground">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { PagePreviewDialog } from "@/components/canvas/page-preview-dialog";
+import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
 import { getUpstreamPagesForNode } from "@/lib/canvas/node-readiness";
 import { extractPages } from "@/lib/canvas/resolve-upstream";
 import type { PipelineNodeData } from "@/lib/canvas/types";
@@ -10,11 +11,13 @@ import type { UpstreamContext } from "@/lib/canvas/resolve-upstream";
 import { cn } from "@/lib/utils";
 
 type PageAtPreviewTabProps = {
+  nodeId: string;
   data: PipelineNodeData;
   upstream: UpstreamContext;
 };
 
-export function PageAtPreviewTab({ data, upstream }: PageAtPreviewTabProps) {
+export function PageAtPreviewTab({ nodeId, data, upstream }: PageAtPreviewTabProps) {
+  const { updateNodeConfig } = usePipelineGraphActions();
   const pages = getUpstreamPagesForNode(data, upstream);
   const selectedIndex = Number(data.params.page_index ?? 0);
   const outputPages = data.cachedOutput ? extractPages(data.cachedOutput) : [];
@@ -75,6 +78,7 @@ export function PageAtPreviewTab({ data, upstream }: PageAtPreviewTabProps) {
           onOpenChange={setPreviewOpen}
           pages={previewPages}
           pageIndex={selectedPage.page_index}
+          onPageIndexChange={(index) => updateNodeConfig(nodeId, { page_index: index })}
         />
       )}
     </div>

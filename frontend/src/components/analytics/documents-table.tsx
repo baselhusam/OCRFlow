@@ -43,7 +43,7 @@ export function DocumentsTable({ documents }: DocumentsTableProps) {
               <TableCell>
                 <Link
                   href={`/app/projects/${document.project_id}/canvas`}
-                  className="transition-colors hover:text-bronze"
+                  className="transition-colors hover:text-primary"
                 >
                   {document.project_name}
                 </Link>

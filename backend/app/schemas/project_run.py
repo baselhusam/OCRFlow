@@ -34,3 +34,11 @@ class ProjectRunRead(BaseModel):
 
 class ProjectRunList(BaseModel):
     items: list[ProjectRunRead]
+
+
+class ProjectBatchRunRequest(BaseModel):
+    asset_ids: list[str]
+
+
+class ProjectBatchRunResponse(BaseModel):
+    items: list[ProjectRunRead]

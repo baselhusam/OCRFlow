@@ -374,13 +374,15 @@ function PipelineCanvasInner({
 
   useEffect(() => {
     if (initialFitDone.current || nodes.length === 0) return;
-    if (parsedGraph.viewport || parsedGraph.nodes.length > 0) {
-      initialFitDone.current = true;
-      return;
-    }
     initialFitDone.current = true;
-    void fitView({ padding: 0.2 });
-  }, [nodes.length, parsedGraph.viewport, parsedGraph.nodes.length, fitView]);
+    // Always frame the graph on first paint so reloads don't land on an
+    // empty-looking canvas when a stale/default viewport is off-screen.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        void fitView({ padding: 0.2 });
+      });
+    });
+  }, [nodes.length, fitView]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -548,12 +550,15 @@ function PipelineCanvasInner({
             pipelineName={entityName}
             boundaryValidation={boundaryValidation}
             saveValidationError={saveValidationError}
+            readOnly={readOnly}
           />
         ) : (
           <CanvasProjectHeader
             projectName={entityName}
             models={models}
             categories={categories}
+            readOnly={readOnly}
+            userPipelines={userPipelines}
           />
         )}
         <div className="relative flex min-h-0 flex-1">

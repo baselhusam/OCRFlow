@@ -22,7 +22,10 @@ class ComputeTier(StrEnum):
 class Device(StrEnum):
     cpu = "cpu"
     cuda = "cuda"
+    rocm = "rocm"
     mps = "mps"
+    mlx = "mlx"
+    auto = "auto"
 
 
 class ModelConfig(BaseModel):

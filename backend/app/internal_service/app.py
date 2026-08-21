@@ -16,6 +16,7 @@ from pydantic import ValidationError
 
 from app.api.v1.models.errors import register_model_exception_handlers
 from app.core.config import get_settings
+from app.models.device import resolve_device
 from app.models.registry import ModelNotFoundError
 from app.models.runner_factory import build_runner, get_cached_runner
 from app.models.servable import get_servable_model
@@ -49,13 +50,20 @@ def create_internal_app() -> FastAPI:
             content={"detail": str(exc), "error_code": "model_validation"},
         )
 
+    def _health_payload() -> dict[str, str]:
+        return {
+            "status": "ok",
+            "provider": settings.service_provider or "",
+            "device": resolve_device(settings.default_device).value,
+        }
+
     @app.get("/health")
     async def health() -> dict[str, str]:
-        return {"status": "ok", "provider": settings.service_provider or ""}
+        return _health_payload()
 
     @app.get("/internal/health")
     async def internal_health() -> dict[str, str]:
-        return {"status": "ok", "provider": settings.service_provider or ""}
+        return _health_payload()
 
     @app.get("/internal/models/{model_id:path}/health")
     async def model_health(model_id: str) -> JSONResponse:

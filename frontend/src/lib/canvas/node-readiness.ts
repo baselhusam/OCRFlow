@@ -180,10 +180,10 @@ export function getNodeReadiness(
 
   if (requiredInput !== "file" && requiredInput !== "document_input") {
     if (!upstream.nodeId) {
-      issues.push("Connect a from node");
+      issues.push("Connect an upstream node");
     } else if (!upstream.output) {
       if (!upstreamWillAutoRun(upstream, options)) {
-        issues.push("Run the from node first");
+        issues.push("Run the upstream node first");
       }
     } else if (!upstreamSatisfiesInput(requiredInput, upstream.output)) {
       issues.push("From node output does not match required input");
@@ -225,7 +225,7 @@ export function getNodeReadiness(
         ? ((upstream.output.raw as { figures?: unknown[] }).figures ?? [])
         : [];
     if (upstream.output && figures.length === 0) {
-      issues.push("Connect a figure or picture region from the from node");
+      issues.push("Connect a figure or picture region from the upstream node");
     }
   }
 

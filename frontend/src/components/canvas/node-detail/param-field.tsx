@@ -35,6 +35,7 @@ export function ParamField({
   maxOverride,
   className,
 }: ParamFieldProps) {
+  const inputId = `param-${field.key}`;
   const displayOffset = field.displayOffset ?? 0;
   const displayValue =
     value === undefined || value === ""
@@ -60,10 +61,11 @@ export function ParamField({
   if (field.type === "boolean") {
     return (
       <div className={cn("flex items-center justify-between gap-3", className)}>
-        <Label className="text-[11px] font-normal text-muted-foreground">
+        <Label htmlFor={inputId} className="text-[11px] font-normal text-muted-foreground">
           {field.label}
         </Label>
         <Switch
+          id={inputId}
           checked={Boolean(value)}
           onCheckedChange={(checked) => onChange(checked)}
           size="sm"
@@ -76,6 +78,7 @@ export function ParamField({
     return (
       <ParamMultiSelect
         field={field}
+        id={inputId}
         value={value}
         onChange={(val) => onChange(val)}
         className={className}
@@ -86,7 +89,7 @@ export function ParamField({
   if (field.type === "select" && field.options?.length) {
     return (
       <div className={cn("space-y-1.5", className)}>
-        <Label className="text-[10px] font-mono tracking-wide text-muted-foreground uppercase">
+        <Label htmlFor={inputId} className="text-[10px] font-mono tracking-wide text-muted-foreground uppercase">
           {field.label}
         </Label>
         <Select
@@ -95,7 +98,7 @@ export function ParamField({
             if (val !== null) onChange(val);
           }}
         >
-          <SelectTrigger className="h-8 w-full font-mono text-xs">
+          <SelectTrigger id={inputId} className="h-8 w-full font-mono text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -114,7 +117,7 @@ export function ParamField({
     return (
       <div className={cn("space-y-1.5", className)}>
         <div className="flex items-center justify-between gap-2">
-          <Label className="text-[10px] font-mono tracking-wide text-muted-foreground uppercase">
+          <Label htmlFor={inputId} className="text-[10px] font-mono tracking-wide text-muted-foreground uppercase">
             {field.label}
           </Label>
           {rangeHint && (
@@ -129,6 +132,8 @@ export function ParamField({
           max={maxOverride ?? field.max ?? 1}
           step={field.step}
           onChange={(val) => onChange(val)}
+          aria-label={field.label}
+          id={inputId}
         />
       </div>
     );
@@ -137,7 +142,7 @@ export function ParamField({
   return (
     <div className={cn("space-y-1.5", className)}>
       <div className="flex items-center justify-between gap-2">
-        <Label className="text-[10px] font-mono tracking-wide text-muted-foreground uppercase">
+        <Label htmlFor={inputId} className="text-[10px] font-mono tracking-wide text-muted-foreground uppercase">
           {field.label}
         </Label>
         {rangeHint && (
@@ -147,6 +152,7 @@ export function ParamField({
         )}
       </div>
       <Input
+        id={inputId}
         type={field.type === "number" ? "number" : "text"}
         min={displayMin}
         max={displayMax}

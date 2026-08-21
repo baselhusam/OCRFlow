@@ -111,7 +111,7 @@ describe("getNodeTestRunReadiness", () => {
     );
 
     expect(readiness.ready).toBe(false);
-    expect(readiness.issues).toContain("Connect a from node");
+    expect(readiness.issues).toContain("Connect an upstream node");
   });
 
   it("allows picture classifier from page branch without layout regions", () => {

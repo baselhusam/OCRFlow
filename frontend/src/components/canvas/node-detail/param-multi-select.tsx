@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 
 type ParamMultiSelectProps = {
   field: ParamFieldDef;
+  id?: string;
   value: string | boolean | number | undefined;
   onChange: (value: string) => void;
   className?: string;
@@ -35,6 +36,7 @@ function filterOptions(
 
 export function ParamMultiSelect({
   field,
+  id,
   value,
   onChange,
   className,
@@ -93,7 +95,10 @@ export function ParamMultiSelect({
 
   return (
     <div className={cn("space-y-1.5", className)}>
-      <Label className="text-[10px] font-mono tracking-wide text-muted-foreground uppercase">
+      <Label
+        htmlFor={id}
+        className="text-[10px] font-mono tracking-wide text-muted-foreground uppercase"
+      >
         {field.label}
       </Label>
       <Popover
@@ -101,6 +106,7 @@ export function ParamMultiSelect({
         onOpenChange={setOpen}
       >
         <PopoverTrigger
+          id={id}
           className={cn(
             "flex h-8 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-2.5 font-mono text-xs text-foreground transition-colors",
             "hover:bg-muted/40 data-popup-open:border-ring data-popup-open:ring-3 data-popup-open:ring-ring/50",

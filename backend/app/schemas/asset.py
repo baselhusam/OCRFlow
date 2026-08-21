@@ -20,3 +20,11 @@ class AssetMeta(BaseModel):
     mime_type: str
     size_bytes: int = Field(ge=0)
     format: str = Field(pattern=r"^(pdf|image)$")
+
+
+class AssetBatchUploadResponse(BaseModel):
+    items: list[AssetUploadResponse]
+
+
+class AssetListResponse(BaseModel):
+    items: list[AssetMeta]

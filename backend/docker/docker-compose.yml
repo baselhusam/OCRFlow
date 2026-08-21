@@ -7,8 +7,9 @@
 #   docker compose --profile gateway --profile paddle up --build   # gateway + paddle
 #   docker compose --profile all up --build                        # everything
 #
-# GPU overlay:
-#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml --profile all up
+# GPU overlays (usually applied by `make gpu-up` / `make ocr-up` after detection):
+#   docker compose -f docker-compose.yml -f docker-compose.nvidia.yml --profile all up
+#   docker compose -f docker-compose.yml -f docker-compose.amd.yml --profile all up
 #
 # Build context is the backend/ directory (one level up from this file).
 
@@ -21,7 +22,7 @@ x-service-base: &service-base
     OCRFLOW_MODEL_CACHE: /models
     HF_HOME: /models/hf
     OCRFLOW_UPLOAD_DIR: /data/uploads
-    OCRFLOW_DEFAULT_DEVICE: cpu
+    OCRFLOW_DEFAULT_DEVICE: auto
   healthcheck:
     test: ["CMD", "curl", "-fsS", "http://localhost:8000/internal/health"]
     interval: 10s
@@ -97,7 +98,40 @@ services:
       retries: 5
       start_period: 20s
 
-  # --- Provider services (internal only; no published ports) ---------------- #
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: gateway
+    container_name: ocrflow-worker
+    restart: unless-stopped
+    profiles: ["gateway", "all"]
+    env_file:
+      - .env
+    environment:
+      OCRFLOW_RUNNER_MODE: remote
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-ocrflow}:${POSTGRES_PASSWORD:-ocrflow_dev}@postgres:5432/${POSTGRES_DB:-ocrflow}
+      REDIS_URL: redis://redis:6379/0
+      OCRFLOW_DOCLING_SERVICE_URL: http://docling:8000
+      OCRFLOW_SURYA_SERVICE_URL: http://surya:8000
+      OCRFLOW_PADDLE_SERVICE_URL: http://paddle:8000
+      OCRFLOW_UPLOAD_DIR: /data/uploads
+    command: ["celery", "-A", "app.celery_app:celery_app", "worker", "--loglevel=info"]
+    volumes:
+      - ocrflow_uploads:/data/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+
+  # --- Provider services (optional microservices) --------------------------- #
+  # Profiles keep them off unless requested. Ports are published so a host
+  # uvicorn gateway (OCRFLOW_RUNNER_MODE=remote) can reach them during local
+  # hybrid development. On the compose network the gateway still uses the
+  # service DNS names set above.
   paddle:
     <<: *service-base
     build:
@@ -106,6 +140,8 @@ services:
       target: paddle
     container_name: ocrflow-paddle
     profiles: ["paddle", "all"]
+    ports:
+      - "8103:8000"
     environment:
       <<: *service-env
       OCRFLOW_SERVICE_PROVIDER: paddle
@@ -121,6 +157,8 @@ services:
       target: docling
     container_name: ocrflow-docling
     profiles: ["docling", "all"]
+    ports:
+      - "8102:8000"
     environment:
       <<: *service-env
       OCRFLOW_SERVICE_PROVIDER: docling
@@ -136,6 +174,8 @@ services:
       target: surya
     container_name: ocrflow-surya
     profiles: ["surya", "all"]
+    ports:
+      - "8101:8000"
     environment:
       <<: *service-env
       OCRFLOW_SERVICE_PROVIDER: surya

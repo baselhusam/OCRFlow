@@ -130,7 +130,7 @@ export function NodeDetailPreviewTab({
 
   if (isPageSelector) {
     return (
-      <PageAtPreviewTab data={data} upstream={upstream} />
+      <PageAtPreviewTab nodeId={nodeId} data={data} upstream={upstream} />
     );
   }
 
@@ -183,7 +183,7 @@ export function NodeDetailPreviewTab({
             <p className="text-xs text-muted-foreground">
               {needsUpload && !data.params.assetId
                 ? "Upload a document in Setup to provide input."
-                : "Connect and run a from node, or check Connections."}
+                : "Connect and run an upstream node, or check Connections."}
             </p>
           ) : (
             <>

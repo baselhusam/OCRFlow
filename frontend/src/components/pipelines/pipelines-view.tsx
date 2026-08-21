@@ -121,75 +121,81 @@ export function PipelinesView({
 
   return (
     <div className="mt-9">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          {TAB_OPTIONS.map((option) => (
-            <button
-              key={option.key}
-              type="button"
-              onClick={() => setTab(option.key)}
-              className={cn(
-                "rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
-                tab === option.key
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary/60 text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
+      <div className="flex flex-wrap items-center gap-3.5">
+        <div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5">
+          <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search pipelines…"
+            className="h-auto border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+          />
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative min-w-[220px]">
-            <Search
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
-            <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search pipelines"
-              className="h-10 pl-9"
-            />
-          </div>
-          <Select
-            value={sort}
-            onValueChange={(value) => setSort(value as PipelinesSort)}
-          >
-            <SelectTrigger className="h-10 w-full sm:w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SORT_OPTIONS.map((option) => (
-                <SelectItem key={option.key} value={option.key}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="inline-flex rounded-lg bg-secondary/80 p-0.5">
+          {TAB_OPTIONS.map((option) => {
+            const active = tab === option.key;
+            return (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => setTab(option.key)}
+                className={cn(
+                  "rounded-md px-4 py-1.5 text-[13px] font-semibold transition-colors",
+                  active
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {option.label}
+              </button>
+            );
+          })}
         </div>
+
+        <Select
+          value={sort}
+          onValueChange={(value) => setSort(value as PipelinesSort)}
+        >
+          <SelectTrigger className="ml-auto h-10 min-w-[120px] bg-card">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_OPTIONS.map((option) => (
+              <SelectItem key={option.key} value={option.key}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <p className="mt-5 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
+      <p className="mt-7 mb-4 font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
         {countLabel}
       </p>
 
-      <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {visiblePipelines.map((pipeline) => (
-          <PipelineCard
-            key={pipeline.id}
-            pipeline={pipeline}
-            canWrite={canWrite}
-          />
-        ))}
-      </div>
-
       {visiblePipelines.length === 0 ? (
-        <p className="mt-8 text-center text-sm text-muted-foreground">
-          No pipelines match your filters.
-        </p>
-      ) : null}
+        <div className="rounded-xl border border-dashed border-border px-8 py-14 text-center">
+          <p className="text-lg font-bold tracking-tight text-foreground">
+            {query.trim()
+              ? `No pipelines match “${query.trim()}”`
+              : "No pipelines in this view"}
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Try a different search, or switch tabs.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {visiblePipelines.map((pipeline) => (
+            <PipelineCard
+              key={pipeline.id}
+              pipeline={pipeline}
+              canWrite={canWrite}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

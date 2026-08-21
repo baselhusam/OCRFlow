@@ -15,6 +15,7 @@ import {
   applyThemeClass,
   DEFAULT_THEME,
   isLandingPath,
+  LANDING_THEME,
   resolveTheme,
   STORAGE_KEY,
   type ResolvedTheme,
@@ -39,7 +40,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const stored =
       (localStorage.getItem(STORAGE_KEY) as ThemeSetting | null) ?? DEFAULT_THEME;
-    const initial = isLandingPath(window.location.pathname) ? DEFAULT_THEME : stored;
+    const initial = isLandingPath(window.location.pathname) ? LANDING_THEME : stored;
     setThemeState(initial);
   }, []);
 

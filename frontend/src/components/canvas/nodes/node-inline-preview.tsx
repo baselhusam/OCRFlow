@@ -151,7 +151,7 @@ function CompactPreviewBody({
       <p className="text-[11px] leading-relaxed text-muted-foreground">
         {needsUpload
           ? "Upload a document in Setup, then run to preview."
-          : "Connect and run a from node to see a preview here."}
+          : "Connect and run an upstream node to see a preview here."}
       </p>
     );
   }
@@ -438,7 +438,8 @@ export function NodeInlinePreview({
           <div className="nodrag nopan flex items-center justify-center gap-2 border-t border-border/60 px-3 py-2">
             <button
               type="button"
-              className="rounded border border-border/60 px-2 py-0.5 font-mono text-[9px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+              disabled={Number(data.params.page_index ?? 0) <= 0}
+              className="rounded border border-border/60 px-2 py-0.5 font-mono text-[9px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
               onClick={() =>
                 updateNodeConfig(nodeId, {
                   page_index: Math.max(0, Number(data.params.page_index ?? 0) - 1),
@@ -452,10 +453,14 @@ export function NodeInlinePreview({
             </span>
             <button
               type="button"
-              className="rounded border border-border/60 px-2 py-0.5 font-mono text-[9px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+              disabled={Number(data.params.page_index ?? 0) >= pageCount - 1}
+              className="rounded border border-border/60 px-2 py-0.5 font-mono text-[9px] text-muted-foreground hover:bg-secondary/60 hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
               onClick={() =>
                 updateNodeConfig(nodeId, {
-                  page_index: Number(data.params.page_index ?? 0) + 1,
+                  page_index: Math.min(
+                    pageCount - 1,
+                    Number(data.params.page_index ?? 0) + 1,
+                  ),
                 })
               }
             >

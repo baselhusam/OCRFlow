@@ -30,7 +30,8 @@ type NodeDetailSetupTabProps = {
 const ACCEPT = "application/pdf,image/png,image/jpeg,image/webp";
 
 export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
-  const { projectId, updateNodeConfig, updateNodeData, getUpstream } = usePipelineGraphActions();
+  const { projectId, updateNodeConfig, updateNodeData, getUpstream, runNode } =
+    usePipelineGraphActions();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -76,13 +77,36 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
             runResult: undefined,
           });
         }
+
+        let autoRun = false;
+        try {
+          const meRes = await fetch("/api/auth/me", { credentials: "include" });
+          if (meRes.ok) {
+            const me = (await meRes.json()) as {
+              preferences?: { auto_run_on_upload?: boolean };
+            };
+            autoRun = Boolean(me.preferences?.auto_run_on_upload);
+          }
+        } catch {
+          // Preference lookup is best-effort; upload already succeeded.
+        }
+        if (autoRun && isSourceLoader) {
+          void runNode(nodeId);
+        }
       } catch (error) {
         setUploadError(error instanceof Error ? error.message : "Upload failed");
       } finally {
         setUploading(false);
       }
     },
-    [isSourceLoader, nodeId, projectId, updateNodeConfig, updateNodeData],
+    [
+      isSourceLoader,
+      nodeId,
+      projectId,
+      runNode,
+      updateNodeConfig,
+      updateNodeData,
+    ],
   );
 
   const clearAsset = () => {
@@ -106,7 +130,7 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
         <DetailSection title="Document source" className="border-b-0 px-0 py-0">
           <div className="space-y-2">
             {assetFilename ? (
-              <div className="flex items-center gap-2 rounded-sm border border-border bg-secondary/30 px-3 py-2">
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 px-3 py-2">
                 <FileText className="size-4 shrink-0 text-muted-foreground" />
                 <span className="min-w-0 flex-1 truncate text-xs text-foreground">
                   {assetFilename}
@@ -114,7 +138,7 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
                 <button
                   type="button"
                   onClick={clearAsset}
-                  className="shrink-0 rounded-sm p-0.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  className="shrink-0 rounded-md p-0.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-destructive focus-visible:ring-2 focus-visible:ring-[var(--pulse)]/45 focus-visible:ring-offset-1 focus-visible:ring-offset-card focus-visible:outline-none"
                   aria-label="Remove file"
                 >
                   <X className="size-3.5" />
@@ -140,7 +164,8 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
                 if (file) void handleFile(file);
               }}
               className={cn(
-                "flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-sm border border-dashed border-border bg-secondary/30 px-3 py-4 text-center transition-colors hover:bg-secondary/50",
+                "flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border bg-secondary/30 px-3 py-4 text-center transition-colors",
+                "hover:border-[var(--pulse)]/45 hover:bg-secondary/50 focus-visible:ring-2 focus-visible:ring-[var(--pulse)]/45 focus-visible:ring-offset-1 focus-visible:ring-offset-card focus-visible:outline-none",
                 uploading && "pointer-events-none opacity-60",
               )}
             >
@@ -152,7 +177,7 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
               <p className="text-[11px] text-muted-foreground">
                 {assetFilename ? "Replace file" : "Drop PDF or image"}
               </p>
-              <p className="font-mono text-[9px] text-muted-foreground/70">
+              <p className="font-mono text-[9px] tracking-[0.08em] text-muted-foreground uppercase">
                 PDF, PNG, JPEG, WebP
               </p>
             </div>
@@ -227,7 +252,7 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
             {readOnlyEntries.map(([key, value]) => (
               <div key={key} className="flex items-center justify-between gap-2">
                 <span className="truncate text-xs text-muted-foreground">{key}</span>
-                <span className="shrink-0 rounded-sm border border-border bg-secondary/50 px-1.5 py-0.5 font-mono text-[10px] text-foreground/80">
+                <span className="shrink-0 rounded-md border border-border bg-secondary/50 px-1.5 py-0.5 font-mono text-[10px] text-foreground">
                   {typeof value === "boolean"
                     ? value
                       ? "true"

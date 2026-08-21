@@ -43,7 +43,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
               <TableCell>
                 <Link
                   href={`/app/projects/${project.project_id}/canvas`}
-                  className="font-medium transition-colors hover:text-bronze"
+                  className="font-medium transition-colors hover:text-primary"
                 >
                   {project.name}
                 </Link>

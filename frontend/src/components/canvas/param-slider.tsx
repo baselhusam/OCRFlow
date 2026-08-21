@@ -3,6 +3,8 @@
 import { cn } from "@/lib/utils";
 
 type ParamSliderProps = {
+  "aria-label"?: string;
+  id?: string;
   value: number;
   min: number;
   max: number;
@@ -12,6 +14,8 @@ type ParamSliderProps = {
 };
 
 export function ParamSlider({
+  "aria-label": ariaLabel,
+  id,
   value,
   min,
   max,
@@ -22,6 +26,7 @@ export function ParamSlider({
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <input
+        id={id}
         type="range"
         min={min}
         max={max}
@@ -32,6 +37,7 @@ export function ParamSlider({
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
+        aria-label={ariaLabel}
       />
       <span className="w-10 shrink-0 text-right font-mono text-[10px] text-foreground/80 tabular-nums">
         {step < 1 ? value.toFixed(2) : value}

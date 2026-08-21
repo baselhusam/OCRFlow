@@ -11,6 +11,9 @@ import type {
  */
 export const REMOTE_PROVIDERS = new Set(["docling", "surya", "paddle"]);
 
+/** Stable display order for OCR microservice status chips. */
+export const REMOTE_PROVIDER_ORDER = ["surya", "docling", "paddle"] as const;
+
 const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   docling: "Docling",
   surya: "Surya",
@@ -37,14 +40,16 @@ export function providerOfflineMessage(provider: string): string {
 /**
  * Build the set of remote providers that are currently offline.
  *
- * Degrades open: a missing/failed runtime signal (`null`) yields an empty set,
- * so nothing is gated when we don't know the true state.
+ * Degrades closed: a missing/failed runtime signal (`null`) treats every remote
+ * provider as offline so the palette never pretends OCR services are up.
  */
 export function buildOfflineProviderSet(
   runtime: RuntimeAvailability | null | undefined,
 ): Set<string> {
+  if (!runtime) {
+    return new Set(REMOTE_PROVIDERS);
+  }
   const offline = new Set<string>();
-  if (!runtime) return offline;
   for (const entry of runtime.providers) {
     if (REMOTE_PROVIDERS.has(entry.provider) && !entry.running) {
       offline.add(entry.provider);

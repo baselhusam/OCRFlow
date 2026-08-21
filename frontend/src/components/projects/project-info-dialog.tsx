@@ -51,7 +51,7 @@ export function ProjectInfoDialog({ project, stats }: ProjectInfoDialogProps) {
           </Button>
         }
       />
-      <DialogContent className="rounded-sm sm:max-w-lg">
+      <DialogContent className="rounded-xl sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{project.name}</DialogTitle>
           <DialogDescription>

@@ -43,7 +43,7 @@ export function NodesTable({ nodes }: NodesTableProps) {
               <TableCell>
                 <Link
                   href={`/app/projects/${node.project_id}/canvas`}
-                  className="transition-colors hover:text-bronze"
+                  className="transition-colors hover:text-primary"
                 >
                   {node.project_name}
                 </Link>

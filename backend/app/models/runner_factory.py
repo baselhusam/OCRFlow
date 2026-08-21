@@ -84,9 +84,21 @@ def _use_remote_runner(model_id: str) -> bool:
     servable = get_servable_model(model_id)
     if servable is None or not is_remote_provider(servable.provider):
         return False
-    # Missing URL falls back to local so a partially-configured gateway degrades
-    # gracefully rather than routing into the void.
-    return bool(settings.provider_service_url(servable.provider))
+    # Remote mode is strict: the gateway must never import provider ML stacks.
+    # A missing URL is a configuration error handled in ``_resolve_factory``.
+    return True
+
+
+class ProviderServiceUnavailableError(RuntimeError):
+    """Raised when remote mode has no service URL for a required provider."""
+
+    def __init__(self, provider: str, model_id: str) -> None:
+        self.provider = provider
+        self.model_id = model_id
+        super().__init__(
+            f"Provider '{provider}' has no service URL configured for model '{model_id}'. "
+            "Set OCRFLOW_*_SERVICE_URL or start the provider microservice."
+        )
 
 
 def _resolve_factory(model_id: str) -> Callable[[], BaseRunner]:
@@ -96,7 +108,8 @@ def _resolve_factory(model_id: str) -> Callable[[], BaseRunner]:
         servable = get_servable_model(model_id)
         assert servable is not None  # guaranteed by _use_remote_runner
         service_url = settings.provider_service_url(servable.provider)
-        assert service_url is not None
+        if not service_url:
+            raise ProviderServiceUnavailableError(servable.provider, model_id)
         return lambda: RemoteModelRunner(servable, service_url)
 
     factory = RUNNER_FACTORIES.get(model_id)

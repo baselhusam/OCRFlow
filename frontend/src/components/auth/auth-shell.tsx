@@ -48,7 +48,7 @@ export function AuthShell({ title, description, children, footer }: AuthShellPro
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-[var(--landing-node-border)] bg-[var(--landing-node-bg)] shadow-[0_1px_2px_rgba(20,18,37,0.08),0_18px_40px_-22px_rgba(20,18,37,0.25)]">
+          <div className="overflow-hidden rounded-xl border border-[var(--landing-node-border)] bg-[var(--landing-node-bg)] shadow-[0_1px_2px_rgba(20,18,37,0.08),0_18px_40px_-22px_rgba(20,18,37,0.25)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2),0_18px_40px_-22px_rgba(0,0,0,0.35)]">
             <div className="border-b border-[var(--landing-node-border)] px-6 py-5">
               <h1 className="text-[22px] font-bold tracking-[-0.02em] text-foreground">
                 {title}

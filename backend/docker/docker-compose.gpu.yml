@@ -1,16 +1,6 @@
-# GPU overlay for the OCRFlow provider services.
-#
-# Usage (on an NVIDIA host with the NVIDIA Container Toolkit installed):
-#
-#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml --profile all up --build
-#
-# This reserves GPUs for each provider service and switches inference to CUDA.
-# The default images install CPU framework wheels; for real GPU acceleration
-# build the provider images with GPU-enabled wheels (e.g. paddlepaddle-gpu, a
-# CUDA torch build) — pass a CUDA-capable Python base via the PYTHON_BASE build
-# arg and add the GPU wheels to the corresponding requirements-<provider>.txt.
-#
-# The gateway stays CPU-only: it forwards requests and does no inference.
+# Backward-compatible alias of docker-compose.nvidia.yml.
+# Prefer `make gpu-up` (auto-detects NVIDIA / AMD / Apple GPU) or the
+# vendor-named overlay. Kept so existing docs and scripts keep working.
 
 x-gpu-reservation: &gpu-reservation
   deploy:
@@ -24,18 +14,30 @@ x-gpu-reservation: &gpu-reservation
 services:
   paddle:
     <<: *gpu-reservation
+    build:
+      args:
+        ACCELERATOR: cuda
     environment:
       OCRFLOW_DEFAULT_DEVICE: cuda
       NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
 
   docling:
     <<: *gpu-reservation
+    build:
+      args:
+        ACCELERATOR: cuda
     environment:
       OCRFLOW_DEFAULT_DEVICE: cuda
       NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
 
   surya:
     <<: *gpu-reservation
+    build:
+      args:
+        ACCELERATOR: cuda
     environment:
       OCRFLOW_DEFAULT_DEVICE: cuda
       NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility

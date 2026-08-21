@@ -6,6 +6,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.models.base import Device, ModelConfig
+from app.models.device import resolve_device
 
 
 class RunnerMode(StrEnum):
@@ -62,16 +63,20 @@ class Settings(BaseSettings):
     runner_mode: RunnerMode = Field(
         default=RunnerMode.local, validation_alias="OCRFLOW_RUNNER_MODE"
     )
-    # Base URLs of the per-provider services (used only in remote mode). The
-    # defaults match the docker-compose service names on the internal network.
+    # Base URLs of the per-provider services (used only in remote mode).
+    # Defaults target the published localhost ports for host-gateway + Docker
+    # OCR microservices. Full-stack compose overrides these to service DNS names.
     docling_service_url: str = Field(
-        default="http://docling:8000", validation_alias="OCRFLOW_DOCLING_SERVICE_URL"
+        default="http://127.0.0.1:8102",
+        validation_alias="OCRFLOW_DOCLING_SERVICE_URL",
     )
     surya_service_url: str = Field(
-        default="http://surya:8000", validation_alias="OCRFLOW_SURYA_SERVICE_URL"
+        default="http://127.0.0.1:8101",
+        validation_alias="OCRFLOW_SURYA_SERVICE_URL",
     )
     paddle_service_url: str = Field(
-        default="http://paddle:8000", validation_alias="OCRFLOW_PADDLE_SERVICE_URL"
+        default="http://127.0.0.1:8103",
+        validation_alias="OCRFLOW_PADDLE_SERVICE_URL",
     )
     # Which provider this process serves when running as an internal service
     # image (unset for the gateway). Purely informational / for health output.
@@ -96,8 +101,11 @@ class Settings(BaseSettings):
         }.get(provider)
 
     def build_model_config(self, **overrides: object) -> ModelConfig:
+        device = overrides.pop("device", self.default_device)
+        if not isinstance(device, Device):
+            device = Device(device)
         base = {
-            "device": self.default_device,
+            "device": resolve_device(device),
             "model_cache_dir": self.model_cache_dir,
             "timeout_seconds": self.inference_timeout_seconds,
             "max_image_dimension": self.max_image_dimension,

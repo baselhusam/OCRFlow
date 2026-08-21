@@ -53,7 +53,7 @@ export function AnalyticsOverviewPanel({
     <div className="space-y-10">
       <div className="flex flex-col gap-6 border-b border-border pb-8 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
-          <p className="font-mono text-[11px] tracking-[0.3em] text-bronze-dim uppercase">
+          <p className="font-mono text-[11px] tracking-[0.3em] text-primary uppercase">
             Workspace
           </p>
           <h1 className="mt-3 text-2xl font-semibold tracking-tight md:text-3xl">
@@ -143,13 +143,13 @@ export function AnalyticsOverviewPanel({
         </h2>
         <div className="grid gap-6 lg:grid-cols-2">
           <div>
-            <p className="mb-3 font-mono text-[10px] tracking-[0.18em] text-bronze-dim uppercase">
+            <p className="mb-3 font-mono text-[10px] tracking-[0.18em] text-primary uppercase">
               Runs & pages over time
             </p>
             <ActivityChart series={activity} />
           </div>
           <div>
-            <p className="mb-3 font-mono text-[10px] tracking-[0.18em] text-bronze-dim uppercase">
+            <p className="mb-3 font-mono text-[10px] tracking-[0.18em] text-primary uppercase">
               Most used models
             </p>
             <ModelUsageChart models={models} />

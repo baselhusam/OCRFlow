@@ -56,10 +56,10 @@ export function ProjectList({ projects }: ProjectListProps) {
           >
             <Link
               href={canvasHref}
-              className="block px-5 py-4 pr-24 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-bronze/30"
+              className="block px-5 py-4 pr-24 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30"
             >
               <div className="min-w-0">
-                <p className="font-medium tracking-tight transition-colors group-hover:text-bronze">
+                <p className="font-medium tracking-tight transition-colors group-hover:text-primary">
                   {project.name}
                 </p>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
@@ -109,7 +109,7 @@ export function ProjectList({ projects }: ProjectListProps) {
               </div>
               <span
                 aria-hidden
-                className="inline-flex size-7 items-center justify-center text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-bronze"
+                className="inline-flex size-7 items-center justify-center text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
               >
                 <ArrowUpRight className="size-4" />
               </span>

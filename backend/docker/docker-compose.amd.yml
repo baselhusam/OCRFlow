@@ -1,0 +1,58 @@
+# AMD ROCm GPU overlay for the OCRFlow provider services.
+#
+# Requires ROCm on the Linux host (and typically the `video` group). Docker
+# Desktop on Windows/Mac cannot pass AMD GPUs through; use this overlay on
+# Linux (including WSL with ROCm). Usage is normally:
+#
+#   make ocr-up          # auto-detects AMD and applies this overlay
+#   make gpu-up          # full stack with this overlay
+#
+# Manual:
+#   docker compose -f docker-compose.yml -f backend/docker/docker-compose.amd.yml \
+#     --profile all up -d --build
+#
+# Docling and Surya get PyTorch ROCm wheels (device string is still `cuda`).
+# PaddlePaddle 3.x has no ROCm wheel — that service stays on CPU.
+
+x-rocm-runtime: &rocm-runtime
+  devices:
+    - /dev/kfd
+    - /dev/dri
+  group_add:
+    - video
+  security_opt:
+    - seccomp:unconfined
+  ipc: host
+  environment: &rocm-env
+    OCRFLOW_DEFAULT_DEVICE: cuda
+    HIP_VISIBLE_DEVICES: all
+    ROCR_VISIBLE_DEVICES: all
+
+x-rocm-build: &rocm-build-args
+  ACCELERATOR: rocm
+
+services:
+  paddle:
+    build:
+      args:
+        ACCELERATOR: rocm
+    environment:
+      # CPU Paddle — no 3.x ROCm wheel. Leave HIP unset so it does not
+      # try to initialize a GPU backend it does not have.
+      OCRFLOW_DEFAULT_DEVICE: cpu
+
+  docling:
+    <<: *rocm-runtime
+    build:
+      args:
+        <<: *rocm-build-args
+    environment:
+      <<: *rocm-env
+
+  surya:
+    <<: *rocm-runtime
+    build:
+      args:
+        <<: *rocm-build-args
+    environment:
+      <<: *rocm-env

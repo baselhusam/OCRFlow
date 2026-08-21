@@ -37,29 +37,29 @@ export function NodeDetailStatusBar({
     <div className="border-b border-border px-4 py-2">
       <div className="flex flex-wrap items-center gap-2">
         {planned ? (
-          <span className="inline-flex items-center gap-1 rounded-sm border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] tracking-wide text-amber-700 uppercase dark:text-amber-400">
+          <span className="inline-flex items-center gap-1 rounded-md border border-[var(--status-warn)]/35 bg-[var(--status-warn)]/12 px-2 py-0.5 font-mono text-[9px] tracking-[0.08em] text-[var(--status-warn)] uppercase">
             <Clock className="size-3" />
             Planned
           </span>
         ) : readiness.ready ? (
-          <span className="inline-flex items-center gap-1 font-mono text-[10px] text-emerald-600 dark:text-emerald-400">
+          <span className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.06em] text-[var(--status-ok)] uppercase">
             <CheckCircle2 className="size-3" />
             Ready
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 font-mono text-[10px] text-amber-600 dark:text-amber-400">
+          <span className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.06em] text-[var(--status-warn)] uppercase">
             <AlertCircle className="size-3" />
             Not ready
           </span>
         )}
 
         {data.runStatus === "running" && (
-          <span className="font-mono text-[10px] text-muted-foreground">
+          <span className="font-mono text-[10px] tracking-[0.06em] text-muted-foreground uppercase">
             Running…
           </span>
         )}
         {data.runStatus === "success" && (
-          <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400">
+          <span className="font-mono text-[10px] tracking-[0.06em] text-[var(--status-ok)] uppercase">
             Succeeded
           </span>
         )}
@@ -67,7 +67,8 @@ export function NodeDetailStatusBar({
           <button
             type="button"
             onClick={() => setErrorOpen((value) => !value)}
-            className="inline-flex items-center gap-1 rounded-sm border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[9px] text-destructive"
+            aria-expanded={errorOpen}
+            className="inline-flex items-center gap-1 rounded-md border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[9px] tracking-[0.08em] text-destructive uppercase transition-colors hover:border-destructive/50 hover:bg-destructive/18 focus-visible:ring-2 focus-visible:ring-destructive/45 focus-visible:ring-offset-1 focus-visible:ring-offset-card focus-visible:outline-none"
           >
             Failed
             {errorOpen ? (
@@ -79,7 +80,7 @@ export function NodeDetailStatusBar({
         )}
 
         {data.lastRunAt && (
-          <span className="font-mono text-[9px] text-muted-foreground">
+          <span className="font-mono text-[9px] tracking-[0.04em] text-muted-foreground">
             {new Date(data.lastRunAt).toLocaleString()}
           </span>
         )}
@@ -88,8 +89,10 @@ export function NodeDetailStatusBar({
           <button
             type="button"
             onClick={() => setIssuesOpen((v) => !v)}
+            aria-expanded={issuesOpen}
             className={cn(
-              "ml-auto inline-flex items-center gap-1 rounded-sm border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] text-amber-700 dark:text-amber-400",
+              "ml-auto inline-flex items-center gap-1 rounded-md border border-[var(--status-warn)]/35 bg-[var(--status-warn)]/12 px-2 py-0.5 font-mono text-[9px] tracking-[0.08em] text-[var(--status-warn)] uppercase transition-colors",
+              "hover:border-[var(--status-warn)]/55 hover:bg-[var(--status-warn)]/20 focus-visible:ring-2 focus-visible:ring-[var(--status-warn)]/45 focus-visible:ring-offset-1 focus-visible:ring-offset-card focus-visible:outline-none",
             )}
           >
             {issueCount} issue{issueCount === 1 ? "" : "s"}

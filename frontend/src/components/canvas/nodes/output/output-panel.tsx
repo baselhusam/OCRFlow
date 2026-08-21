@@ -296,7 +296,7 @@ export function PageThumbnailPanel({
                       onOpenPage && "cursor-zoom-in",
                       selected
                         ? "border-[var(--node-accent)]/60 ring-1 ring-[var(--node-accent)]/35"
-                        : "border-white/20 hover:border-white/40 dark:border-white/10 dark:hover:border-white/25",
+                        : "border-border/60 hover:border-border dark:border-white/10 dark:hover:border-white/25",
                     )}
                   >
                     {thumb ? (
@@ -368,7 +368,7 @@ export function PageThumbnailPanel({
                   selected && !isNodeOutputPage &&
                     "border-[var(--primary)]/50 ring-1 ring-[var(--primary)]/30",
                   !selected &&
-                    "border-white/20 hover:border-white/40 dark:border-white/10 dark:hover:border-white/25",
+                    "border-border/60 hover:border-border dark:border-white/10 dark:hover:border-white/25",
                   isNodeOutputPage &&
                     "border-[var(--node-accent)]/70 ring-2 ring-[var(--node-accent)]/40 shadow-[0_0_0_1px_color-mix(in_srgb,var(--node-accent)_20%,transparent)]",
                 )}

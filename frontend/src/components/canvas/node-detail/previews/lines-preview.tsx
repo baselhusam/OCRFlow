@@ -56,7 +56,7 @@ export function LinesPreview({
                   y={y0}
                   width={x1 - x0}
                   height={y1 - y0}
-                  fill="rgba(180, 120, 60, 0.15)"
+                  fill="color-mix(in srgb, var(--primary) 15%, transparent)"
                   stroke="var(--primary)"
                   strokeWidth={0.002}
                 />

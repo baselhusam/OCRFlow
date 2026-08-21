@@ -159,7 +159,7 @@ function DefaultPipelineNode(props: NodeProps) {
       type="button"
       aria-label={clearLabel}
       title={clearLabel}
-      className="nodrag nopan flex size-6 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground transition-all duration-150 hover:border-destructive/40 hover:bg-destructive/8 hover:text-destructive"
+      className="nodrag nopan flex size-6 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground transition-all duration-150 hover:border-destructive/40 hover:bg-destructive/8 hover:text-destructive focus-visible:ring-2 focus-visible:ring-[var(--pulse)]/45 focus-visible:ring-offset-1 focus-visible:ring-offset-card focus-visible:outline-none"
       onClick={(e) => {
         e.stopPropagation();
         clearNodeRunState(id);
@@ -341,12 +341,14 @@ function DefaultPipelineNode(props: NodeProps) {
 
         <div className="p-3 flex flex-col gap-3">
           {!isSourceLoader && (
-            <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
+            <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground">
               {!hideInput && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] uppercase tracking-wider opacity-70">IN</span>
+                  <span className="text-[9px] tracking-[0.12em] text-muted-foreground uppercase">
+                    IN
+                  </span>
                   <span
-                    className="max-w-[80px] truncate rounded border border-border/50 bg-secondary/50 px-1.5 py-0.5 text-foreground/80"
+                    className="max-w-[80px] truncate rounded-md border border-border/60 bg-secondary/60 px-1.5 py-0.5 text-foreground"
                     title={nodeData.inputType}
                   >
                     {formatWireLabel(nodeData.inputType)}
@@ -354,15 +356,17 @@ function DefaultPipelineNode(props: NodeProps) {
                 </div>
               )}
               <div className="flex items-center gap-1.5">
-                <span className="text-[9px] uppercase tracking-wider opacity-70">OUT</span>
+                <span className="text-[9px] tracking-[0.12em] text-muted-foreground uppercase">
+                  OUT
+                </span>
                 <span
-                  className="max-w-[80px] truncate rounded border border-border/50 bg-secondary/50 px-1.5 py-0.5 text-foreground/80"
+                  className="max-w-[80px] truncate rounded-md border border-border/60 bg-secondary/60 px-1.5 py-0.5 text-foreground"
                   title={nodeData.outputType}
                 >
                   {formatWireLabel(nodeData.outputType)}
                 </span>
                 {outgoingCount > 0 && (
-                  <span className="rounded-sm bg-secondary px-1 text-foreground/70">
+                  <span className="rounded-md bg-secondary px-1 text-foreground">
                     {outgoingCount}
                   </span>
                 )}
@@ -445,7 +449,7 @@ function DefaultPipelineNode(props: NodeProps) {
         />
         {isPageAt && pages.length > 0 && (
           <span
-            className="pointer-events-none absolute top-1/2 left-full ml-1.5 -translate-y-1/2 whitespace-nowrap rounded-sm border border-[var(--node-accent)]/30 bg-card/90 px-1 py-px font-mono text-[7px] tracking-wide text-[var(--node-accent)] uppercase shadow-sm"
+            className="pointer-events-none absolute top-1/2 left-full ml-1.5 -translate-y-1/2 whitespace-nowrap rounded-md border border-[var(--node-accent)]/40 bg-card/90 px-1 py-px font-mono text-[7px] tracking-[0.08em] text-[var(--node-accent)] uppercase shadow-sm"
             aria-hidden
           >
             p.{selectedPageIndex + 1}

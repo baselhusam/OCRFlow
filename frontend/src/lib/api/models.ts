@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, getApiUrl } from "@/lib/api/client";
 import type {
   CategoryMeta,
   ModelCatalogEntry,
@@ -18,16 +18,31 @@ export async function fetchModelCategories(): Promise<CategoryMeta[]> {
 /**
  * Which provider backends are reachable right now. Drives canvas gating.
  *
- * Failures degrade open: if the runtime endpoint is unavailable we treat every
- * provider as available rather than blocking the whole palette.
+ * Browser calls the same-origin BFF (`/api/models/runtime`). Server components
+ * call the backend directly. Failures return `null`; the palette treats remote
+ * providers as unavailable until a successful probe arrives.
  */
 export async function fetchRuntimeAvailability(): Promise<RuntimeAvailability | null> {
   try {
-    const { data } = await apiFetch<RuntimeAvailability>(
-      "/api/v1/models/runtime",
-    );
-    return data;
+    if (typeof window === "undefined") {
+      const { data } = await apiFetch<RuntimeAvailability>(
+        "/api/v1/models/runtime",
+      );
+      return data;
+    }
+
+    const response = await fetch("/api/models/runtime", {
+      cache: "no-store",
+      credentials: "include",
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as RuntimeAvailability;
   } catch {
     return null;
   }
+}
+
+/** Absolute backend URL helper for server-only callers that need it. */
+export function backendModelsRuntimeUrl(): string {
+  return `${getApiUrl()}/api/v1/models/runtime`;
 }

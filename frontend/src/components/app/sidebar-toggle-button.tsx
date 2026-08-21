@@ -23,7 +23,7 @@ export function SidebarToggleButton({ className }: SidebarToggleButtonProps) {
       aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       aria-expanded={!collapsed}
       className={cn(
-        "size-8 shrink-0 rounded-lg text-muted-foreground hover:bg-transparent hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-foreground",
+        "size-8 shrink-0 rounded-lg text-muted-foreground hover:bg-secondary/60 hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-foreground",
         className,
       )}
     >

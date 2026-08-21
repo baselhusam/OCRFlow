@@ -104,7 +104,7 @@ function toDisplayUser(member: AdminUser): User {
     bio: null,
     role: member.role,
     preferences: {
-      appearance: "light",
+      appearance: "dark",
       default_output_format: "json",
       default_ocr_model: "ocrflow-base v2.4",
       auto_run_on_upload: true,

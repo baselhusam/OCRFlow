@@ -31,8 +31,8 @@ export function LandingHeader() {
       <div className="flex flex-wrap items-center gap-[18px]">
         <span className="inline-flex items-center gap-2 font-mono text-xs text-muted-foreground">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-[#12a65b] opacity-75 ocrflow-animate-pulse" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[#12a65b] shadow-[0_0_0_4px_rgba(18,166,91,0.18)]" />
+            <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--status-ok)] opacity-75 ocrflow-animate-pulse" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--status-ok)] shadow-[0_0_0_4px_color-mix(in_srgb,var(--status-ok)_18%,transparent)]" />
           </span>
           instance running · localhost:8080
         </span>

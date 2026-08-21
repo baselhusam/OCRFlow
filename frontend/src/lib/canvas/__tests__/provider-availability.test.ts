@@ -48,8 +48,11 @@ describe("buildOfflineProviderSet", () => {
     expect(offline.size).toBe(0);
   });
 
-  it("degrades open when runtime is null (nothing gated)", () => {
-    expect(buildOfflineProviderSet(null).size).toBe(0);
+  it("degrades closed when runtime is null (remote providers unavailable)", () => {
+    const offline = buildOfflineProviderSet(null);
+    expect(offline.has("docling")).toBe(true);
+    expect(offline.has("surya")).toBe(true);
+    expect(offline.has("paddle")).toBe(true);
   });
 
   it("treats local mode as everything running", () => {

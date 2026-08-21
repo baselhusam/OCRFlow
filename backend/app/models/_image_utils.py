@@ -13,15 +13,11 @@ from typing import Any, TypeVar
 import httpx
 from PIL import Image
 
-from app.models.base import Device
+from app.models.device import device_to_torch  # noqa: F401
 from app.models.errors import ModelInferenceError
 from app.schemas.artifacts import BBox, PageImage
 
 T = TypeVar("T")
-
-
-def device_to_torch(device: Device) -> str:
-    return device.value
 
 
 def normalize_bbox_from_pixels(
