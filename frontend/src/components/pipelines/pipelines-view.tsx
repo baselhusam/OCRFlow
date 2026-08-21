@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Search } from "lucide-react";
 
 import { CreatePipelineDialog } from "@/components/pipelines/create-pipeline-dialog";
@@ -112,8 +113,14 @@ export function PipelinesView({
         <p className="mt-2 text-sm text-muted-foreground">
           Create reusable component flows, then apply them to document batches.
         </p>
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           {canWrite ? <CreatePipelineDialog /> : null}
+          <Link
+            href="/templates"
+            className="inline-flex h-auto items-center rounded-lg border border-border px-5 py-3 text-sm font-semibold text-foreground no-underline transition-colors hover:border-primary/40"
+          >
+            Browse templates
+          </Link>
         </div>
       </div>
     );

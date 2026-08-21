@@ -139,13 +139,13 @@ export function LandingHero() {
           <PlusIcon />
           Create a pipeline
         </Link>
-        <a
-          href="#features"
+        <Link
+          href="/templates"
           className="inline-flex items-center gap-[9px] rounded-lg border border-[var(--landing-ghost-border)] bg-[var(--landing-ghost-bg)] px-[22px] py-[13px] text-[15px] font-semibold text-foreground no-underline transition-colors hover:border-primary/40"
         >
           <TemplateIcon />
           Browse templates
-        </a>
+        </Link>
         <Link
           href="/documentation"
           className="inline-flex items-center gap-2 rounded-lg px-4 py-[13px] text-[15px] font-semibold text-[var(--subtle-foreground)] no-underline transition-colors hover:text-foreground"

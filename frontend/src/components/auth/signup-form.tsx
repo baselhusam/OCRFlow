@@ -49,7 +49,7 @@ export function SignupForm() {
         <>
           Already have an account?{" "}
           <Link
-            href={`/login${searchParams.get("next") ? `?next=${searchParams.get("next")}` : ""}`}
+            href={`/login${searchParams.get("next") ? `?next=${encodeURIComponent(searchParams.get("next") ?? "")}` : ""}`}
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
             Sign in

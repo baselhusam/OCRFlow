@@ -48,7 +48,7 @@ export function LoginForm() {
         <>
           Don&apos;t have an account?{" "}
           <Link
-            href={`/signup${searchParams.get("next") ? `?next=${searchParams.get("next")}` : ""}`}
+            href={`/signup${searchParams.get("next") ? `?next=${encodeURIComponent(searchParams.get("next") ?? "")}` : ""}`}
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
             Create one

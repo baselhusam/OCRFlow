@@ -1,4 +1,8 @@
+import { Suspense } from "react";
+import Link from "next/link";
+
 import { CreatePipelineDialog } from "@/components/pipelines/create-pipeline-dialog";
+import { PipelineAddedToast } from "@/components/pipelines/pipeline-added-toast";
 import { PipelinesView } from "@/components/pipelines/pipelines-view";
 import type { PipelineList as PipelineListResponse, User } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
@@ -29,12 +33,23 @@ export default async function PipelinesPage() {
             batches from Jobs.
           </p>
         </div>
-        {writable ? <CreatePipelineDialog /> : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/templates"
+            className="inline-flex h-auto items-center rounded-lg border border-border px-5 py-3 text-sm font-semibold text-foreground no-underline transition-colors hover:border-primary/40"
+          >
+            Browse templates
+          </Link>
+          {writable ? <CreatePipelineDialog /> : null}
+        </div>
       </div>
 
       <div className="mt-9 h-px bg-[var(--landing-hairline)]" />
 
       <PipelinesView pipelines={data.items} canWrite={writable} />
+      <Suspense fallback={null}>
+        <PipelineAddedToast />
+      </Suspense>
     </main>
   );
 }

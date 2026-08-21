@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-const features = [
+type Feature = {
+  num: string;
+  title: string;
+  body: string;
+  href?: string;
+};
+
+const features: Feature[] = [
   {
     num: "02",
     title: "Visual canvas, serializable code",
@@ -22,7 +29,8 @@ const features = [
   {
     num: "05",
     title: "Templates to start fast",
-    body: "Curated best-practice pipelines ship as templates. Start from a proven flow, then customize every connection.",
+    body: "Curated best-practice pipelines ship as templates. Start from a proven flow — invoices, receipts, IDs — then customize every connection.",
+    href: "/templates",
   },
 ];
 
@@ -31,30 +39,47 @@ export function FeatureGrid() {
     <section className="border-t border-[var(--landing-hairline)] py-20 md:py-[68px]">
       <div className="mx-auto max-w-6xl px-8">
         <div className="grid divide-y divide-[var(--landing-node-border)] overflow-hidden rounded-xl border border-[var(--landing-node-border)] bg-[var(--landing-node-bg)] md:grid-cols-2 md:divide-x">
-          {features.map((feature, index) => (
-            <motion.article
-              key={feature.num}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{
-                duration: 0.55,
-                delay: index * 0.06,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="p-8 transition-colors hover:bg-primary/[0.04] md:p-10"
-            >
-              <span className="font-mono text-[11px] font-semibold tracking-[0.16em] text-primary uppercase">
-                {feature.num}
-              </span>
-              <h3 className="mt-4 text-[22px] font-bold tracking-[-0.02em] text-foreground">
-                {feature.title}
-              </h3>
-              <p className="mt-3 text-sm leading-[1.55] text-muted-foreground">
-                {feature.body}
-              </p>
-            </motion.article>
-          ))}
+          {features.map((feature, index) => {
+            const content = (
+              <>
+                <span className="font-mono text-[11px] font-semibold tracking-[0.16em] text-primary uppercase">
+                  {feature.num}
+                </span>
+                <h3 className="mt-4 text-[22px] font-bold tracking-[-0.02em] text-foreground">
+                  {feature.title}
+                </h3>
+                <p className="mt-3 text-sm leading-[1.55] text-muted-foreground">
+                  {feature.body}
+                </p>
+              </>
+            );
+
+            return (
+              <motion.article
+                key={feature.num}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{
+                  duration: 0.55,
+                  delay: index * 0.06,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="transition-colors hover:bg-primary/[0.04]"
+              >
+                {feature.href ? (
+                  <Link
+                    href={feature.href}
+                    className="block p-8 text-inherit no-underline md:p-10"
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div className="p-8 md:p-10">{content}</div>
+                )}
+              </motion.article>
+            );
+          })}
         </div>
 
         <motion.div

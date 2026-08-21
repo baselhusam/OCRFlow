@@ -37,6 +37,12 @@ export function LandingHeader() {
           instance running · localhost:8080
         </span>
         <Link
+          href="/templates"
+          className="font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Templates
+        </Link>
+        <Link
           href="/documentation"
           className="font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
         >

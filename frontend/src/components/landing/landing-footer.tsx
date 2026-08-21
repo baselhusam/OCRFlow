@@ -1,5 +1,6 @@
 const footerLinks = [
   { label: "MIT LICENSE", href: "https://github.com/baselhusam/OCRFlow/blob/main/LICENSE" },
+  { label: "TEMPLATES", href: "/templates" },
   { label: "DOCS", href: "/documentation" },
   { label: "GITHUB", href: "https://github.com/baselhusam/OCRFlow" },
   { label: "COMMUNITY", href: "https://github.com/baselhusam/OCRFlow/issues" },

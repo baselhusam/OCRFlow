@@ -132,6 +132,98 @@ async def test_create_pipeline_with_graph(client: AsyncClient):
     assert invalid.status_code == 422
 
 
+INVOICE_TEMPLATE_GRAPH = {
+    "nodes": [
+        {
+            "id": "layout-heron-1",
+            "modelId": "docling/layout-heron",
+            "position": {"x": 48, "y": 110},
+        },
+        {
+            "id": "text-detection-2",
+            "modelId": "surya/text-detection",
+            "position": {"x": 348, "y": 110},
+        },
+        {
+            "id": "text-recognition-3",
+            "modelId": "surya/text-recognition",
+            "position": {"x": 648, "y": 110},
+        },
+    ],
+    "edges": [
+        {"id": "e-1", "source": "layout-heron-1", "target": "text-detection-2"},
+        {"id": "e-2", "source": "text-detection-2", "target": "text-recognition-3"},
+    ],
+}
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_create_pipeline_from_invoice_template_graph(client: AsyncClient):
+    email = f"pipelines-invoice-template-{uuid.uuid4()}@example.com"
+    token = await _register_and_login(client, email)
+    headers = _auth_headers(token)
+
+    create_response = await client.post(
+        "/api/v1/pipelines",
+        json={
+            "name": "Invoice extraction",
+            "description": "Parse vendor invoices.",
+            "accent_color": "#5B2EEF",
+            "graph": INVOICE_TEMPLATE_GRAPH,
+        },
+        headers=headers,
+    )
+    assert create_response.status_code == 201
+    pipeline = create_response.json()
+    assert pipeline["name"] == "Invoice extraction"
+    assert pipeline["input_wire_kind"] == "page_artifact"
+    assert pipeline["output_wire_kind"] == "text_line_array"
+
+    other_email = f"pipelines-invoice-other-{uuid.uuid4()}@example.com"
+    other_token = await _register_and_login(client, other_email)
+    other_list = await client.get(
+        "/api/v1/pipelines",
+        headers=_auth_headers(other_token),
+    )
+    assert other_list.status_code == 200
+    assert other_list.json()["items"] == []
+
+
+def _chain(model_ids: list[str]) -> dict:
+    nodes = [
+        {
+            "id": f"node-{index}",
+            "modelId": model_id,
+            "position": {"x": index * 300, "y": 0},
+        }
+        for index, model_id in enumerate(model_ids)
+    ]
+    edges = [
+        {"id": f"e-{index}", "source": f"node-{index}", "target": f"node-{index + 1}"}
+        for index in range(len(model_ids) - 1)
+    ]
+    return {"nodes": nodes, "edges": edges}
+
+
+def test_catalog_template_graphs_are_valid():
+    chains = [
+        ["docling/layout-heron", "surya/text-detection", "surya/text-recognition"],
+        ["surya/layout", "surya/text-detection", "surya/text-recognition"],
+        ["docling/layout-heron", "docling/tableformer-accurate"],
+        ["docling/ocr-auto", "surya/text-recognition"],
+        ["surya/layout", "surya/reading-order"],
+        ["surya/layout", "surya/latex-ocr"],
+        [
+            "surya/layout",
+            "docling/picture-classifier-v2.5",
+            "docling/picture-description-smolvlm",
+        ],
+    ]
+    for models in chains:
+        result = derive_pipeline_boundary_io(_chain(models))
+        assert result.valid is True, f"{models}: {result.errors}"
+
+
 @pytest.mark.asyncio(loop_scope="session")
 async def test_pipeline_logo_upload(client: AsyncClient):
     email = f"pipeline-logo-{uuid.uuid4()}@example.com"
@@ -164,6 +256,37 @@ async def test_pipeline_logo_upload(client: AsyncClient):
     )
     assert logo_response.status_code == 200
     assert logo_response.headers["content-type"] == "image/png"
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_pipeline_asset_upload_and_preview(client: AsyncClient):
+    email = f"pipeline-asset-{uuid.uuid4()}@example.com"
+    token = await _register_and_login(client, email)
+    headers = _auth_headers(token)
+
+    create_response = await client.post(
+        "/api/v1/pipelines",
+        json={"name": "Asset preview pipeline"},
+        headers=headers,
+    )
+    pipeline_id = create_response.json()["id"]
+    document = b"%PDF-1.4\n% OCRFlow pipeline test\n"
+
+    upload_response = await client.post(
+        f"/api/v1/pipelines/{pipeline_id}/assets",
+        headers=headers,
+        files={"file": ("invoice.pdf", io.BytesIO(document), "application/pdf")},
+    )
+    assert upload_response.status_code == 201
+    asset_id = upload_response.json()["asset_id"]
+
+    preview_response = await client.get(
+        f"/api/v1/pipelines/{pipeline_id}/assets/{asset_id}",
+        headers=headers,
+    )
+    assert preview_response.status_code == 200
+    assert preview_response.content == document
+    assert preview_response.headers["content-type"] == "application/pdf"
 
 
 def test_derive_pipeline_boundary_io_valid():
