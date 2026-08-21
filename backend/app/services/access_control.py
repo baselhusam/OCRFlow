@@ -68,3 +68,16 @@ async def get_accessible_pipeline(
     result = await db.execute(query)
     return result.scalar_one_or_none()
 
+
+async def get_accessible_job(
+    db: AsyncSession,
+    job_id: uuid.UUID,
+    user: User,
+) -> PipelineJob | None:
+    query = select(PipelineJob).where(PipelineJob.id == job_id)
+    owner_scope = resolve_owner_scope(user)
+    if owner_scope is not None:
+        query = query.where(PipelineJob.owner_id == owner_scope)
+    result = await db.execute(query)
+    return result.scalar_one_or_none()
+

@@ -20,6 +20,9 @@ from app.services.pipeline_logo_storage import (
     load_pipeline_logo,
     save_pipeline_logo,
 )
+from app.schemas.asset import AssetBatchUploadResponse, AssetUploadResponse
+from app.services.asset_storage import save_project_asset
+from app.services.pipeline_input import resolve_asset_project_id
 
 router = APIRouter()
 
@@ -31,6 +34,24 @@ def _pipeline_read(pipeline: Pipeline, upload_dir) -> PipelineRead:
     return data.model_copy(
         update={"has_logo": has_pipeline_logo(upload_dir, str(pipeline.id))}
     )
+
+
+def _apply_graph(pipeline: Pipeline, graph_update: dict) -> None:
+    boundary = derive_pipeline_boundary_io(graph_update)
+    if not boundary.valid:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "message": "Invalid pipeline graph",
+                "errors": boundary.errors,
+                "boundary": boundary.model_dump(),
+            },
+        )
+    pipeline.graph = graph_update
+    pipeline.input_wire_kind = boundary.input_wire_kind
+    pipeline.output_wire_kind = boundary.output_wire_kind
+    pipeline.input_type_label = boundary.input_type_label
+    pipeline.output_type_label = boundary.output_type_label
 
 
 @router.get("", response_model=PipelineList)
@@ -69,6 +90,8 @@ async def create_pipeline(
         description=payload.description,
         accent_color=payload.accent_color or DEFAULT_COLOR,
     )
+    if payload.graph is not None:
+        _apply_graph(pipeline, payload.graph)
     db.add(pipeline)
     await db.commit()
     await db.refresh(pipeline)
@@ -113,21 +136,7 @@ async def update_pipeline(
         setattr(pipeline, field, value)
 
     if graph_update is not None:
-        boundary = derive_pipeline_boundary_io(graph_update)
-        if not boundary.valid:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail={
-                    "message": "Invalid pipeline graph",
-                    "errors": boundary.errors,
-                    "boundary": boundary.model_dump(),
-                },
-            )
-        pipeline.graph = graph_update
-        pipeline.input_wire_kind = boundary.input_wire_kind
-        pipeline.output_wire_kind = boundary.output_wire_kind
-        pipeline.input_type_label = boundary.input_type_label
-        pipeline.output_type_label = boundary.output_type_label
+        _apply_graph(pipeline, graph_update)
 
     await db.commit()
     await db.refresh(pipeline)
