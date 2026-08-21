@@ -31,7 +31,7 @@ On the air-gapped host:
 gunzip -c ocrflow-images.tar.gz | docker load
 # Copy repo + backend/docker/.env (no cloud credentials)
 make up-core          # or: docker compose --profile gateway --profile frontend up -d
-make ocr-surya        # only if Surya is needed
+make ocr-surya        # only if Surya is needed (GPU auto-detected)
 ```
 
 Pre-seed model caches into the named volumes (`ocrflow_surya_models`, etc.) or

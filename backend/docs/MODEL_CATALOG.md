@@ -119,7 +119,7 @@ class DoclingLayoutHeronRunner(ModelRunner):
 Requirements:
 
 - [ ] Lazy load / singleton cache
-- [ ] Explicit `device` from config (`cpu`, `cuda`, `mps`)
+- [x] Explicit `device` from config (`cpu`, `cuda`, `rocm`, `mps`, `mlx`, `auto`)
 - [ ] Timeout + max image dimension guards
 - [ ] Structured logging (model id, latency, device)
 
