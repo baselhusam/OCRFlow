@@ -29,8 +29,8 @@ export function DocsNavList({ currentSlug, onNavigate }: DocsNavListProps) {
                     className={cn(
                       "flex items-center rounded-[7px] px-2.5 py-[7px] text-[13.5px] transition-colors",
                       active
-                        ? "bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] font-semibold text-primary shadow-[inset_3px_0_0_var(--primary)]"
-                        : "text-[var(--subtle-foreground)] hover:bg-muted/70 hover:text-foreground",
+                        ? "bg-[var(--workspace-sidebar-active)] font-semibold text-[var(--workspace-sidebar-active-fg)] shadow-[inset_3px_0_0_var(--primary)]"
+                        : "text-[var(--subtle-foreground)] hover:bg-[var(--workspace-sidebar-hover)] hover:text-foreground",
                     )}
                   >
                     {item.title}

@@ -24,7 +24,7 @@ Surya is **GPL-3.0**. That is unlike the Apache/MIT default for most of the cata
 
 A classic Surya chain:
 
-```
+```text
 loader/pdf → surya/layout → surya/text-detection → surya/text-recognition
                          ↘ surya/reading-order
                          ↘ surya/table-recognition

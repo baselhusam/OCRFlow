@@ -130,6 +130,7 @@
 
   --docs-code-bg: #15131f;
   --docs-code-border: #36314a;
+  --docs-code-fg: #e7e5f0;
 }
 
 .dark {
@@ -189,6 +190,7 @@
 
   --docs-code-bg: #211d30;
   --docs-code-border: #36314a;
+  --docs-code-fg: #e7e5f0;
 }
 
 @layer base {
@@ -1087,5 +1089,18 @@
   [data-slot="sidebar"][data-state="collapsed"][data-collapsible="icon"]
     [data-slot="sidebar-container"] {
     width: var(--sidebar-width-icon);
+  }
+
+  .ocrflow-docs-prose pre,
+  .ocrflow-docs-prose pre code {
+    color: var(--docs-code-fg);
+  }
+
+  .ocrflow-docs-prose pre code {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    border-radius: 0;
+    font-weight: 400;
   }
 }

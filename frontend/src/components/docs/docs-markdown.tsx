@@ -137,31 +137,26 @@ const components: Components = {
       {children}
     </td>
   ),
-  code: ({ className, children, ...props }) => {
-    const isBlock = Boolean(className?.includes("language-") || className?.startsWith("language"));
-    if (isBlock) {
-      return (
-        <code className={cn("font-mono text-[13px] leading-[1.65]", className)} {...props}>
-          {children}
-        </code>
-      );
-    }
-    return (
-      <code
-        className="rounded-[5px] border border-border bg-muted/70 px-[6px] py-[1px] font-mono text-[12.5px] font-medium text-foreground"
-        {...props}
-      >
-        {children}
-      </code>
-    );
-  },
+  code: ({ className, children, ...props }) => (
+    <code
+      className={cn(
+        "rounded-[5px] border border-border bg-muted/70 px-[6px] py-[1px] font-mono text-[12.5px] font-medium text-foreground",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </code>
+  ),
   pre: ({ children }) => {
     const code = flattenChildren(children).replace(/\n$/, "");
     return (
       <div className="group relative my-6 overflow-hidden rounded-[12px] border border-[var(--docs-code-border)] bg-[var(--docs-code-bg)]">
         <DocsCopyCode code={code} />
-        <pre className="overflow-x-auto px-4 py-4 font-mono text-[13px] leading-[1.7] text-[#e7e5f0]">
-          {children}
+        <pre className="overflow-x-auto px-4 py-4 font-mono text-[13px] leading-[1.7] text-[var(--docs-code-fg)]">
+          <code className="bg-transparent p-0 font-mono text-[13px] leading-[1.7] font-normal text-[var(--docs-code-fg)] border-0">
+            {code}
+          </code>
         </pre>
       </div>
     );
