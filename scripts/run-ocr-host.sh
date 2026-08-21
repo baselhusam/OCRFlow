@@ -68,6 +68,12 @@ start_one() {
     return 0
   fi
 
+  if curl -fsS "http://127.0.0.1:${port}/internal/health" >/dev/null 2>&1; then
+    die "port :$port is already in use by another process.
+Stop it, or run: make ocr-down
+Then retry: make ocr-${provider}"
+  fi
+
   uvicorn="$(find_uvicorn)" || die \
     "uvicorn not found. On Apple Silicon, OCR runs on the host so Metal/MPS can be used.
 Create a venv in backend/ and install the provider extras, then retry:
@@ -86,18 +92,20 @@ Or force CPU containers: make ocr-${provider} ACCELERATOR=cpu"
   ) >"$logfile" 2>&1 &
   echo $! >"$pidfile"
 
-  local i
-  for i in $(seq 1 20); do
-    if curl -fsS "http://127.0.0.1:${port}/internal/health" >/dev/null 2>&1; then
-      echo "Started $provider on :$port (pid $(cat "$pidfile"), device=$device)"
-      return 0
-    fi
+  local i body
+  for i in $(seq 1 30); do
     if ! kill -0 "$(cat "$pidfile")" 2>/dev/null; then
       die "$provider exited. See $logfile"
     fi
+    body="$(curl -fsS "http://127.0.0.1:${port}/internal/health" 2>/dev/null || true)"
+    if printf '%s' "$body" | grep -q "\"provider\":\"${provider}\""; then
+      echo "Started $provider on :$port (pid $(cat "$pidfile"), device=$device)"
+      echo "$body"
+      return 0
+    fi
     sleep 0.5
   done
-  echo "Started $provider on :$port (pid $(cat "$pidfile")) — health not ready yet, see $logfile"
+  die "$provider did not become healthy on :$port. See $logfile"
 }
 
 stop_one() {
