@@ -24,5 +24,9 @@ export function RelativeTime({ value, refreshMs = 30_000 }: RelativeTimeProps) {
     return () => window.clearInterval(intervalId);
   }, [refreshMs, value]);
 
-  return relative ?? formatShortDateTime(value);
+  return (
+    <time dateTime={typeof value === "string" ? value : value.toISOString()} suppressHydrationWarning>
+      {relative ?? formatShortDateTime(value)}
+    </time>
+  );
 }

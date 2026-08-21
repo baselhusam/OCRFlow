@@ -108,6 +108,31 @@ async def test_pipeline_crud_and_boundary_validation(client: AsyncClient):
 
 
 @pytest.mark.asyncio(loop_scope="session")
+async def test_create_pipeline_with_graph(client: AsyncClient):
+    email = f"pipelines-graph-{uuid.uuid4()}@example.com"
+    token = await _register_and_login(client, email)
+    headers = _auth_headers(token)
+
+    create_response = await client.post(
+        "/api/v1/pipelines",
+        json={"name": "From canvas", "graph": VALID_GRAPH},
+        headers=headers,
+    )
+    assert create_response.status_code == 201
+    pipeline = create_response.json()
+    assert pipeline["input_wire_kind"] == "page_artifact"
+    assert pipeline["output_wire_kind"] == "text_line_array"
+    assert len(pipeline["graph"]["nodes"]) == 2
+
+    invalid = await client.post(
+        "/api/v1/pipelines",
+        json={"name": "Bad graph", "graph": {"nodes": [], "edges": []}},
+        headers=headers,
+    )
+    assert invalid.status_code == 422
+
+
+@pytest.mark.asyncio(loop_scope="session")
 async def test_pipeline_logo_upload(client: AsyncClient):
     email = f"pipeline-logo-{uuid.uuid4()}@example.com"
     token = await _register_and_login(client, email)

@@ -110,7 +110,7 @@ export function PipelinesView({
           No pipelines yet
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Create reusable component flows to use inside your projects.
+          Create reusable component flows, then apply them to document batches.
         </p>
         <div className="mt-6 flex justify-center">
           {canWrite ? <CreatePipelineDialog /> : null}

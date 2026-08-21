@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, FolderKanban, GitBranch, LayoutDashboard, Shield } from "lucide-react";
+import { BarChart3, FileStack, FolderKanban, GitBranch, LayoutDashboard, Shield } from "lucide-react";
 
 import { SegmentMark } from "@/components/brand/segment-mark";
 import type { User } from "@/lib/api/client";
@@ -43,6 +43,12 @@ const baseNavItems = [
     href: "/app/pipelines",
     icon: GitBranch,
     isActive: (pathname: string) => pathname.startsWith("/app/pipelines"),
+  },
+  {
+    title: "Jobs",
+    href: "/app/jobs",
+    icon: FileStack,
+    isActive: (pathname: string) => pathname.startsWith("/app/jobs"),
   },
   {
     title: "Analytics",

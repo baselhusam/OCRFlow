@@ -38,6 +38,7 @@ export async function POST(request: Request) {
       name?: string;
       description?: string;
       accent_color?: string;
+      graph?: Record<string, unknown>;
     };
     const { data, response } = await authenticatedApiFetch<Pipeline>(
       "/api/v1/pipelines",

@@ -11,7 +11,7 @@ from sqlalchemy import select
 from app.celery_app import celery_app
 from app.db.models.project import Project
 from app.db.models.project_run import ProjectRun
-from app.db.session import async_session_factory
+from app.db.session import task_session
 from app.services.pipeline_execution import (
     PipelineExecutionError,
     PipelineExecutor,
@@ -33,7 +33,7 @@ def execute_project_run(run_id: str) -> dict[str, str]:
 
 async def _execute_project_run(run_id: str) -> dict[str, str]:
     run_uuid = UUID(run_id)
-    async with async_session_factory() as db:
+    async with task_session() as db:
         result = await db.execute(select(ProjectRun).where(ProjectRun.id == run_uuid))
         run = result.scalar_one_or_none()
         if run is None:

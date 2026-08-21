@@ -145,10 +145,11 @@ def derive_job_status(runs: list[PipelineRun]) -> str:
     if not runs:
         return "queued"
     statuses = [run.status for run in runs]
-    active = {"queued", "running"}
+    if all(status == "queued" for status in statuses):
+        return "queued"
     if all(status == "cancelled" for status in statuses):
         return "cancelled"
-    if any(status in active for status in statuses):
+    if any(status in {"queued", "running"} for status in statuses):
         return "running"
     if all(status == "succeeded" for status in statuses):
         return "succeeded"

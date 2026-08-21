@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CanvasToast } from "@/components/canvas/canvas-toast";
 import { BatchDocumentsDialog } from "@/components/canvas/batch-documents-dialog";
+import { CreatePipelineFromCanvasDialog } from "@/components/pipelines/create-pipeline-from-canvas-dialog";
 import { NodeErrorPanel } from "@/components/canvas/node-detail/node-error-panel";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
 import { NodePalettePanel } from "@/components/canvas/node-palette-panel";
@@ -97,6 +98,7 @@ export function CanvasProjectHeader({
     variant: "success" | "error" | "info";
   } | null>(null);
   const [blockerIndex, setBlockerIndex] = useState(0);
+  const [createPipelineOpen, setCreatePipelineOpen] = useState(false);
 
   const doneModels = filterDoneModels(models);
   const isSaving = saveStatus === "saving";
@@ -464,6 +466,40 @@ export function CanvasProjectHeader({
                 Un-run all nodes and clear all cached outputs
               </TooltipContent>
             </Tooltip>
+          ) : null}
+
+          {entity?.kind === "project" && !readOnly ? (
+            <>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={nodes.length === 0}
+                      title="Save selected nodes (or the whole canvas) as a reusable pipeline"
+                      className="h-9 gap-1.5 rounded-lg text-[13px] font-semibold"
+                      onClick={() => setCreatePipelineOpen(true)}
+                    />
+                  }
+                >
+                  <GitBranch className="size-3.5" />
+                  <span className="hidden sm:inline">Create pipeline</span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {nodes.some((node) => node.selected)
+                    ? "Create a pipeline from the selected nodes"
+                    : "Create a pipeline from this canvas (file loaders omitted)"}
+                </TooltipContent>
+              </Tooltip>
+              <CreatePipelineFromCanvasDialog
+                open={createPipelineOpen}
+                onOpenChange={setCreatePipelineOpen}
+                nodes={nodes}
+                edges={edges}
+              />
+            </>
           ) : null}
 
           {entity?.kind === "project" ? (

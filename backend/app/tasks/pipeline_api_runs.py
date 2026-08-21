@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -11,7 +12,7 @@ from sqlalchemy import select
 from app.celery_app import celery_app
 from app.db.models.pipeline import Pipeline
 from app.db.models.pipeline_run import PipelineRun
-from app.db.session import async_session_factory
+from app.db.session import task_session
 from app.services.pipeline_execution import (
     PipelineExecutionError,
     PipelineExecutor,
@@ -25,13 +26,38 @@ from app.services.pipeline_jobs import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 class PipelineRunCancelled(Exception):
     pass
 
 
 @celery_app.task(name="app.tasks.pipeline_api_runs.execute_pipeline_run")
 def execute_pipeline_run(run_id: str) -> dict[str, str]:
-    return asyncio.run(_execute_pipeline_run(run_id))
+    try:
+        return asyncio.run(_execute_pipeline_run(run_id))
+    except Exception as exc:
+        try:
+            asyncio.run(_mark_run_failed(run_id, str(exc)))
+        except Exception:
+            logger.exception("Could not persist failure for pipeline run %s", run_id)
+        raise
+
+
+async def _mark_run_failed(run_id: str, message: str) -> None:
+    async with task_session() as db:
+        result = await db.execute(select(PipelineRun).where(PipelineRun.id == UUID(run_id)))
+        run = result.scalar_one_or_none()
+        if run is None or run.status in {"succeeded", "cancelled"}:
+            return
+        run.status = "failed"
+        run.error = message
+        run.error_code = run.error_code or "worker"
+        run.finished_at = _stamp()
+        append_run_log(run, message, level="error")
+        await db.commit()
+        await _sync_job(db, run)
 
 
 def _stamp() -> datetime:
@@ -45,7 +71,7 @@ async def _sync_job(db, run: PipelineRun) -> None:
 
 async def _execute_pipeline_run(run_id: str) -> dict[str, str]:
     run_uuid = UUID(run_id)
-    async with async_session_factory() as db:
+    async with task_session() as db:
         result = await db.execute(select(PipelineRun).where(PipelineRun.id == run_uuid))
         run = result.scalar_one_or_none()
         if run is None:
@@ -108,7 +134,6 @@ async def _execute_pipeline_run(run_id: str) -> dict[str, str]:
                         progress.message,
                         level="error" if event_status == "failed" else "info",
                         node_id=progress.current_node_id,
-                        page=progress.page_count,
                     )
             await db.commit()
 

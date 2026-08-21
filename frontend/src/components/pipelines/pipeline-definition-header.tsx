@@ -5,10 +5,11 @@ import {
   ChevronRight,
   LayoutGrid,
   Loader2,
-  LocateFixed,
+  Play,
   Save,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { CanvasToast } from "@/components/canvas/canvas-toast";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
@@ -45,6 +46,7 @@ export function PipelineDefinitionHeader({
   saveValidationError,
   readOnly = false,
 }: PipelineDefinitionHeaderProps) {
+  const router = useRouter();
   const {
     nodes,
     edges,
@@ -53,6 +55,8 @@ export function PipelineDefinitionHeader({
     hasUnsavedChanges,
     saveNow,
     autoLayout,
+    projectId,
+    entity,
   } = usePipelineGraphActions();
 
   const [toast, setToast] = useState<{
@@ -77,6 +81,33 @@ export function PipelineDefinitionHeader({
       : lastSavedAt
         ? `Last saved ${formatShortDateTime(lastSavedAt)}`
         : "Save pipeline";
+
+  const handleApply = useCallback(async () => {
+    const pipelineId =
+      entity?.kind === "pipeline" ? entity.id : projectId;
+    if (!pipelineId) return;
+    if (hasUnsavedChanges && !readOnly) {
+      const saved = await saveNow();
+      if (!saved) {
+        setToast({
+          message:
+            saveValidationError ??
+            "Save the pipeline before applying it to documents.",
+          variant: "error",
+        });
+        return;
+      }
+    }
+    router.push(`/app/jobs/new?pipeline=${pipelineId}`);
+  }, [
+    entity,
+    hasUnsavedChanges,
+    projectId,
+    readOnly,
+    router,
+    saveNow,
+    saveValidationError,
+  ]);
 
   const handleSave = useCallback(async () => {
     if (readOnly) return;
@@ -249,6 +280,18 @@ export function PipelineDefinitionHeader({
             </TooltipTrigger>
             <TooltipContent>{saveTitle}</TooltipContent>
           </Tooltip>
+
+          {boundaryValidation?.valid ? (
+            <Button
+              type="button"
+              size="sm"
+              className="h-9 gap-1.5 rounded-lg text-[13px] font-semibold"
+              onClick={() => void handleApply()}
+            >
+              <Play className="size-3.5" />
+              Apply
+            </Button>
+          ) : null}
 
           <ThemeToggle />
         </div>

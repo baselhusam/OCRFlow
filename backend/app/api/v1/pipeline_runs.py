@@ -138,7 +138,7 @@ async def start_pipeline_run(
     )
     settings = get_settings()
     try:
-        load_asset_meta(settings.upload_dir, asset_project_id, payload.asset_id)
+        asset_meta = load_asset_meta(settings.upload_dir, asset_project_id, payload.asset_id)
     except FileNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -153,21 +153,17 @@ async def start_pipeline_run(
     graph_snapshot = dict(pipeline.graph) if isinstance(pipeline.graph, dict) else {}
     graph_snapshot["_ocrflow"] = {"asset_project_id": asset_project_id}
 
-    filename = None
-    try:
-        filename = load_asset_meta(settings.upload_dir, asset_project_id, payload.asset_id).filename
-    except FileNotFoundError:
-        filename = None
-
     run = PipelineRun(
         pipeline_id=pipeline.id,
         owner_id=pipeline.owner_id,
         status="queued",
         graph_snapshot=graph_snapshot,
         input_asset_id=payload.asset_id,
-        input_filename=filename,
+        input_filename=asset_meta.filename,
         input_wire_kind=pipeline.input_wire_kind,
         total_count=len(nodes) if isinstance(nodes, list) else 0,
+        node_traces=[],
+        logs=[],
     )
     db.add(run)
     await db.commit()

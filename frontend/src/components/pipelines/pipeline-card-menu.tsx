@@ -8,6 +8,7 @@ import {
   ArchiveRestore,
   ExternalLink,
   MoreHorizontal,
+  Play,
   Settings,
   Trash2,
 } from "lucide-react";
@@ -111,6 +112,16 @@ export function PipelineCardMenu({ pipeline }: PipelineCardMenuProps) {
             <ExternalLink className="size-4" aria-hidden />
             Open canvas
           </DropdownMenuItem>
+          {!pipeline.is_archived && pipeline.input_wire_kind ? (
+            <DropdownMenuItem
+              render={
+                <Link href={`/app/jobs/new?pipeline=${pipeline.id}`} />
+              }
+            >
+              <Play className="size-4" aria-hidden />
+              Apply to documents
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             disabled={isArchiving}

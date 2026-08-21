@@ -17,7 +17,6 @@ from app.db.models.user import User
 from app.db.session import get_db
 from app.schemas.pipeline_job import (
     PipelineJobCreate,
-    PipelineJobList,
     PipelineJobRead,
     PipelineJobSummaryList,
 )
@@ -120,6 +119,8 @@ async def start_pipeline_job(
             input_filename=meta.filename,
             input_wire_kind=pipeline.input_wire_kind,
             total_count=len(nodes) if isinstance(nodes, list) else 0,
+            node_traces=[],
+            logs=[],
         )
         db.add(run)
         created.append(run)
@@ -158,6 +159,7 @@ async def list_pipeline_jobs(
 
 
 @jobs_router.get("", response_model=PipelineJobSummaryList)
+@jobs_router.get("/", response_model=PipelineJobSummaryList, include_in_schema=False)
 async def list_jobs(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

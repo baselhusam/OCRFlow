@@ -24,8 +24,9 @@ export default async function PipelinesPage() {
             Pipelines
           </h1>
           <p className="mt-3.5 max-w-[560px] text-base leading-relaxed text-muted-foreground">
-            Reusable component flows with defined inputs and outputs. Use them
-            inside any project canvas.
+            Reusable component flows with defined inputs and outputs. Create
+            them here or from a project canvas, then apply them to document
+            batches from Jobs.
           </p>
         </div>
         {writable ? <CreatePipelineDialog /> : null}

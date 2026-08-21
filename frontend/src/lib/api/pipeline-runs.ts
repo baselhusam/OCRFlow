@@ -8,12 +8,17 @@ export type PipelineRunStatus =
 export type PipelineRun = {
   id: string;
   pipeline_id: string;
+  job_id: string | null;
   owner_id: string;
   status: PipelineRunStatus;
   task_id: string | null;
   input_asset_id: string | null;
+  input_filename: string | null;
   input_wire_kind: string | null;
+  page_count: number | null;
   result: Record<string, unknown> | null;
+  node_traces: NodeTrace[];
+  logs: RunLogEntry[];
   current_node_id: string | null;
   completed_count: number;
   total_count: number;
@@ -24,6 +29,26 @@ export type PipelineRun = {
   finished_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type NodeTrace = {
+  node_id: string;
+  model_id: string;
+  status: string;
+  started_at?: string | null;
+  finished_at?: string | null;
+  page_count?: number | null;
+  output_kind?: string | null;
+  error?: string | null;
+  message?: string | null;
+};
+
+export type RunLogEntry = {
+  ts: string;
+  level: string;
+  message: string;
+  node_id?: string;
+  page?: number;
 };
 
 export type PipelineRunList = {

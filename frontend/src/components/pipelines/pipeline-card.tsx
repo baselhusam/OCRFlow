@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { GitBranch } from "lucide-react";
+import { GitBranch, Play } from "lucide-react";
 
+import { buttonVariants } from "@/components/ui/button";
 import { PipelineFlowPreview } from "@/components/pipelines/pipeline-flow-preview";
 import { PipelineCardMenu } from "@/components/pipelines/pipeline-card-menu";
 import { RelativeTime } from "@/components/relative-time";
@@ -88,6 +89,18 @@ export function PipelineCard({ pipeline, canWrite = true }: PipelineCardProps) {
             />
             {isReady ? "Ready" : "Draft"}
           </span>
+          {isReady && !pipeline.is_archived ? (
+            <Link
+              href={`/app/jobs/new?pipeline=${pipeline.id}`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "h-8 gap-1.5 rounded-lg text-[12px] font-semibold",
+              )}
+            >
+              <Play className="size-3.5" aria-hidden />
+              Apply
+            </Link>
+          ) : null}
           {canWrite ? <PipelineCardMenu pipeline={pipeline} /> : null}
         </div>
       </div>

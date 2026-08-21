@@ -41,7 +41,7 @@ export async function listPipelines(
 export async function createPipeline(
   name: string,
   description?: string,
-  options?: { accent_color?: string },
+  options?: { accent_color?: string; graph?: Record<string, unknown> },
 ): Promise<Pipeline> {
   const response = await fetch("/api/pipelines", {
     method: "POST",
@@ -51,6 +51,7 @@ export async function createPipeline(
       name,
       description,
       accent_color: options?.accent_color,
+      graph: options?.graph,
     }),
   });
   return parseJsonResponse<Pipeline>(response);
