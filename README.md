@@ -158,7 +158,9 @@ Common workflows are wrapped in the root `Makefile` — run `make help` for the
 full list. A few highlights:
 
 ```bash
-make up / make down        # start / stop the full Docker stack
+make detect                # OS / GPU vendor / compose overlay
+make up / make down        # start / stop the core Docker stack
+make ocr-up / make gpu-up  # OCR microservices (or full stack) with auto GPU
 make db-migrate            # run migrations inside the gateway container
 make test                  # backend + frontend test suites
 make be-api / make fe-dev  # host-based backend API / frontend dev servers
@@ -197,6 +199,8 @@ OCRFlow/
 │   │   └── hooks/           #   React hooks
 │   └── public/              #   static assets
 ├── branding/                # logos, brand guidelines & design system
+├── scripts/                 # accelerator detection + host OCR helpers
+├── docker-compose.yml       # full-stack compose entrypoint
 ├── LICENSE
 └── README.md
 ```

@@ -923,8 +923,8 @@ and CPU tests run without paddle installed.
 (PaddlePaddle wheels are platform-specific; the file pins the CPU build. GPU users
 install the matching `paddlepaddle-gpu` wheel per <https://www.paddlepaddle.org.cn/install>.)
 
-**Device mapping:** `Device.cuda` → paddle `gpu`; `Device.cpu`/`Device.mps` → `cpu`
-(PaddlePaddle has no MPS backend). Weights download to `OCRFLOW_MODEL_CACHE/paddle`.
+**Device mapping:** NVIDIA `Device.cuda` → paddle `gpu`; `cpu` / `mps` / `mlx` / `rocm` → `cpu`
+(PaddlePaddle 3.x has no MPS, MLX, or ROCm wheel). Weights download to `OCRFLOW_MODEL_CACHE/paddle`.
 
 ## `paddle/doclayout-s` — layout detection ⭐
 
