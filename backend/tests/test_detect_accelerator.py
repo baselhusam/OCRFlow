@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -32,12 +33,12 @@ def test_detect_honors_accelerator_override(override, accelerator, device, serve
 
     def query(name: str) -> str:
         result = subprocess.run(
-            [str(DETECT), name],
+            ["bash", str(DETECT), name],
             check=True,
             capture_output=True,
             text=True,
             cwd=REPO_ROOT,
-            env={**subprocess.os.environ, **env_base},
+            env={**os.environ, **env_base},
         )
         return result.stdout.strip()
 
@@ -49,12 +50,12 @@ def test_detect_honors_accelerator_override(override, accelerator, device, serve
 
 def test_detect_report_contains_overlay_path():
     result = subprocess.run(
-        [str(DETECT)],
+        ["bash", str(DETECT)],
         check=True,
         capture_output=True,
         text=True,
         cwd=REPO_ROOT,
-        env={**subprocess.os.environ, "ACCELERATOR": "nvidia"},
+        env={**os.environ, "ACCELERATOR": "nvidia"},
     )
     assert "docker-compose.nvidia.yml" in result.stdout
     assert "Accelerator:     nvidia" in result.stdout
@@ -62,11 +63,11 @@ def test_detect_report_contains_overlay_path():
 
 def test_detect_unknown_accelerator_fails():
     result = subprocess.run(
-        [str(DETECT), "accelerator"],
+        ["bash", str(DETECT), "accelerator"],
         capture_output=True,
         text=True,
         cwd=REPO_ROOT,
-        env={**subprocess.os.environ, "ACCELERATOR": "tpu"},
+        env={**os.environ, "ACCELERATOR": "tpu"},
     )
     assert result.returncode != 0
 
@@ -74,7 +75,7 @@ def test_detect_unknown_accelerator_fails():
 @pytest.mark.parametrize("query", list(QUERIES))
 def test_detect_live_query_is_known_value(query):
     result = subprocess.run(
-        [str(DETECT), query],
+        ["bash", str(DETECT), query],
         check=True,
         capture_output=True,
         text=True,
