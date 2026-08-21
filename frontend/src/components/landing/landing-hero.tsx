@@ -146,13 +146,13 @@ export function LandingHero() {
           <TemplateIcon />
           Browse templates
         </a>
-        <a
-          href="#"
+        <Link
+          href="/documentation"
           className="inline-flex items-center gap-2 rounded-lg px-4 py-[13px] text-[15px] font-semibold text-[var(--subtle-foreground)] no-underline transition-colors hover:text-foreground"
         >
           Documentation
           <ArrowIcon />
-        </a>
+        </Link>
       </motion.div>
     </section>
   );

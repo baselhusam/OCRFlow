@@ -127,6 +127,9 @@
   --workspace-sidebar-border: #eceaf2;
   --workspace-sidebar-hover: #f4f2f8;
   --workspace-soft-violet: #ede9fe;
+
+  --docs-code-bg: #15131f;
+  --docs-code-border: #36314a;
 }
 
 .dark {
@@ -183,6 +186,9 @@
   --workspace-sidebar-active-fg: #c4b5fd;
   --workspace-sidebar-border: rgba(255, 255, 255, 0.12);
   --workspace-sidebar-hover: rgba(255, 255, 255, 0.06);
+
+  --docs-code-bg: #211d30;
+  --docs-code-border: #36314a;
 }
 
 @layer base {

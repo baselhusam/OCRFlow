@@ -36,8 +36,16 @@ export function LandingHeader() {
           </span>
           instance running · localhost:8080
         </span>
+        <Link
+          href="/documentation"
+          className="font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Docs
+        </Link>
         <a
-          href="#"
+          href="https://github.com/baselhusam/OCRFlow"
+          target="_blank"
+          rel="noreferrer"
           className="inline-flex items-center gap-[7px] font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           <GitHubIcon />
