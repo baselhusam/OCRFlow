@@ -124,6 +124,7 @@ async def _execute_pipeline_run(run_id: str) -> dict[str, str]:
                     model_id=progress.model_id or progress.current_node_id,
                     status=event_status,
                     page_count=progress.page_count,
+                    item_count=progress.item_count,
                     output_kind=progress.output_kind,
                     error=progress.message if event_status == "failed" else None,
                     message=progress.message,

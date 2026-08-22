@@ -6,8 +6,10 @@ import type {
 import {
   BLOCKED_PIPELINE_MODELS,
   areWireKindsCompatible,
+  composeExitOutputLabel,
   getModelWireKinds,
   getModelWireLabels,
+  selectPrimaryExitId,
   type WireKind,
 } from "@/lib/canvas/wire-types";
 
@@ -129,8 +131,6 @@ export function derivePipelineBoundaryIO(
 
   if (nodes.length === 0) return empty;
 
-  if (nodes.length < 2) errors.push("insufficient_nodes");
-
   const nodeIds = new Set(nodes.map((n) => n.id));
 
   for (const node of nodes) {
@@ -168,7 +168,6 @@ export function derivePipelineBoundaryIO(
   if (exitNodeIds.length === 0) errors.push("no_exit_node");
 
   const entryInputKinds = new Set<WireKind>();
-  const exitOutputKinds = new Set<WireKind>();
 
   for (const entryId of entryNodeIds) {
     const entryNode = nodes.find((node) => node.id === entryId);
@@ -187,13 +186,10 @@ export function derivePipelineBoundaryIO(
     const exitWires = getModelWireKinds(exitNode.modelId, "", "");
     if (exitWires.output === "none") {
       errors.push("invalid_exit_output");
-    } else {
-      exitOutputKinds.add(exitWires.output);
     }
   }
 
   if (entryInputKinds.size > 1) errors.push("incompatible_entry_inputs");
-  if (exitOutputKinds.size > 1) errors.push("incompatible_exit_outputs");
 
   if (errors.length > 0) {
     const primaryEntry = nodes.find((node) => node.id === entryNodeIds[0]);
@@ -233,14 +229,15 @@ export function derivePipelineBoundaryIO(
     };
   }
 
+  const modelById = new Map(nodes.map((node) => [node.id, node.modelId]));
+  const primaryExitId = selectPrimaryExitId(exitNodeIds, modelById) ?? exitNodeIds[0];
   const entryNode = nodes.find((n) => n.id === entryNodeIds[0]);
-  const exitNode = nodes.find((n) => n.id === exitNodeIds[0]);
+  const exitNode = nodes.find((n) => n.id === primaryExitId);
   if (!entryNode || !exitNode) {
     return { ...empty, errors: ["invalid_graph"] };
   }
 
   const entryCategory = _modelMap?.get(entryNode.modelId)?.category;
-  const exitCategory = _modelMap?.get(exitNode.modelId)?.category;
   const entryWires = getModelWireKinds(entryNode.modelId, "", "");
   const exitWires = getModelWireKinds(exitNode.modelId, "", "");
   const entryLabels = getModelWireLabels(
@@ -248,12 +245,6 @@ export function derivePipelineBoundaryIO(
     "",
     "",
     entryCategory,
-  );
-  const exitLabels = getModelWireLabels(
-    exitNode.modelId,
-    "",
-    "",
-    exitCategory,
   );
 
   return {
@@ -264,6 +255,11 @@ export function derivePipelineBoundaryIO(
     inputWireKind: entryWires.input,
     outputWireKind: exitWires.output,
     inputLabel: entryLabels.input,
-    outputLabel: exitLabels.output,
+    outputLabel: composeExitOutputLabel(
+      exitNodeIds,
+      modelById,
+      primaryExitId,
+      _modelMap,
+    ),
   };
 }

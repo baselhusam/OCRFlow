@@ -76,6 +76,22 @@ RUNNER_FACTORIES: dict[str, Callable[[], BaseRunner]] = {
     "paddle/doclayout-s": _lazy("app.models.paddle.doclayout_s", "PaddleDocLayoutSRunner"),
     "paddle/ocr-v6-small": _lazy("app.models.paddle.ocr_v6_small", "PaddleOcrV6SmallRunner"),
     "paddle/pp-structure": _lazy("app.models.paddle.pp_structure", "PaddlePpStructureRunner"),
+    "ollama/text-prompt": _lazy(
+        "app.models.ollama.generation",
+        "OllamaTextRunner",
+    ),
+    "ollama/structured-extract": _lazy(
+        "app.models.ollama.generation",
+        "OllamaStructuredRunner",
+    ),
+    "ollama/vision-prompt": _lazy(
+        "app.models.ollama.generation",
+        "OllamaVisionRunner",
+    ),
+    "ollama/vision-structured-extract": _lazy(
+        "app.models.ollama.generation",
+        "OllamaVisionStructuredRunner",
+    ),
     "loader/pdf": _lazy("app.models.loader.pdf", "PdfLoaderRunner"),
     "loader/image": _lazy("app.models.loader.image", "ImageLoaderRunner"),
     "loader/page-at": _lazy("app.models.loader.page_at", "PageAtRunner"),
@@ -86,6 +102,11 @@ def _use_remote_runner(model_id: str) -> bool:
     """True when this process should forward the model to a provider service."""
     settings = get_settings()
     if settings.runner_mode != RunnerMode.remote:
+        return False
+    # Provider microservices must execute locally even when they inherit the
+    # gateway .env (OCRFLOW_RUNNER_MODE=remote). Forwarding from 8101 back to
+    # 8101 produces an unhandled 500 instead of inference.
+    if settings.service_provider:
         return False
     servable = get_servable_model(model_id)
     if servable is None or not is_remote_provider(servable.provider):

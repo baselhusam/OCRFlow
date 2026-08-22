@@ -7,10 +7,15 @@ import { DetailSection } from "@/components/canvas/node-detail/detail-section";
 import { ParamField } from "@/components/canvas/node-detail/param-field";
 import { PageIndexPicker } from "@/components/canvas/page-index-picker";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
-import { uploadProjectAsset } from "@/lib/api/assets";
+import { uploadPipelineAsset, uploadProjectAsset } from "@/lib/api/assets";
 import { SOURCE_NODE_MODELS } from "@/lib/canvas/category-meta";
 import { getParamSchema, resolveParamValue } from "@/lib/canvas/node-param-schema";
-import { getUpstreamPagesForNode, validateNodeParams } from "@/lib/canvas/node-readiness";
+import {
+  getUpstreamPagesForNode,
+  nodeAcceptsDirectDocument,
+  validateNodeParams,
+} from "@/lib/canvas/node-readiness";
+import { getNodeWireKinds } from "@/lib/canvas/wire-types";
 import {
   isPageSelectorNode,
   PARENT_SELECT_PAGE_PARAM,
@@ -30,7 +35,7 @@ type NodeDetailSetupTabProps = {
 const ACCEPT = "application/pdf,image/png,image/jpeg,image/webp";
 
 export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
-  const { projectId, updateNodeConfig, updateNodeData, getUpstream, runNode } =
+  const { projectId, entity, updateNodeConfig, updateNodeData, getUpstream, runNode } =
     usePipelineGraphActions();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -41,7 +46,8 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
   const isSourceLoader = SOURCE_NODE_MODELS.has(data.modelId);
   const needsDocument =
     data.modelId === "docling/vlm-granite-docling" ||
-    data.modelId === "docling/convert-pipeline";
+    data.modelId === "docling/convert-pipeline" ||
+    nodeAcceptsDirectDocument(data.modelId, getNodeWireKinds(data).input);
   const upstream = getUpstream(nodeId);
   const upstreamPages = getUpstreamPagesForNode(data, upstream);
   const assetFilename = data.params.assetFilename as string | undefined;
@@ -64,7 +70,10 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
       setUploading(true);
       setUploadError(null);
       try {
-        const result = await uploadProjectAsset(projectId, file);
+        const result =
+          entity?.kind === "pipeline"
+            ? await uploadPipelineAsset(entity.id, file)
+            : await uploadProjectAsset(projectId, file);
         updateNodeConfig(nodeId, {
           assetId: result.asset_id,
           assetFilename: result.filename,
@@ -90,7 +99,7 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
         } catch {
           // Preference lookup is best-effort; upload already succeeded.
         }
-        if (autoRun && isSourceLoader) {
+        if (autoRun && (isSourceLoader || needsDocument)) {
           void runNode(nodeId);
         }
       } catch (error) {
@@ -101,6 +110,8 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
     },
     [
       isSourceLoader,
+      needsDocument,
+      entity,
       nodeId,
       projectId,
       runNode,
@@ -127,7 +138,10 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
   return (
     <div className="px-4 py-3">
       {(isSourceLoader || needsDocument) && (
-        <DetailSection title="Document source" className="border-b-0 px-0 py-0">
+        <DetailSection
+          title={isSourceLoader ? "Document source" : "Test document"}
+          className="border-b-0 px-0 py-0"
+        >
           <div className="space-y-2">
             {assetFilename ? (
               <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 px-3 py-2">

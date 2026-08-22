@@ -126,6 +126,6 @@ export function isPipelineReady(pipeline: Pipeline): boolean {
     Boolean(pipeline.output_wire_kind) &&
     pipeline.graph.nodes !== undefined &&
     Array.isArray(pipeline.graph.nodes) &&
-    pipeline.graph.nodes.length >= 2
+    pipeline.graph.nodes.length >= 1
   );
 }

@@ -326,20 +326,67 @@ def test_derive_pipeline_boundary_io_middle_layer():
     assert result.output_wire_kind == "text_line_array"
 
 
-def test_derive_pipeline_boundary_io_requires_two_nodes():
+def test_derive_pipeline_boundary_io_accepts_atomic_model():
     graph = {
         "nodes": [
             {
-                "id": "layout-1",
-                "modelId": "surya/layout",
+                "id": "vision-1",
+                "modelId": "ollama/vision-structured-extract",
                 "position": {"x": 0, "y": 0},
             }
         ],
         "edges": [],
     }
     result = derive_pipeline_boundary_io(graph)
-    assert result.valid is False
-    assert "insufficient_nodes" in result.errors
+    assert result.valid is True
+    assert result.input_wire_kind == "page_artifact"
+    assert result.output_wire_kind == "json"
+    assert result.input_type_label == "PageArtifact"
+    assert result.output_type_label == "JSON"
+
+
+def test_derive_pipeline_boundary_io_allows_mixed_exits():
+    graph = {
+        "nodes": [
+            {
+                "id": "layout-1",
+                "modelId": "surya/layout",
+                "position": {"x": 0, "y": 0},
+            },
+            {
+                "id": "detect-1",
+                "modelId": "surya/text-detection",
+                "position": {"x": 200, "y": 0},
+            },
+            {
+                "id": "recognize-1",
+                "modelId": "surya/text-recognition",
+                "position": {"x": 400, "y": 0},
+            },
+            {
+                "id": "extract-1",
+                "modelId": "ollama/structured-extract",
+                "position": {"x": 600, "y": 0},
+            },
+            {
+                "id": "table-1",
+                "modelId": "surya/table-recognition",
+                "position": {"x": 200, "y": 200},
+            },
+        ],
+        "edges": [
+            {"id": "e1", "source": "layout-1", "target": "detect-1"},
+            {"id": "e2", "source": "detect-1", "target": "recognize-1"},
+            {"id": "e3", "source": "recognize-1", "target": "extract-1"},
+            {"id": "e4", "source": "layout-1", "target": "table-1"},
+        ],
+    }
+    result = derive_pipeline_boundary_io(graph)
+    assert result.valid is True
+    assert result.input_wire_kind == "page_artifact"
+    assert result.output_wire_kind == "json"
+    assert result.output_type_label == "JSON + TableStructure[]"
+    assert set(result.exit_node_ids) == {"extract-1", "table-1"}
 
 
 def test_derive_pipeline_boundary_io_rejects_file_loader():

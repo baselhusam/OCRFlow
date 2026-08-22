@@ -10,7 +10,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 from app.schemas.asset import AssetMeta
-from app.services.pipeline_jobs import derive_job_status
+from app.services.pipeline_jobs import derive_job_status, upsert_node_trace
 
 VALID_GRAPH = {
     "nodes": [
@@ -146,3 +146,24 @@ def test_derive_job_status_partial():
     assert derive_job_status([_Run("failed"), _Run("failed")]) == "failed"
     assert derive_job_status([_Run("succeeded"), _Run("failed")]) == "partial"
     assert derive_job_status([_Run("cancelled"), _Run("cancelled")]) == "cancelled"
+
+
+def test_node_trace_keeps_item_counts_distinct_from_pages():
+    class _Run:
+        node_traces: list[dict] = []
+
+    run = _Run()
+    upsert_node_trace(
+        run,  # type: ignore[arg-type]
+        node_id="extract",
+        model_id="ollama/vision-structured-extract",
+        status="succeeded",
+        item_count=4,
+        output_kind="json",
+    )
+
+    trace = run.node_traces[0]
+    assert trace["item_count"] == 4
+    assert trace["output_kind"] == "json"
+    assert trace["status"] == "succeeded"
+    assert "page_count" not in trace

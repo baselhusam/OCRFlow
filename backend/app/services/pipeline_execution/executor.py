@@ -25,6 +25,7 @@ from app.services.pipeline_execution.schemas import (
     parse_pipeline_graph,
 )
 from app.services.pipeline_execution.upstream import UpstreamContext, get_upstream_context
+from app.services.pipeline_wire_kinds import select_primary_exit_id
 
 ProgressCallback = Callable[["PipelineProgress"], Awaitable[None] | None]
 
@@ -38,6 +39,7 @@ class PipelineProgress:
     model_id: str | None = None
     message: str | None = None
     page_count: int | None = None
+    item_count: int | None = None
     output_kind: str | None = None
 
 
@@ -160,7 +162,8 @@ class PipelineExecutor:
             self._mark_node_success(node, output)
             completed += 1
             preview = output.preview or {}
-            page_count = preview.get("pageCount") or preview.get("itemCount")
+            page_count = preview.get("pageCount")
+            item_count = preview.get("itemCount")
             await self._emit_progress(
                 node_id,
                 completed,
@@ -169,10 +172,20 @@ class PipelineExecutor:
                 model_id=node.modelId,
                 message=f"Finished {node.modelId}",
                 page_count=page_count if isinstance(page_count, int) else None,
+                item_count=item_count if isinstance(item_count, int) else None,
                 output_kind=output.kind,
             )
 
-        final_output = outputs.get(readiness.ordered_node_ids[-1]) if readiness.ordered_node_ids else None
+        model_by_id = {node.id: node.modelId for node in graph.nodes}
+        out_degree = {node.id: 0 for node in graph.nodes}
+        node_ids = set(out_degree)
+        for edge in graph.edges:
+            if edge.source in node_ids and edge.target in node_ids:
+                out_degree[edge.source] += 1
+        exit_ids = [node.id for node in graph.nodes if out_degree.get(node.id, 0) == 0]
+        primary_exit = select_primary_exit_id(exit_ids, model_by_id)
+        fallback_id = readiness.ordered_node_ids[-1] if readiness.ordered_node_ids else None
+        final_output = outputs.get(primary_exit or fallback_id or "")
         return PipelineExecutionResult(
             graph=graph,
             final_output=final_output,
@@ -195,7 +208,11 @@ class PipelineExecutor:
         )
         runner = await get_cached_runner(node.modelId, self.config)
         result = await runner.run(model_input)
-        return extract_model_output(node.modelId, result)
+        return extract_model_output(
+            node.modelId,
+            result,
+            model_input=model_input,
+        )
 
     async def _execute_custom_pipeline_node(
         self,
@@ -240,6 +257,7 @@ class PipelineExecutor:
         model_id: str | None = None,
         message: str | None = None,
         page_count: int | None = None,
+        item_count: int | None = None,
         output_kind: str | None = None,
     ) -> None:
         if self.on_progress is None:
@@ -253,6 +271,7 @@ class PipelineExecutor:
                 model_id=model_id,
                 message=message,
                 page_count=page_count,
+                item_count=item_count,
                 output_kind=output_kind,
             )
         )
@@ -268,7 +287,7 @@ class PipelineExecutor:
 
     def _mark_node_success(self, node: PipelineNodeRecord, output: NodeCachedOutput) -> None:
         preview = output.preview or {}
-        page_count = preview.get("pageCount") or preview.get("itemCount")
+        page_count = preview.get("pageCount")
         current = node.runtime.model_dump() if node.runtime else {}
         current.update(
             {

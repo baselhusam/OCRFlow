@@ -18,7 +18,9 @@ export const CATEGORY_COLOR_VARS: Record<string, string> = {
   figure_captioning: "var(--node-figure-captioning)",
   vlm_convert: "var(--node-vlm-convert)",
   assembler: "var(--node-assembler)",
+  text_generation: "var(--node-llm-extract)",
   llm_extract: "var(--node-llm-extract)",
+  vision_language: "var(--node-vlm-convert)",
   export: "var(--node-export)",
 };
 
@@ -38,7 +40,9 @@ export const CATEGORY_WIRE_TYPES: Record<string, CategoryWireTypes> = {
   figure_captioning: { input: "Figure[]", output: "TextLine[] (with text)" },
   vlm_convert: { input: "DocumentInput", output: "DocumentArtifact + markdown" },
   assembler: { input: "PageArtifact[]", output: "DocumentArtifact" },
+  text_generation: { input: "Text", output: "Text" },
   llm_extract: { input: "DocumentArtifact", output: "JSON" },
+  vision_language: { input: "PageArtifact", output: "Text or JSON" },
   export: { input: "DocumentArtifact", output: "File" },
 };
 
@@ -58,7 +62,9 @@ export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   figure_captioning: "Generate captions or descriptions for figures",
   vlm_convert: "End-to-end document conversion with a vision-language model",
   assembler: "Merge page artifacts into a unified document",
+  text_generation: "Prompt-driven local text transformation and summarization",
   llm_extract: "Structured field extraction using an LLM",
+  vision_language: "Prompt-driven understanding of pages, charts, and tables",
   export: "Export document artifacts to JSON, Markdown, or files",
 };
 
@@ -92,6 +98,34 @@ export const DEFAULT_NODE_PARAMS: Record<
   "paddle/doclayout-s": { device: "cuda", confidence_threshold: 0.5 },
   "paddle/ocr-v6-small": { confidence_threshold: 0.5 },
   "paddle/pp-structure": {},
+  "ollama/text-prompt": {
+    model: "qwen3:0.6b",
+    prompt: "Summarize the input accurately and concisely.",
+    temperature: 0,
+    max_tokens: 1024,
+  },
+  "ollama/structured-extract": {
+    model: "qwen3:0.6b",
+    prompt: "Extract the requested fields from the input.",
+    temperature: 0,
+    max_tokens: 1024,
+    json_schema:
+      '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}',
+  },
+  "ollama/vision-prompt": {
+    model: "qwen3.5:0.8b",
+    prompt: "Describe this document page, including charts and tables.",
+    temperature: 0,
+    max_tokens: 1024,
+  },
+  "ollama/vision-structured-extract": {
+    model: "qwen3.5:0.8b",
+    prompt: "Extract the requested fields from this document page.",
+    temperature: 0,
+    max_tokens: 1024,
+    json_schema:
+      '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}',
+  },
   export: { pretty: true },
 };
 

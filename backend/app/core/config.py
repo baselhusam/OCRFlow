@@ -78,6 +78,10 @@ class Settings(BaseSettings):
         default="http://127.0.0.1:8103",
         validation_alias="OCRFLOW_PADDLE_SERVICE_URL",
     )
+    ollama_base_url: str = Field(
+        default="http://127.0.0.1:11434",
+        validation_alias="OCRFLOW_OLLAMA_BASE_URL",
+    )
     # Which provider this process serves when running as an internal service
     # image (unset for the gateway). Purely informational / for health output.
     service_provider: str = Field(
@@ -98,6 +102,7 @@ class Settings(BaseSettings):
             "docling": self.docling_service_url,
             "surya": self.surya_service_url,
             "paddle": self.paddle_service_url,
+            "ollama": self.ollama_base_url,
         }.get(provider)
 
     def build_model_config(self, **overrides: object) -> ModelConfig:

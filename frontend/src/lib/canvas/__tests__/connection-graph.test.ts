@@ -4,6 +4,7 @@ import type { Edge, Node } from "@xyflow/react";
 import {
   isDuplicatePipelineConnection,
   isPipelineGraphConnectionAllowed,
+  suggestedConnectionForInsertedNode,
 } from "@/lib/canvas/connection-validation";
 import { buildItemHandle } from "@/lib/canvas/output-slice";
 import type { NodeCachedOutput, PipelineNodeData } from "@/lib/canvas/types";
@@ -196,5 +197,31 @@ describe("isPipelineGraphConnectionAllowed", () => {
     );
 
     expect(allowed).toBe(false);
+  });
+});
+
+describe("suggestedConnectionForInsertedNode", () => {
+  it("wires a selected loader into a newly inserted layout node", () => {
+    const loader = makeNode(
+      "loader-1",
+      "loader/image",
+      "page_loader",
+      "file",
+      "file",
+    );
+    const layout = makeNode(
+      "layout-1",
+      "surya/layout",
+      "layout_detection",
+      "page",
+      "regions",
+    );
+
+    expect(suggestedConnectionForInsertedNode(loader, layout)).toEqual({
+      source: "loader-1",
+      target: "layout-1",
+      sourceHandle: "output",
+      targetHandle: "input",
+    });
   });
 });

@@ -13,6 +13,12 @@ MODEL_WIRE_KINDS: dict[str, dict[str, WireKind]] = {
     "loader/page-branch": {"input": "page_artifact_array", "output": "page_artifact"},
     "surya/layout": {"input": "page_artifact", "output": "page_artifact_regions"},
     "docling/layout-heron": {"input": "page_artifact", "output": "page_artifact_regions"},
+    "paddle/doclayout-s": {"input": "page_artifact", "output": "page_artifact_regions"},
+    "paddle/ocr-v6-small": {"input": "page_artifact", "output": "text_line_array"},
+    "paddle/pp-structure": {
+        "input": "page_artifact",
+        "output": "page_artifact_regions",
+    },
     "layout/region-branch": {
         "input": "page_artifact_regions",
         "output": "page_artifact_regions",
@@ -53,6 +59,13 @@ MODEL_WIRE_KINDS: dict[str, dict[str, WireKind]] = {
         "input": "document_input",
         "output": "document_artifact",
     },
+    "ollama/text-prompt": {"input": "text", "output": "text"},
+    "ollama/structured-extract": {"input": "text", "output": "json"},
+    "ollama/vision-prompt": {"input": "page_artifact", "output": "text"},
+    "ollama/vision-structured-extract": {
+        "input": "page_artifact",
+        "output": "json",
+    },
 }
 
 CATEGORY_WIRE_TYPES: dict[str, dict[str, str]] = {
@@ -71,8 +84,39 @@ CATEGORY_WIRE_TYPES: dict[str, dict[str, str]] = {
     "figure_captioning": {"input": "Figure[]", "output": "TextLine[] (with text)"},
     "vlm_convert": {"input": "DocumentInput", "output": "DocumentArtifact + markdown"},
     "assembler": {"input": "PageArtifact[]", "output": "DocumentArtifact"},
+    "text_generation": {"input": "Text", "output": "Text"},
     "llm_extract": {"input": "DocumentArtifact", "output": "JSON"},
+    "vision_language": {"input": "PageArtifact", "output": "Text or JSON"},
     "export": {"input": "DocumentArtifact", "output": "File"},
+}
+
+WIRE_KIND_DISPLAY_LABELS: dict[WireKind, str] = {
+    "none": "unknown",
+    "file": "File",
+    "document_input": "DocumentInput",
+    "page_artifact": "PageArtifact",
+    "page_artifact_array": "PageArtifact[]",
+    "page_artifact_regions": "PageArtifact + regions",
+    "text_line_array": "TextLine[]",
+    "reading_order": "reading_order",
+    "table_structure_array": "TableStructure[]",
+    "formula_array": "Formula[]",
+    "figure_array": "Figure[]",
+    "document_artifact": "DocumentArtifact",
+    "text": "Text",
+    "json": "JSON",
+    "file_export": "File",
+}
+
+MODEL_OUTPUT_DISPLAY_OVERRIDES: dict[str, str] = {
+    "docling/ocr-auto": "TextLine[] (with text)",
+    "surya/text-recognition": "TextLine[] (with text)",
+    "paddle/ocr-v6-small": "TextLine[] (with text)",
+    "paddle/pp-structure": "PageArtifact + regions/lines/tables",
+    "docling/picture-description-smolvlm": "TextLine[] (with text)",
+    "docling/code-formula-v2": "Formula[] (with LaTeX)",
+    "surya/latex-ocr": "Formula[] (with LaTeX)",
+    "docling/vlm-granite-docling": "DocumentArtifact + markdown",
 }
 
 FILE_LOADER_MODELS = frozenset({"loader/pdf", "loader/image"})
@@ -93,12 +137,13 @@ WIRE_COMPATIBILITY: dict[str, list[str]] = {
         "formula_array",
         "figure_array",
     ],
-    "text_line_array": ["text_line_array"],
+    "text_line_array": ["text_line_array", "text"],
     "reading_order": ["reading_order"],
-    "table_structure_array": ["table_structure_array"],
+    "table_structure_array": ["table_structure_array", "text"],
     "formula_array": ["formula_array"],
     "figure_array": ["figure_array"],
-    "document_artifact": ["document_artifact", "json", "file_export"],
+    "document_artifact": ["document_artifact", "text", "json", "file_export"],
+    "text": ["text", "json"],
     "json": ["json"],
     "file_export": [],
 }
@@ -136,6 +181,8 @@ def wire_kind_from_label(label: str) -> WireKind:
         return "figure_array"
     if "documentartifact" in lower:
         return "document_artifact"
+    if lower == "text":
+        return "text"
     if lower == "json":
         return "json"
     return "none"
@@ -144,6 +191,58 @@ def wire_kind_from_label(label: str) -> WireKind:
 def get_model_category(model_id: str) -> str | None:
     entry = REGISTRY.get(model_id)
     return entry.category if entry else None
+
+
+# Prefer structured job results when a reusable pipeline fans out to mixed sinks.
+PRIMARY_EXIT_KIND_RANK: dict[str, int] = {
+    "json": 0,
+    "text": 1,
+    "text_line_array": 2,
+    "document_artifact": 3,
+    "table_structure_array": 4,
+    "formula_array": 5,
+    "figure_array": 6,
+    "reading_order": 7,
+    "page_artifact_regions": 8,
+    "page_artifact": 9,
+}
+
+
+def primary_exit_rank(output_kind: WireKind) -> int:
+    return PRIMARY_EXIT_KIND_RANK.get(output_kind, 99)
+
+
+def select_primary_exit_id(
+    exit_node_ids: list[str],
+    model_by_id: dict[str, str],
+) -> str | None:
+    if not exit_node_ids:
+        return None
+    return min(
+        exit_node_ids,
+        key=lambda nid: (
+            primary_exit_rank(
+                get_model_wire_kinds(model_by_id.get(nid, "")).get("output", "none")
+            ),
+            exit_node_ids.index(nid),
+        ),
+    )
+
+
+def compose_exit_output_label(
+    exit_node_ids: list[str],
+    model_by_id: dict[str, str],
+    primary_id: str,
+) -> str:
+    ordered = [primary_id, *[nid for nid in exit_node_ids if nid != primary_id]]
+    labels: list[str] = []
+    seen: set[str] = set()
+    for nid in ordered:
+        label = get_model_wire_labels(model_by_id.get(nid, "")).get("output", "")
+        if label and label not in seen:
+            seen.add(label)
+            labels.append(label)
+    return " + ".join(labels)
 
 
 def get_model_wire_kinds(model_id: str) -> dict[str, WireKind]:
@@ -163,6 +262,19 @@ def get_model_wire_kinds(model_id: str) -> dict[str, WireKind]:
 
 
 def get_model_wire_labels(model_id: str) -> dict[str, str]:
+    known_wires = MODEL_WIRE_KINDS.get(model_id)
+    if known_wires:
+        return {
+            "input": WIRE_KIND_DISPLAY_LABELS.get(
+                known_wires["input"],
+                "unknown",
+            ),
+            "output": MODEL_OUTPUT_DISPLAY_OVERRIDES.get(
+                model_id,
+                WIRE_KIND_DISPLAY_LABELS.get(known_wires["output"], "unknown"),
+            ),
+        }
+
     known_category = get_model_category(model_id)
     if known_category:
         wires = CATEGORY_WIRE_TYPES.get(known_category, {})

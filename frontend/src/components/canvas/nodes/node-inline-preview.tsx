@@ -45,7 +45,9 @@ const CATEGORY_PREVIEW_HINTS: Record<string, string> = {
   figure_captioning: "Figure captions",
   vlm_convert: "VLM conversion output",
   assembler: "Assembled document",
+  text_generation: "Generated text",
   llm_extract: "Extracted fields",
+  vision_language: "Visual understanding output",
   export: "Export preview",
 };
 
@@ -189,6 +191,12 @@ function CompactPreviewBody({
             : ""}
         </p>
       </div>
+    );
+  }
+
+  if (activeOutput?.kind === "text") {
+    return (
+      <TextSnippetList items={activeOutput.preview?.textSnippets ?? []} />
     );
   }
 

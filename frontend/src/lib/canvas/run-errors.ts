@@ -39,6 +39,14 @@ export function classifyRunError(
   const lower = message.toLowerCase();
 
   if (
+    lower.includes("session expired") ||
+    lower.includes("not authenticated") ||
+    options?.httpStatus === 401
+  ) {
+    return "authentication";
+  }
+
+  if (
     lower.includes("not ready") ||
     lower.includes("no input") ||
     lower.includes("upload a file") ||
@@ -144,6 +152,14 @@ export function getErrorDiagnosticMeta(
   errorCode?: NodeRunErrorCode,
 ): ErrorDiagnosticMeta {
   switch (errorCode) {
+    case "authentication":
+      return {
+        label: "Session expired",
+        badgeClassName:
+          "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+        suggestion:
+          "Sign in again to continue. Your canvas changes are saved before authentication is requested again.",
+      };
     case "model_load":
       return {
         label: "Model unavailable",

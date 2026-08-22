@@ -4,6 +4,16 @@ export type ApiError = {
   detail: string;
 };
 
+export class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
 export type UserRole = "admin" | "view_admin" | "user";
 
 export type UserPreferences = {
@@ -125,11 +135,25 @@ export async function apiFetch<T>(
       const body = (await response.json()) as ApiError | { detail: unknown };
       if (typeof body.detail === "string") {
         detail = body.detail;
+      } else if (Array.isArray(body.detail)) {
+        detail = body.detail
+          .map((item) => {
+            if (typeof item === "string") return item;
+            if (item && typeof item === "object" && "msg" in item) {
+              const loc = Array.isArray((item as { loc?: unknown }).loc)
+                ? (item as { loc: unknown[] }).loc.filter(Boolean).join(".")
+                : "";
+              const msg = String((item as { msg: unknown }).msg);
+              return loc ? `${loc}: ${msg}` : msg;
+            }
+            return JSON.stringify(item);
+          })
+          .join("; ");
       }
     } catch {
       // ignore JSON parse errors
     }
-    throw new Error(detail);
+    throw new ApiRequestError(detail, response.status);
   }
 
   if (response.status === 204) {

@@ -38,6 +38,17 @@ export async function runModelInference(
     body: JSON.stringify(payload),
   });
 
+  if (response.status === 401) {
+    if (typeof window !== "undefined") {
+      const next = `${window.location.pathname}${window.location.search}`;
+      window.location.assign(`/login?next=${encodeURIComponent(next)}`);
+    }
+    throw new InferenceError(
+      "Your session expired. Sign in again to continue.",
+      "authentication",
+    );
+  }
+
   if (!response.ok) {
     let detail = "Inference failed";
     let errorCode: NodeRunErrorCode | undefined;

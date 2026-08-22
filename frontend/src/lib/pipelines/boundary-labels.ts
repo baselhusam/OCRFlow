@@ -1,8 +1,7 @@
 import type { PipelineBoundaryResult } from "@/lib/canvas/pipeline-boundary";
 
 const BOUNDARY_ERROR_LABELS: Record<string, string> = {
-  no_nodes: "Add at least two connected models",
-  insufficient_nodes: "Connect at least two models",
+  no_nodes: "Add at least one model",
   no_entry_node: "Add a starting node with wire input",
   no_exit_node: "Add an ending node",
   incompatible_entry_inputs: "Starting nodes must accept the same input type",

@@ -4,6 +4,7 @@ import {
   authenticatedApiFetch,
   UnauthenticatedError,
 } from "@/lib/api/server";
+import { AUTH_COOKIE_NAME } from "@/lib/auth/cookies";
 
 type RouteContext = {
   params: Promise<{ path: string[] }>;
@@ -16,7 +17,12 @@ const ANALYTICS_HEADERS = [
 ] as const;
 
 function unauthenticatedResponse() {
-  return NextResponse.json({ detail: "Not authenticated" }, { status: 401 });
+  const response = NextResponse.json(
+    { detail: "Your session expired. Sign in again to continue." },
+    { status: 401 },
+  );
+  response.cookies.delete(AUTH_COOKIE_NAME);
+  return response;
 }
 
 export async function POST(request: Request, context: RouteContext) {

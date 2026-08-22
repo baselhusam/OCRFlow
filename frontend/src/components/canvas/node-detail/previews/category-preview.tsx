@@ -183,8 +183,22 @@ export function CategoryPreview({
     );
   }
 
+  if (output?.kind === "text") {
+    const text = (output.raw as { text?: unknown }).text;
+    if (typeof text === "string") {
+      return (
+        <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
+          <p className="whitespace-pre-wrap text-xs leading-relaxed text-foreground">
+            {text}
+          </p>
+        </div>
+      );
+    }
+  }
+
   if (output?.kind === "json") {
-    return <DocumentPreview json={output.raw} />;
+    const raw = output.raw as { data?: unknown };
+    return <DocumentPreview json={raw.data ?? output.raw} />;
   }
 
   if (output?.kind === "regions") {

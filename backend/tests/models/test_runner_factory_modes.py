@@ -45,6 +45,17 @@ def test_remote_mode_keeps_loaders_local(monkeypatch, reset_settings):
     assert not isinstance(runner, RemoteModelRunner)
 
 
+def test_provider_service_stays_local_in_remote_env(monkeypatch, reset_settings):
+    monkeypatch.setenv("OCRFLOW_RUNNER_MODE", "remote")
+    monkeypatch.setenv("OCRFLOW_SERVICE_PROVIDER", "surya")
+    monkeypatch.setenv("OCRFLOW_SURYA_SERVICE_URL", "http://127.0.0.1:8101")
+    get_settings.cache_clear()
+
+    runner = runner_factory.build_runner("surya/layout")
+    assert isinstance(runner, BaseRunner)
+    assert not isinstance(runner, RemoteModelRunner)
+
+
 def test_remote_mode_missing_url_raises(monkeypatch, reset_settings):
     monkeypatch.setenv("OCRFLOW_RUNNER_MODE", "remote")
     monkeypatch.setenv("OCRFLOW_PADDLE_SERVICE_URL", "")

@@ -139,6 +139,27 @@ export function ParamField({
     );
   }
 
+  if (field.type === "textarea") {
+    return (
+      <div className={cn("space-y-1.5", className)}>
+        <Label
+          htmlFor={inputId}
+          className="text-[10px] font-mono tracking-wide text-muted-foreground uppercase"
+        >
+          {field.label}
+        </Label>
+        <textarea
+          id={inputId}
+          rows={field.rows ?? 4}
+          className="w-full resize-y rounded-md border border-input bg-transparent px-2.5 py-2 font-mono text-xs leading-relaxed text-foreground shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          value={String(displayValue ?? "")}
+          onChange={(event) => emitValue(event.target.value)}
+          spellCheck={field.key !== "json_schema"}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={cn("space-y-1.5", className)}>
       <div className="flex items-center justify-between gap-2">

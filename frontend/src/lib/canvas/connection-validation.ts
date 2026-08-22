@@ -271,3 +271,27 @@ export function edgeLabelForHandle(
   }
   return parsed.scope === "item" ? parsed.itemId : undefined;
 }
+
+export function suggestedConnectionForInsertedNode(
+  selected: Node<PipelineNodeData> | undefined,
+  inserted: Node<PipelineNodeData>,
+): Connection | null {
+  if (!selected || selected.id === inserted.id) return null;
+  if (evaluatePipelineConnection(selected, inserted, "output")) {
+    return {
+      source: selected.id,
+      target: inserted.id,
+      sourceHandle: "output",
+      targetHandle: "input",
+    };
+  }
+  if (evaluatePipelineConnection(inserted, selected, "output")) {
+    return {
+      source: inserted.id,
+      target: selected.id,
+      sourceHandle: "output",
+      targetHandle: "input",
+    };
+  }
+  return null;
+}

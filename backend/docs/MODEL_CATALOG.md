@@ -789,11 +789,13 @@ Not document-layout models — they consume **text/markdown** or **images** and 
 
 ## Provider abstraction
 
-Single interface: `OpenAICompatibleProvider`
+Ollama is the production local adapter. Additional OpenAI-compatible adapters
+remain future work; they must implement the same typed task schemas rather than
+introducing provider-specific canvas contracts.
 
 | Provider ID | Runtime | Typical use |
 |-------------|---------|-------------|
-| `ollama` | Local | Dev, air-gapped |
+| `ollama` | Local HTTP | Dev, on-prem, air-gapped |
 | `vllm` | Local/server | Production throughput |
 | `llamacpp` | Local/edge | Apple Silicon, fine quant |
 | `lmstudio` | Local | GUI + API |
@@ -804,14 +806,25 @@ Single interface: `OpenAICompatibleProvider`
 
 ## Tasks
 
-| ID | Category | Input | Output |
-|----|----------|-------|--------|
-| `llm/structured-extract` | `llm_extract` | markdown + JSON schema | validated JSON |
-| `llm/summarize` | `llm_extract` | text | summary string |
-| `llm/qa` | `llm_extract` | text + question | answer string |
-| `vlm/qa` | `figure_captioning` | image + question | answer string |
+| ID | Category | Input | Output | Default | Status |
+|----|----------|-------|--------|---------|--------|
+| `ollama/text-prompt` | `text_generation` | text + prompt | text | Qwen3 0.6B | done |
+| `ollama/structured-extract` | `llm_extract` | text + prompt + JSON Schema | validated JSON | Qwen3 0.6B | done |
+| `ollama/vision-prompt` | `vision_language` | page image + prompt | text | Qwen3.5 0.8B | done |
+| `ollama/vision-structured-extract` | `vision_language` | page image + prompt + JSON Schema | validated JSON | Qwen3.5 0.8B | done |
 
-Each provider gets: config schema, health check, model list endpoint, rate limit hooks.
+Supported selectable models are intentionally allowlisted at or below one
+billion parameters: `qwen3:0.6b` for text and `qwen3.5:0.8b` for text or
+vision. The adapter uses Ollama's native JSON Schema `format` request field,
+then parses and validates the returned value before it enters the pipeline.
+The runtime health endpoint reports Ollama separately from OCR providers.
+
+Install the local weights:
+
+```bash
+ollama pull qwen3:0.6b
+ollama pull qwen3.5:0.8b
+```
 
 ---
 

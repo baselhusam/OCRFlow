@@ -38,6 +38,7 @@ export type NodeTrace = {
   started_at?: string | null;
   finished_at?: string | null;
   page_count?: number | null;
+  item_count?: number | null;
   output_kind?: string | null;
   error?: string | null;
   message?: string | null;

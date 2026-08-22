@@ -9,15 +9,26 @@ import type {
  * "offline"; native platform providers (loaders, export, transforms) always run
  * in whichever process handles the request.
  */
-export const REMOTE_PROVIDERS = new Set(["docling", "surya", "paddle"]);
+export const REMOTE_PROVIDERS = new Set([
+  "docling",
+  "surya",
+  "paddle",
+  "ollama",
+]);
 
 /** Stable display order for OCR microservice status chips. */
-export const REMOTE_PROVIDER_ORDER = ["surya", "docling", "paddle"] as const;
+export const REMOTE_PROVIDER_ORDER = [
+  "surya",
+  "docling",
+  "paddle",
+  "ollama",
+] as const;
 
 const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   docling: "Docling",
   surya: "Surya",
   paddle: "PaddleOCR",
+  ollama: "Ollama",
 };
 
 export type ProviderRuntimeStatus = {

@@ -10,8 +10,14 @@ from app.core.config import get_settings
 from app.db.models.pipeline import Pipeline
 from app.db.models.user import User
 from app.db.session import get_db
+from app.schemas.asset import AssetBatchUploadResponse, AssetUploadResponse
 from app.schemas.pipeline import PipelineCreate, PipelineList, PipelineRead, PipelineUpdate
 from app.services.access_control import get_accessible_pipeline, require_write_access
+from app.services.asset_storage import (
+    load_asset_bytes,
+    load_asset_meta,
+    save_project_asset,
+)
 from app.services.pipeline_boundary import derive_pipeline_boundary_io
 from app.services.pipeline_logo_storage import (
     delete_all_pipeline_data,
@@ -20,8 +26,6 @@ from app.services.pipeline_logo_storage import (
     load_pipeline_logo,
     save_pipeline_logo,
 )
-from app.schemas.asset import AssetBatchUploadResponse, AssetUploadResponse
-from app.services.asset_storage import save_project_asset
 from app.services.pipeline_input import resolve_asset_project_id
 
 router = APIRouter()
@@ -254,6 +258,40 @@ async def upload_pipeline_asset(
         upload_dir=settings.upload_dir,
         project_id=namespace,
         file=file,
+    )
+
+
+@router.get("/{pipeline_id}/assets/{asset_id}")
+async def get_pipeline_asset(
+    pipeline_id: uuid.UUID,
+    asset_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    pipeline = await get_accessible_pipeline(db, pipeline_id, current_user)
+    if pipeline is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pipeline not found",
+        )
+
+    settings = get_settings()
+    namespace = resolve_asset_project_id(
+        pipeline_id=pipeline.id,
+        explicit_project_id=None,
+    )
+    try:
+        meta = load_asset_meta(settings.upload_dir, namespace, asset_id)
+        data = load_asset_bytes(settings.upload_dir, namespace, asset_id)
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Asset not found",
+        ) from None
+    return Response(
+        content=data,
+        media_type=meta.mime_type,
+        headers={"Content-Disposition": f'inline; filename="{meta.filename}"'},
     )
 
 

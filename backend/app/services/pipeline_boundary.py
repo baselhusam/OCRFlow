@@ -9,8 +9,10 @@ from app.services.pipeline_wire_kinds import (
     BLOCKED_PIPELINE_MODELS,
     FILE_LOADER_MODELS,
     are_wire_kinds_compatible,
+    compose_exit_output_label,
     get_model_wire_kinds,
     get_model_wire_labels,
+    select_primary_exit_id,
 )
 
 
@@ -124,9 +126,6 @@ def derive_pipeline_boundary_io(graph: dict[str, Any]) -> PipelineBoundaryIO:
     if not nodes:
         return PipelineBoundaryIO(valid=False, errors=["no_nodes"])
 
-    if len(nodes) < 2:
-        errors.append("insufficient_nodes")
-
     node_ids = {n["id"] for n in nodes}
     model_by_id = {
         n["id"]: n.get("modelId", "") for n in nodes if isinstance(n.get("modelId"), str)
@@ -167,7 +166,6 @@ def derive_pipeline_boundary_io(graph: dict[str, Any]) -> PipelineBoundaryIO:
         errors.append("no_exit_node")
 
     entry_input_kinds: set[str] = set()
-    exit_output_kinds: set[str] = set()
 
     for entry_id in entry_node_ids:
         entry_wires = get_model_wire_kinds(model_by_id.get(entry_id, ""))
@@ -179,16 +177,11 @@ def derive_pipeline_boundary_io(graph: dict[str, Any]) -> PipelineBoundaryIO:
 
     for exit_id in exit_node_ids:
         exit_wires = get_model_wire_kinds(model_by_id.get(exit_id, ""))
-        exit_output = exit_wires["output"]
-        if exit_output in ("none",):
+        if exit_wires["output"] in ("none",):
             errors.append("invalid_exit_output")
-        else:
-            exit_output_kinds.add(exit_output)
 
     if len(entry_input_kinds) > 1:
         errors.append("incompatible_entry_inputs")
-    if len(exit_output_kinds) > 1:
-        errors.append("incompatible_exit_outputs")
 
     if errors:
         return PipelineBoundaryIO(
@@ -199,14 +192,13 @@ def derive_pipeline_boundary_io(graph: dict[str, Any]) -> PipelineBoundaryIO:
         )
 
     primary_entry_id = entry_node_ids[0]
-    primary_exit_id = exit_node_ids[0]
+    primary_exit_id = select_primary_exit_id(exit_node_ids, model_by_id) or exit_node_ids[0]
     entry_model = model_by_id.get(primary_entry_id, "")
     exit_model = model_by_id.get(primary_exit_id, "")
 
     entry_wires = get_model_wire_kinds(entry_model)
     exit_wires = get_model_wire_kinds(exit_model)
     entry_labels = get_model_wire_labels(entry_model)
-    exit_labels = get_model_wire_labels(exit_model)
 
     return PipelineBoundaryIO(
         valid=True,
@@ -216,5 +208,7 @@ def derive_pipeline_boundary_io(graph: dict[str, Any]) -> PipelineBoundaryIO:
         input_wire_kind=entry_wires["input"],
         output_wire_kind=exit_wires["output"],
         input_type_label=entry_labels["input"],
-        output_type_label=exit_labels["output"],
+        output_type_label=compose_exit_output_label(
+            exit_node_ids, model_by_id, primary_exit_id
+        ),
     )

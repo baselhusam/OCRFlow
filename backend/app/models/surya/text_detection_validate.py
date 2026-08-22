@@ -6,6 +6,23 @@ from app.models.errors import ModelValidationError
 from app.schemas.artifacts import TextLine, validate_bbox, validate_polygon
 
 
+def keep_valid_text_lines(lines: list[TextLine]) -> list[TextLine]:
+    """Drop degenerate detector boxes instead of failing the whole page."""
+    kept: list[TextLine] = []
+    for line in lines:
+        try:
+            validate_bbox(line.bbox)
+        except ValueError:
+            continue
+        if line.polygon is not None:
+            try:
+                validate_polygon(line.polygon)
+            except ValueError:
+                line = line.model_copy(update={"polygon": None})
+        kept.append(line)
+    return kept
+
+
 def validate_text_lines(lines: list[TextLine]) -> list[TextLine]:
     seen_ids: set[str] = set()
     for line in lines:

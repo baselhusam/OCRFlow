@@ -28,6 +28,12 @@ When `OCRFLOW_RUNNER_MODE=remote`, the gateway needs URLs for each engine you st
 
 Compose sets service DNS instead of localhost. See `backend/.env.example` and `backend/.env.remote.example` for the exact names.
 
+Ollama is an external local runtime in both modes. Configure
+`OCRFLOW_OLLAMA_BASE_URL` (host default: `http://127.0.0.1:11434`; compose:
+`http://ollama:11434`). The gateway and worker must resolve the same endpoint.
+Runtime health probes `/api/tags`, so unavailable local-model nodes are visibly
+disabled instead of failing only after a run starts.
+
 ## Provider containers
 
 Useful flags on OCR services (especially air-gapped):

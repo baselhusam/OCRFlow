@@ -7,7 +7,11 @@ import { ChevronRight, Square } from "lucide-react";
 import { JobStatusBadge } from "@/components/jobs/job-status-badge";
 import { Button } from "@/components/ui/button";
 import { cancelJob, getJob, isJobActive, type PipelineJob } from "@/lib/api/jobs";
-import type { PipelineRun } from "@/lib/api/pipeline-runs";
+import {
+  getPipelineRun,
+  type NodeTrace,
+  type PipelineRun,
+} from "@/lib/api/pipeline-runs";
 import { cn } from "@/lib/utils";
 
 type JobTraceViewProps = {
@@ -29,6 +33,36 @@ function progressLabel(run: PipelineRun): string {
     return `${run.completed_count}/${run.total_count} nodes`;
   }
   return run.status;
+}
+
+function traceCountLabel(trace: NodeTrace): string {
+  const itemCount =
+    trace.item_count ??
+    (trace.output_kind === "json" ? trace.page_count : null);
+  if (itemCount) {
+    return ` · ${itemCount} ${trace.output_kind === "json" ? "fields" : "items"}`;
+  }
+  return trace.page_count ? ` · ${trace.page_count} pages` : "";
+}
+
+function resultPayload(result: Record<string, unknown> | null): unknown {
+  if (!result) return null;
+  const raw =
+    typeof result.raw === "object" && result.raw !== null
+      ? (result.raw as Record<string, unknown>)
+      : null;
+  if (raw?.data && typeof raw.data === "object") return raw.data;
+  if (typeof raw?.text === "string") return raw.text;
+  if (typeof raw?.markdown === "string") return raw.markdown;
+
+  const preview =
+    typeof result.preview === "object" && result.preview !== null
+      ? (result.preview as Record<string, unknown>)
+      : null;
+  if (preview?.jsonPreview && typeof preview.jsonPreview === "object") {
+    return preview.jsonPreview;
+  }
+  return null;
 }
 
 export function JobTraceView({ initialJob, canWrite = true }: JobTraceViewProps) {
@@ -179,7 +213,10 @@ export function JobTraceView({ initialJob, canWrite = true }: JobTraceViewProps)
 
         <section className="min-w-0 px-5 py-5 md:px-8">
           {selected ? (
-            <DocumentTrace run={selected} />
+            <DocumentTrace
+              key={`${selected.id}:${selected.updated_at}`}
+              run={selected}
+            />
           ) : (
             <p className="text-sm text-muted-foreground">
               Select a document to inspect node traces and logs.
@@ -192,14 +229,43 @@ export function JobTraceView({ initialJob, canWrite = true }: JobTraceViewProps)
 }
 
 function DocumentTrace({ run }: { run: PipelineRun }) {
-  const traces = run.node_traces ?? [];
-  const logs = run.logs ?? [];
+  const needsResult = run.status === "succeeded" && !run.result;
+  const [detail, setDetail] = useState(run);
+  const [resultLoading, setResultLoading] = useState(needsResult);
+  const [resultError, setResultError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!needsResult) return;
+
+    let cancelled = false;
+    void getPipelineRun(run.pipeline_id, run.id)
+      .then((next) => {
+        if (!cancelled) setDetail(next);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setResultError(
+            error instanceof Error ? error.message : "Could not load result",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setResultLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [needsResult, run.id, run.pipeline_id]);
+
+  const traces = detail.node_traces ?? [];
+  const logs = detail.logs ?? [];
+  const finalResult = resultPayload(detail.result);
 
   return (
     <div className="space-y-8">
-      {run.error ? (
+      {detail.error ? (
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {run.error}
+          {detail.error}
         </div>
       ) : null}
 
@@ -228,7 +294,7 @@ function DocumentTrace({ run }: { run: PipelineRun }) {
                   </p>
                   <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
                     {trace.output_kind ?? "node"}
-                    {trace.page_count ? ` · ${trace.page_count} pages` : ""}
+                    {traceCountLabel(trace)}
                     {trace.message ? ` · ${trace.message}` : ""}
                   </p>
                   {trace.error ? (
@@ -239,6 +305,29 @@ function DocumentTrace({ run }: { run: PipelineRun }) {
               </li>
             ))}
           </ol>
+        )}
+      </div>
+
+      <div>
+        <p className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground uppercase">
+          Final result
+        </p>
+        {resultLoading ? (
+          <p className="mt-3 text-sm text-muted-foreground">Loading result…</p>
+        ) : resultError ? (
+          <p className="mt-3 text-sm text-destructive">{resultError}</p>
+        ) : finalResult === null ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            {detail.status === "succeeded"
+              ? "This run did not return a displayable result."
+              : "The result will appear when the run finishes."}
+          </p>
+        ) : (
+          <pre className="mt-3 max-h-[28rem] overflow-auto whitespace-pre-wrap rounded-xl border border-border bg-card p-4 font-mono text-xs leading-relaxed text-foreground">
+            {typeof finalResult === "string"
+              ? finalResult
+              : JSON.stringify(finalResult, null, 2)}
+          </pre>
         )}
       </div>
 

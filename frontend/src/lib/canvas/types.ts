@@ -25,6 +25,7 @@ export type NodeCachedOutput = {
     | "formulas"
     | "figures"
     | "document"
+    | "text"
     | "json";
   raw: unknown;
   preview?: OutputPreview;
@@ -68,6 +69,7 @@ export type NodeRunErrorCode =
   | "payload_build"
   | "readiness"
   | "provider_offline"
+  | "authentication"
   | "unknown";
 
 export type NodeRunErrorContext = {

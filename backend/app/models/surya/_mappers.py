@@ -86,8 +86,24 @@ def table_result_to_structure(table_result: Any, table_id: str, width: int, heig
     )
 
 
-def offset_text_line(line: TextLine, offset_x: int, offset_y: int, page_width: int, page_height: int) -> TextLine:
-    px_bbox = denormalize_bbox_to_pixels(line.bbox, page_width, page_height)
+def offset_text_line(
+    line: TextLine,
+    offset_x: int,
+    offset_y: int,
+    page_width: int,
+    page_height: int,
+    *,
+    source_width: int | None = None,
+    source_height: int | None = None,
+) -> TextLine:
+    """Map a crop-relative line onto the full page.
+
+    ``line.bbox`` / ``line.polygon`` are normalized to the crop (or page when
+    source dimensions are omitted). Offsets are in page pixels.
+    """
+    src_w = source_width or page_width
+    src_h = source_height or page_height
+    px_bbox = denormalize_bbox_to_pixels(line.bbox, src_w, src_h)
     left = px_bbox[0] + offset_x
     top = px_bbox[1] + offset_y
     right = px_bbox[2] + offset_x
@@ -97,8 +113,8 @@ def offset_text_line(line: TextLine, offset_x: int, offset_y: int, page_width: i
     if line.polygon:
         polygon = [
             [
-                max(0.0, min(1.0, (point[0] * page_width + offset_x) / page_width)),
-                max(0.0, min(1.0, (point[1] * page_height + offset_y) / page_height)),
+                max(0.0, min(1.0, (point[0] * src_w + offset_x) / page_width)),
+                max(0.0, min(1.0, (point[1] * src_h + offset_y) / page_height)),
             ]
             for point in line.polygon
         ]

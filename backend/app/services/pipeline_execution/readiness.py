@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from app.models.runner_factory import RUNNER_FACTORIES
+from app.services.pipeline_execution.registry import MODEL_EXECUTION_SPECS
 from app.services.pipeline_execution.schemas import PipelineGraph
 
 
@@ -59,6 +60,10 @@ def get_pipeline_readiness(graph: PipelineGraph) -> PipelineReadiness:
             continue
         if node.modelId not in RUNNER_FACTORIES:
             issues.append(f"Node {node.id} uses unsupported model {node.modelId}")
+        elif node.modelId not in MODEL_EXECUTION_SPECS:
+            issues.append(
+                f"Node {node.id} model {node.modelId} is not available in pipeline execution"
+            )
 
     try:
         ordered = topological_sort(graph)

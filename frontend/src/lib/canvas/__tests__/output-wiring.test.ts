@@ -214,3 +214,115 @@ describe("picture-description payload", () => {
     expect((payload?.figures as unknown[]).length).toBe(1);
   });
 });
+
+describe("latex-ocr payload", () => {
+  it("maps layout formula regions to formulas, not a raw regions field", () => {
+    const payload = buildInferencePayload("surya/latex-ocr", {
+      projectId: "p1",
+      data: {
+        modelId: "surya/latex-ocr",
+        label: "Latex Ocr",
+        category: "formula_recognition",
+        categoryLabel: "Formula recognition",
+        provider: "surya",
+        inputType: "PageArtifact",
+        outputType: "Formula[]",
+        params: {},
+        categoryColor: "#000",
+      },
+      upstreamPages: [],
+      upstreamOutput: {
+        kind: "regions",
+        raw: {
+          regions: [
+            {
+              id: "r1",
+              label: "paragraph",
+              bbox: [0, 0, 0.4, 0.2],
+              confidence: 0.9,
+            },
+            {
+              id: "f1",
+              label: "formula",
+              bbox: [0.1, 0.4, 0.6, 0.55],
+              confidence: 0.8,
+            },
+          ],
+        },
+        preview: {
+          pageImage: {
+            page_index: 0,
+            width: 100,
+            height: 100,
+            image_base64: "abc",
+          },
+        },
+      },
+    });
+
+    expect(payload).toEqual({
+      page: {
+        page_index: 0,
+        width: 100,
+        height: 100,
+        image_base64: "abc",
+      },
+      formulas: [{ id: "f1", bbox: [0.1, 0.4, 0.6, 0.55] }],
+    });
+  });
+
+  it("ignores persisted page stubs that no longer have image bytes", () => {
+    const payload = buildInferencePayload("surya/reading-order", {
+      projectId: "p1",
+      data: {
+        modelId: "surya/reading-order",
+        label: "Reading Order",
+        category: "reading_order",
+        categoryLabel: "Reading Order",
+        provider: "surya",
+        inputType: "PageArtifact",
+        outputType: "ReadingOrder",
+        params: {},
+        categoryColor: "#000",
+      },
+      upstreamPages: [
+        {
+          page_index: 0,
+          page: {
+            page_index: 0,
+            width: 1200,
+            height: 1600,
+            image_base64: "real-page",
+          },
+        },
+      ],
+      upstreamOutput: {
+        kind: "regions",
+        raw: {
+          regions: [
+            {
+              id: "r1",
+              label: "other",
+              bbox: [0.25, 0.25, 0.75, 0.75],
+              confidence: 0.99,
+            },
+          ],
+        },
+        preview: {
+          pageImage: {
+            page_index: 0,
+            width: 1200,
+            height: 1600,
+          },
+        },
+      },
+    });
+
+    expect(payload?.page).toEqual({
+      page_index: 0,
+      width: 1200,
+      height: 1600,
+      image_base64: "real-page",
+    });
+  });
+});

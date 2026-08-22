@@ -46,9 +46,22 @@ def test_list_models_filter_by_status():
     assert all(entry.status == ModelStatus.deferred for entry in deferred)
 
 
-def test_list_categories_returns_seventeen():
+def test_list_categories_includes_prompt_and_vision_types():
     categories = list_categories()
-    assert len(categories) == 17
+    assert len(categories) == 19
     ids = {category.id for category in categories}
     assert "layout_detection" in ids
+    assert "text_generation" in ids
+    assert "vision_language" in ids
     assert "export" in ids
+
+
+def test_ollama_catalog_models_are_local_and_done():
+    models = list_models(provider="ollama")
+    assert {entry.id for entry in models} == {
+        "ollama/structured-extract",
+        "ollama/text-prompt",
+        "ollama/vision-prompt",
+        "ollama/vision-structured-extract",
+    }
+    assert all(entry.status == ModelStatus.done for entry in models)

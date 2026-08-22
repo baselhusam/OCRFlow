@@ -66,7 +66,25 @@ describe("derivePipelineBoundaryIO", () => {
     expect(result.outputLabel).toBe("TextLine[] (with text)");
   });
 
-  it("requires at least two connected nodes", () => {
+  it("accepts an atomic model as a reusable pipeline", () => {
+    const result = derivePipelineBoundaryIO(
+      [
+        {
+          id: "vision-1",
+          modelId: "ollama/vision-structured-extract",
+          position: { x: 0, y: 0 },
+        },
+      ],
+      [],
+    );
+    expect(result.valid).toBe(true);
+    expect(result.inputWireKind).toBe("page_artifact");
+    expect(result.outputWireKind).toBe("json");
+    expect(result.inputLabel).toBe("PageArtifact");
+    expect(result.outputLabel).toBe("JSON");
+  });
+
+  it("allows mixed sinks and prefers JSON as the primary output", () => {
     const result = derivePipelineBoundaryIO(
       [
         {
@@ -74,11 +92,39 @@ describe("derivePipelineBoundaryIO", () => {
           modelId: "surya/layout",
           position: { x: 0, y: 0 },
         },
+        {
+          id: "detect-1",
+          modelId: "surya/text-detection",
+          position: { x: 200, y: 0 },
+        },
+        {
+          id: "recognize-1",
+          modelId: "surya/text-recognition",
+          position: { x: 400, y: 0 },
+        },
+        {
+          id: "extract-1",
+          modelId: "ollama/structured-extract",
+          position: { x: 600, y: 0 },
+        },
+        {
+          id: "table-1",
+          modelId: "surya/table-recognition",
+          position: { x: 200, y: 200 },
+        },
       ],
-      [],
+      [
+        { id: "e1", source: "layout-1", target: "detect-1" },
+        { id: "e2", source: "detect-1", target: "recognize-1" },
+        { id: "e3", source: "recognize-1", target: "extract-1" },
+        { id: "e4", source: "layout-1", target: "table-1" },
+      ],
     );
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContain("insufficient_nodes");
+    expect(result.valid).toBe(true);
+    expect(result.inputWireKind).toBe("page_artifact");
+    expect(result.outputWireKind).toBe("json");
+    expect(result.outputLabel).toBe("JSON + TableStructure[]");
+    expect(result.exitNodeIds.sort()).toEqual(["extract-1", "table-1"]);
   });
 
   it("rejects incompatible connections", () => {

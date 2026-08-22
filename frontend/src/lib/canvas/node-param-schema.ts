@@ -1,4 +1,10 @@
-export type ParamFieldType = "number" | "text" | "boolean" | "select" | "multi-select";
+export type ParamFieldType =
+  | "number"
+  | "text"
+  | "textarea"
+  | "boolean"
+  | "select"
+  | "multi-select";
 
 export type ParamFieldDef = {
   key: string;
@@ -9,6 +15,7 @@ export type ParamFieldDef = {
   step?: number;
   options?: Array<{ value: string; label: string }>;
   readOnly?: boolean;
+  rows?: number;
   /** UI shows stored value + offset (e.g. page_index uses 1 for stored 0). */
   displayOffset?: number;
 };
@@ -136,6 +143,31 @@ const CONFIDENCE_FIELD: ParamFieldDef = {
   step: 0.05,
 };
 
+const OLLAMA_TEXT_MODEL_OPTIONS = [
+  { value: "qwen3:0.6b", label: "Qwen 3 · 0.6B (text)" },
+  { value: "qwen3.5:0.8b", label: "Qwen 3.5 · 0.8B (multimodal)" },
+];
+
+const OLLAMA_BASE_FIELDS: ParamFieldDef[] = [
+  { key: "prompt", label: "Instruction", type: "textarea", rows: 5 },
+  {
+    key: "temperature",
+    label: "Temperature",
+    type: "number",
+    min: 0,
+    max: 2,
+    step: 0.1,
+  },
+  {
+    key: "max_tokens",
+    label: "Max output tokens",
+    type: "number",
+    min: 1,
+    max: 8192,
+  },
+  { key: "system_prompt", label: "System prompt", type: "textarea", rows: 3 },
+];
+
 const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
   "loader/pdf": [
     { key: "dpi", label: "DPI", type: "number", min: 72, max: 600 },
@@ -210,6 +242,46 @@ const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
     },
     { key: "enrich_pictures", label: "Enrich pictures", type: "boolean" },
     { key: "enrich_formulas", label: "Enrich formulas", type: "boolean" },
+  ],
+  "ollama/text-prompt": [
+    {
+      key: "model",
+      label: "Local model",
+      type: "select",
+      options: OLLAMA_TEXT_MODEL_OPTIONS,
+    },
+    { key: "text", label: "Input text (optional)", type: "textarea", rows: 6 },
+    ...OLLAMA_BASE_FIELDS,
+  ],
+  "ollama/structured-extract": [
+    {
+      key: "model",
+      label: "Local model",
+      type: "select",
+      options: OLLAMA_TEXT_MODEL_OPTIONS,
+    },
+    { key: "text", label: "Input text (optional)", type: "textarea", rows: 6 },
+    ...OLLAMA_BASE_FIELDS,
+    { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 },
+  ],
+  "ollama/vision-prompt": [
+    {
+      key: "model",
+      label: "Vision model",
+      type: "select",
+      options: [{ value: "qwen3.5:0.8b", label: "Qwen 3.5 · 0.8B Vision" }],
+    },
+    ...OLLAMA_BASE_FIELDS,
+  ],
+  "ollama/vision-structured-extract": [
+    {
+      key: "model",
+      label: "Vision model",
+      type: "select",
+      options: [{ value: "qwen3.5:0.8b", label: "Qwen 3.5 · 0.8B Vision" }],
+    },
+    ...OLLAMA_BASE_FIELDS,
+    { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 },
   ],
 };
 

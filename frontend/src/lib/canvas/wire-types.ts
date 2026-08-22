@@ -15,6 +15,7 @@ export type WireKind =
   | "formula_array"
   | "figure_array"
   | "document_artifact"
+  | "text"
   | "json"
   | "file_export";
 
@@ -36,6 +37,7 @@ export function wireKindFromLabel(label: string): WireKind {
   if (lower.includes("formula[]")) return "formula_array";
   if (lower.includes("figure[]")) return "figure_array";
   if (lower.includes("documentartifact")) return "document_artifact";
+  if (lower === "text") return "text";
   if (lower === "json") return "json";
   if (lower === "file") return "file_export";
   return "none";
@@ -60,12 +62,13 @@ const WIRE_COMPATIBILITY: Record<WireKind, WireKind[]> = {
     "page_artifact_regions",
     "reading_order",
   ],
-  text_line_array: ["text_line_array", "document_artifact"],
+  text_line_array: ["text_line_array", "text", "document_artifact"],
   reading_order: ["document_artifact"],
-  table_structure_array: ["table_structure_array", "document_artifact"],
+  table_structure_array: ["table_structure_array", "text", "document_artifact"],
   formula_array: ["formula_array", "document_artifact"],
   figure_array: ["figure_array", "document_artifact"],
-  document_artifact: ["document_artifact", "json", "file_export"],
+  document_artifact: ["document_artifact", "text", "json", "file_export"],
+  text: ["text", "json"],
   json: ["json"],
   file_export: [],
 };
@@ -101,6 +104,7 @@ export const WIRE_KIND_DISPLAY_LABELS: Record<WireKind, string> = {
   formula_array: "Formula[]",
   figure_array: "Figure[]",
   document_artifact: "DocumentArtifact",
+  text: "Text",
   json: "JSON",
   file_export: "File",
 };
@@ -188,6 +192,13 @@ export const MODEL_WIRE_KINDS: Record<
     input: "document_artifact",
     output: "document_artifact",
   },
+  "ollama/text-prompt": { input: "text", output: "text" },
+  "ollama/structured-extract": { input: "text", output: "json" },
+  "ollama/vision-prompt": { input: "page_artifact", output: "text" },
+  "ollama/vision-structured-extract": {
+    input: "page_artifact",
+    output: "json",
+  },
 };
 
 export const BLOCKED_PIPELINE_MODELS = new Set([
@@ -240,6 +251,10 @@ const MODEL_CATEGORIES: Record<string, string> = {
   "docling/vlm-granite-docling": "vlm_convert",
   "docling/convert-pipeline": "vlm_convert",
   "docling/document-branch": "vlm_convert",
+  "ollama/text-prompt": "text_generation",
+  "ollama/structured-extract": "llm_extract",
+  "ollama/vision-prompt": "vision_language",
+  "ollama/vision-structured-extract": "vision_language",
 };
 
 export function getModelWireLabels(
@@ -281,6 +296,63 @@ export function getModelWireKinds(
     input: wireKindFromLabel(fallbackInput),
     output: wireKindFromLabel(fallbackOutput),
   };
+}
+
+export const PRIMARY_EXIT_KIND_RANK: Record<WireKind, number> = {
+  json: 0,
+  text: 1,
+  text_line_array: 2,
+  document_artifact: 3,
+  table_structure_array: 4,
+  formula_array: 5,
+  figure_array: 6,
+  reading_order: 7,
+  page_artifact_regions: 8,
+  page_artifact: 9,
+  none: 99,
+  file: 99,
+  document_input: 99,
+  page_artifact_array: 99,
+  file_export: 99,
+};
+
+export function primaryExitRank(outputKind: WireKind): number {
+  return PRIMARY_EXIT_KIND_RANK[outputKind] ?? 99;
+}
+
+export function selectPrimaryExitId(
+  exitNodeIds: string[],
+  modelById: Map<string, string>,
+): string | undefined {
+  if (exitNodeIds.length === 0) return undefined;
+  return [...exitNodeIds].sort((a, b) => {
+    const aKind = getModelWireKinds(modelById.get(a) ?? "", "", "").output;
+    const bKind = getModelWireKinds(modelById.get(b) ?? "", "", "").output;
+    const rankDiff = primaryExitRank(aKind) - primaryExitRank(bKind);
+    if (rankDiff !== 0) return rankDiff;
+    return exitNodeIds.indexOf(a) - exitNodeIds.indexOf(b);
+  })[0];
+}
+
+export function composeExitOutputLabel(
+  exitNodeIds: string[],
+  modelById: Map<string, string>,
+  primaryId: string,
+  modelMap?: Map<string, { category?: string }>,
+): string {
+  const ordered = [primaryId, ...exitNodeIds.filter((id) => id !== primaryId)];
+  const labels: string[] = [];
+  const seen = new Set<string>();
+  for (const id of ordered) {
+    const modelId = modelById.get(id) ?? "";
+    const category = modelMap?.get(modelId)?.category;
+    const label = getModelWireLabels(modelId, "", "", category).output;
+    if (label && !seen.has(label)) {
+      seen.add(label);
+      labels.push(label);
+    }
+  }
+  return labels.join(" + ");
 }
 
 export function getNodeWireKinds(data: {

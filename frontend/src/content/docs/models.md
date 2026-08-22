@@ -55,9 +55,23 @@ Details: [Surya](/documentation/surya). Check license compatibility before shipp
 
 Details: [Paddle](/documentation/paddle).
 
+## Local text and vision (`Ollama :11434`)
+
+| ID | Input → output | Default |
+| --- | --- | --- |
+| `ollama/text-prompt` | text + prompt → text | Qwen3 0.6B |
+| `ollama/structured-extract` | text + JSON Schema → validated JSON | Qwen3 0.6B |
+| `ollama/vision-prompt` | page image + prompt → text | Qwen3.5 0.8B |
+| `ollama/vision-structured-extract` | page image + JSON Schema → validated JSON | Qwen3.5 0.8B |
+
+The model selector is deliberately restricted to weights at or below 1B
+parameters. Start Ollama, pull `qwen3:0.6b` and `qwen3.5:0.8b`, then configure
+the instruction and optional system prompt in Setup. Structured nodes require a
+top-level object JSON Schema; malformed schemas are blocked before a run.
+
 ## Planned and deferred
 
-The backend registry also lists Tesseract, RapidOCR, EasyOCR, docTR, TrOCR, Table Transformer, RapidLaTeXOCR, Florence-2, Ollama/vLLM, export nodes, and more. They appear as future palette rows. Do not wire them expecting inference.
+The backend registry also lists Tesseract, RapidOCR, EasyOCR, docTR, TrOCR, Table Transformer, RapidLaTeXOCR, Florence-2, vLLM, export nodes, and more. They appear as future palette rows. Do not wire them expecting inference.
 
 Implementation order in the living catalog: foundations → Docling → Surya → standalone models → LLM/VLM providers → presets.
 

@@ -20,7 +20,10 @@ Every canvas node is a **model task** with a category, a provider, params, and t
 | Figure captioning | `Figure[]` → captions |
 | VLM convert | `DocumentInput` → `DocumentArtifact` + markdown |
 | Assembler | pages / document → `DocumentArtifact` |
-| Export / LLM extract / preprocess | planned |
+| Text & prompt | recognized text / tables → text |
+| LLM extract | recognized text / tables → schema-validated JSON |
+| Vision language | `PageArtifact` → text or schema-validated JSON |
+| Export / preprocess | planned |
 
 Planned categories still appear in the palette so the information architecture is stable; they are not runnable until a model ships.
 
@@ -30,6 +33,7 @@ Planned categories still appear in the palette so the information architecture i
 - **Docling** — `:8102`
 - **Surya** — `:8101`
 - **Paddle** — `:8103`
+- **Ollama** — `:11434` for local text and vision models
 
 Full task lists live in [Model catalog](/documentation/models). Offline providers stay visible but greyed until you [connect them](/documentation/connect-models).
 

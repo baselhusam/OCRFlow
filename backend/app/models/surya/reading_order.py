@@ -8,7 +8,7 @@ from app.models._image_utils import page_image_to_pil, run_sync
 from app.models.base import ModelConfig
 from app.models.base_runner import BaseRunner
 from app.models.errors import ModelLoadError
-from app.models.surya._foundation import get_foundation_predictor
+from app.models.surya._foundation import get_layout_predictor
 from app.models.surya._mappers import image_bbox_dimensions
 from app.models.surya.reading_order_match import match_regions_to_positions
 from app.models.surya.reading_order_validate import validate_reading_order
@@ -26,10 +26,7 @@ class SuryaReadingOrderRunner(BaseRunner[ReadingOrderInput, ReadingOrderOutput])
 
     async def _load_impl(self, config: ModelConfig) -> None:
         try:
-            from surya.layout import LayoutPredictor
-
-            foundation = await get_foundation_predictor(config)
-            self._layout_predictor = LayoutPredictor(foundation)
+            self._layout_predictor = await get_layout_predictor(config)
         except ImportError as exc:
             raise ModelLoadError(
                 "surya-ocr is not installed. Install with: pip install -r requirements-surya.txt"

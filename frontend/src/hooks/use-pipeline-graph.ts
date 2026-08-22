@@ -9,6 +9,7 @@ import {
   buildInferencePayload,
   extractInferenceOutput,
   getModelInferenceDef,
+  assetLoaderModelId,
 } from "@/lib/canvas/node-inference-registry";
 import { getUpstreamPagesForNode, getNodeTestRunReadiness } from "@/lib/canvas/node-readiness";
 import {
@@ -17,6 +18,7 @@ import {
   isPipelineGraphConnectionAllowed,
   normalizeSourceHandle,
   normalizeTargetHandle,
+  suggestedConnectionForInsertedNode,
 } from "@/lib/canvas/connection-validation";
 import { pipelineEdgeMarker, PIPELINE_FLOW_EDGE_TYPE } from "@/lib/canvas/edge-styles";
 import {
@@ -98,6 +100,7 @@ import {
 } from "@/lib/canvas/custom-pipeline-node-data";
 import { runCustomPipelineSubgraph } from "@/lib/canvas/custom-pipeline-execution";
 import { BLOCKED_PIPELINE_MODELS } from "@/lib/canvas/wire-types";
+import { getGraphAssetNamespace } from "@/lib/api/assets";
 import type { Pipeline } from "@/lib/api/client";
 import { getPipeline } from "@/lib/api/pipelines";
 import { getProject } from "@/lib/api/projects";
@@ -263,6 +266,7 @@ export function usePipelineGraph({
   const isPipelineDefinition = entity.kind === "pipeline";
   const isProjectCanvas = entity.kind === "project";
   const contextId = entity.id;
+  const assetProjectId = getGraphAssetNamespace(entity);
 
   const pipelineMap = useMemo(
     () => new Map(userPipelines.map((p) => [p.id, p])),
@@ -811,10 +815,39 @@ export function usePipelineGraph({
         data,
       };
 
+      const selected = selectedNodeId
+        ? nodesRef.current.find((node) => node.id === selectedNodeId)
+        : undefined;
+      const connection = suggestedConnectionForInsertedNode(selected, newNode);
+
       setNodes((current) => [...current, newNode]);
+      if (connection) {
+        setEdges((current) => {
+          const nodes = [...nodesRef.current, newNode];
+          const valid = evaluateConnection(connection, nodes);
+          const baseEdge = {
+            ...connection,
+            id: `edge-${connection.source}-${connection.target}-${crypto.randomUUID().slice(0, 6)}`,
+            type: PIPELINE_FLOW_EDGE_TYPE,
+          };
+          return addEdge(
+            decorateEdge(baseEdge, nodes, current, valid),
+            current,
+          );
+        });
+      }
       scheduleGraphSave();
     },
-    [modelMap, categoryLabels, scheduleGraphSave, readOnly, isPipelineDefinition],
+    [
+      modelMap,
+      categoryLabels,
+      scheduleGraphSave,
+      readOnly,
+      isPipelineDefinition,
+      selectedNodeId,
+      evaluateConnection,
+      decorateEdge,
+    ],
   );
 
   const addCustomPipelineNode = useCallback(
@@ -1165,11 +1198,43 @@ export function usePipelineGraph({
       });
 
       try {
+        if (upstreamPages.length === 0) {
+          const assetId = node.data.params.assetId;
+          if (typeof assetId === "string" && assetId) {
+            const loaderId = assetLoaderModelId(node.data.params.format);
+            const loaderPayload = buildInferencePayload(loaderId, {
+              projectId: assetProjectId,
+              data: {
+                ...node.data,
+                modelId: loaderId,
+                params: {
+                  assetId,
+                  format: node.data.params.format ?? "image",
+                  assetFilename: node.data.params.assetFilename,
+                },
+              },
+              upstreamPages: [],
+              upstreamOutput: null,
+            });
+            if (loaderPayload) {
+              const loaded = extractInferenceOutput(
+                loaderId,
+                await runModelInference(loaderId, loaderPayload, {
+                  projectId: isProjectCanvas ? contextId : undefined,
+                  nodeId,
+                  runKind,
+                }),
+              );
+              upstreamPages = extractPages(loaded);
+            }
+          }
+        }
+
         const upstreamNode = upstream.nodeId
           ? nodesRef.current.find((entry) => entry.id === upstream.nodeId)
           : null;
         const payload = buildInferencePayload(node.data.modelId, {
-          projectId: contextId,
+          projectId: assetProjectId,
           data: node.data,
           upstreamPages,
           upstreamOutput: upstream.output,
@@ -1184,7 +1249,7 @@ export function usePipelineGraph({
         }
 
         const response = await runModelInference(node.data.modelId, payload, {
-          projectId: contextId,
+          projectId: isProjectCanvas ? contextId : undefined,
           nodeId,
           runKind,
         });
@@ -1275,6 +1340,7 @@ export function usePipelineGraph({
       }
     },
     [
+      assetProjectId,
       categories,
       contextId,
       getModelStatus,

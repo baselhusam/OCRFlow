@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from typing import Any
 
@@ -19,6 +20,17 @@ from app.schemas.models.docling.table_structure import TableStructureInput
 from app.schemas.models.docling.vlm_convert import VlmConvertInput
 from app.schemas.models.loader.page_at import PageAtInput
 from app.schemas.models.loader.pdf import ImageLoaderInput, PdfLoaderInput
+from app.schemas.models.ollama.generation import (
+    DEFAULT_TEXT_MODEL,
+    DEFAULT_VISION_MODEL,
+    OllamaStructuredInput,
+    OllamaTextInput,
+    OllamaVisionInput,
+    OllamaVisionStructuredInput,
+)
+from app.schemas.models.paddle.doclayout import DocLayoutInput
+from app.schemas.models.paddle.ocr import PaddleOcrInput
+from app.schemas.models.paddle.pp_structure import PpStructureInput
 from app.schemas.models.surya.latex_ocr import LatexOcrInput
 from app.schemas.models.surya.layout import LayoutDetectionInput as SuryaLayoutInput
 from app.schemas.models.surya.reading_order import ReadingOrderInput
@@ -177,6 +189,162 @@ def _text_recognition_payload(_project_id: str, node: PipelineNodeRecord, ctx: U
     }
 
 
+def _paddle_ocr_payload(
+    _project_id: str,
+    node: PipelineNodeRecord,
+    ctx: UpstreamContext,
+) -> dict[str, Any] | None:
+    page = _page_from_upstream(ctx)
+    if page is None:
+        return None
+    raw_languages = node.config.get("languages", node.config.get("langs", "en"))
+    languages = [
+        language.strip()
+        for language in str(raw_languages).split(",")
+        if language.strip()
+    ]
+    return {
+        "page": page,
+        "regions": _regions_from_upstream(ctx),
+        "languages": languages or ["en"],
+        "options": _options_from_params(
+            node.config,
+            ["use_angle_cls", "confidence_threshold"],
+        ),
+    }
+
+
+def _text_from_upstream(ctx: UpstreamContext) -> str | None:
+    output = ctx.output
+    if output is None or not isinstance(output.raw, dict):
+        return None
+    raw = output.raw
+    direct_text = raw.get("text")
+    if isinstance(direct_text, str) and direct_text.strip():
+        return direct_text.strip()
+
+    lines = raw.get("lines")
+    if isinstance(lines, list):
+        text = "\n".join(
+            str(line["text"]).strip()
+            for line in lines
+            if isinstance(line, dict) and line.get("text")
+        )
+        if text:
+            return text
+
+    markdown = raw.get("markdown")
+    if isinstance(markdown, str) and markdown.strip():
+        return markdown.strip()
+
+    tables = raw.get("tables")
+    if isinstance(tables, list):
+        rendered = "\n\n".join(
+            str(table.get("html") or table.get("otsl") or "").strip()
+            for table in tables
+            if isinstance(table, dict)
+        ).strip()
+        if rendered:
+            return rendered
+
+    structured = raw.get("data", raw.get("json"))
+    if isinstance(structured, (dict, list)):
+        return json.dumps(structured, ensure_ascii=False)
+    return None
+
+
+def _ollama_options(
+    node: PipelineNodeRecord,
+    *,
+    default_model: str,
+) -> dict[str, Any]:
+    options: dict[str, Any] = {
+        "model": node.config.get("model", default_model),
+        "temperature": node.config.get("temperature", 0.0),
+        "max_tokens": node.config.get("max_tokens", 1024),
+    }
+    system_prompt = node.config.get("system_prompt")
+    if isinstance(system_prompt, str) and system_prompt.strip():
+        options["system_prompt"] = system_prompt
+    return options
+
+
+def _json_schema_from_node(node: PipelineNodeRecord) -> dict[str, Any]:
+    raw_schema = node.config.get("json_schema")
+    if not isinstance(raw_schema, str) or not raw_schema.strip():
+        raise ValueError(f"Node {node.id} requires a JSON Schema")
+    try:
+        schema = json.loads(raw_schema)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Node {node.id} has invalid JSON Schema: {exc.msg}") from exc
+    if not isinstance(schema, dict):
+        raise ValueError(f"Node {node.id} JSON Schema must be an object")
+    return schema
+
+
+def _ollama_text_payload(
+    _project_id: str,
+    node: PipelineNodeRecord,
+    ctx: UpstreamContext,
+) -> dict[str, Any] | None:
+    text = _text_from_upstream(ctx)
+    if text is None:
+        configured_text = node.config.get("text")
+        text = configured_text.strip() if isinstance(configured_text, str) else None
+    if not text:
+        return None
+    return {
+        "text": text,
+        "prompt": node.config.get(
+            "prompt",
+            "Summarize the input accurately and concisely.",
+        ),
+        "options": _ollama_options(node, default_model=DEFAULT_TEXT_MODEL),
+    }
+
+
+def _ollama_structured_payload(
+    project_id: str,
+    node: PipelineNodeRecord,
+    ctx: UpstreamContext,
+) -> dict[str, Any] | None:
+    payload = _ollama_text_payload(project_id, node, ctx)
+    if payload is None:
+        return None
+    payload["json_schema"] = _json_schema_from_node(node)
+    return payload
+
+
+def _ollama_vision_payload(
+    _project_id: str,
+    node: PipelineNodeRecord,
+    ctx: UpstreamContext,
+) -> dict[str, Any] | None:
+    page = _page_from_upstream(ctx)
+    if page is None:
+        return None
+    return {
+        "page": page,
+        "prompt": node.config.get(
+            "prompt",
+            "Describe this document page, including charts and tables.",
+        ),
+        "options": _ollama_options(node, default_model=DEFAULT_VISION_MODEL),
+    }
+
+
+def _ollama_vision_structured_payload(
+    project_id: str,
+    node: PipelineNodeRecord,
+    ctx: UpstreamContext,
+) -> dict[str, Any] | None:
+    payload = _ollama_vision_payload(project_id, node, ctx)
+    if payload is None:
+        return None
+    payload["json_schema"] = _json_schema_from_node(node)
+    return payload
+
+
 def _reading_order_payload(_project_id: str, node: PipelineNodeRecord, ctx: UpstreamContext) -> dict[str, Any] | None:
     page = _page_from_upstream(ctx)
     regions = _regions_from_upstream(ctx)
@@ -308,12 +476,35 @@ def _extract_document(result: BaseModel) -> NodeCachedOutput:
     return NodeCachedOutput(kind="document", raw=raw, preview=preview)
 
 
+def _extract_text(result: BaseModel) -> NodeCachedOutput:
+    raw = _model_dump(result)
+    text = raw.get("text") if isinstance(raw.get("text"), str) else ""
+    return NodeCachedOutput(
+        kind="text",
+        raw=raw,
+        preview={"textSnippets": [text[:500]] if text else [], "itemCount": 1 if text else 0},
+    )
+
+
+def _extract_json(result: BaseModel) -> NodeCachedOutput:
+    raw = _model_dump(result)
+    data = raw.get("data") if isinstance(raw.get("data"), dict) else {}
+    return NodeCachedOutput(
+        kind="json",
+        raw=raw,
+        preview={"jsonPreview": data, "itemCount": len(data)},
+    )
+
+
 MODEL_EXECUTION_SPECS: dict[str, tuple[type[BaseModel], PayloadBuilder, OutputExtractor]] = {
     "loader/pdf": (PdfLoaderInput, lambda project_id, node, ctx: _document_payload(project_id, node, ctx, default_format="pdf", option_keys=["dpi", "max_pages"]), _extract_pages),
     "loader/image": (ImageLoaderInput, lambda project_id, node, ctx: _document_payload(project_id, node, ctx, default_format="image"), _extract_pages),
     "loader/page-at": (PageAtInput, _pages_payload, _extract_page),
     "surya/layout": (SuryaLayoutInput, lambda project_id, node, ctx: _page_only_payload(project_id, node, ctx, option_keys=["confidence_threshold"]), _extract_regions),
     "docling/layout-heron": (DoclingLayoutInput, lambda project_id, node, ctx: _page_only_payload(project_id, node, ctx, option_keys=["keep_empty_clusters", "skip_cell_assignment"]), _extract_regions),
+    "paddle/doclayout-s": (DocLayoutInput, lambda project_id, node, ctx: _page_only_payload(project_id, node, ctx, option_keys=["confidence_threshold"]), _extract_regions),
+    "paddle/ocr-v6-small": (PaddleOcrInput, _paddle_ocr_payload, _extract_lines),
+    "paddle/pp-structure": (PpStructureInput, lambda project_id, node, ctx: _page_only_payload(project_id, node, ctx, option_keys=["do_ocr"]), _extract_regions),
     "surya/text-detection": (TextDetectionInput, _page_only_payload, _extract_lines),
     "docling/ocr-auto": (OcrRecognitionInput, _text_recognition_payload, _extract_lines),
     "surya/text-recognition": (TextRecognitionInput, _text_recognition_payload, _extract_lines),
@@ -326,6 +517,10 @@ MODEL_EXECUTION_SPECS: dict[str, tuple[type[BaseModel], PayloadBuilder, OutputEx
     "docling/code-formula-v2": (CodeFormulaInput, _code_formula_payload, _extract_formulas),
     "docling/vlm-granite-docling": (VlmConvertInput, lambda project_id, node, ctx: _document_payload(project_id, node, ctx, default_format="pdf", option_keys=["preset", "engine", "export"]), _extract_document),
     "docling/convert-pipeline": (ConvertPipelineInput, lambda project_id, node, ctx: _document_payload(project_id, node, ctx, default_format="pdf", option_keys=["layout_model", "ocr_engine", "tableformer_mode", "enrich_pictures", "enrich_formulas"]), _extract_document),
+    "ollama/text-prompt": (OllamaTextInput, _ollama_text_payload, _extract_text),
+    "ollama/structured-extract": (OllamaStructuredInput, _ollama_structured_payload, _extract_json),
+    "ollama/vision-prompt": (OllamaVisionInput, _ollama_vision_payload, _extract_text),
+    "ollama/vision-structured-extract": (OllamaVisionStructuredInput, _ollama_vision_structured_payload, _extract_json),
 }
 
 
@@ -345,9 +540,20 @@ def build_model_input(
     return input_schema.model_validate(payload)
 
 
-def extract_model_output(model_id: str, result: BaseModel) -> NodeCachedOutput:
+def extract_model_output(
+    model_id: str,
+    result: BaseModel,
+    *,
+    model_input: BaseModel | None = None,
+) -> NodeCachedOutput:
     spec = MODEL_EXECUTION_SPECS.get(model_id)
     if spec is None:
         raise ValueError(f"Unsupported model for backend execution: {model_id}")
     _input_schema, _builder, extractor = spec
-    return extractor(result)
+    output = extractor(result)
+    page = getattr(model_input, "page", None)
+    if isinstance(page, BaseModel):
+        preview = dict(output.preview or {})
+        preview.setdefault("pageImage", page.model_dump(mode="json", by_alias=True))
+        output = output.model_copy(update={"preview": preview})
+    return output

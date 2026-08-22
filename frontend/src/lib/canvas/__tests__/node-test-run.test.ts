@@ -111,7 +111,9 @@ describe("getNodeTestRunReadiness", () => {
     );
 
     expect(readiness.ready).toBe(false);
-    expect(readiness.issues).toContain("Connect an upstream node");
+    expect(readiness.issues).toContain(
+      "Upload a test document or connect an upstream node",
+    );
   });
 
   it("allows picture classifier from page branch without layout regions", () => {
@@ -184,6 +186,34 @@ describe("getNodeTestRunReadiness", () => {
       "classifier",
       nodes,
       edges,
+      "project-1",
+    );
+
+    expect(readiness.ready).toBe(true);
+    expect(readiness.issues).toEqual([]);
+  });
+
+  it("allows a page-input node to run from an attached test document", () => {
+    const nodes = [
+      makeNode("vision", "ollama/vision-structured-extract", {
+        category: "vision_language",
+        inputType: "PageArtifact",
+        outputType: "JSON",
+        params: {
+          assetId: "asset-1",
+          format: "image",
+          prompt: "Extract invoice fields",
+          model: "qwen3.5:0.8b",
+          json_schema:
+            '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}',
+        },
+      }),
+    ];
+
+    const readiness = getNodeTestRunReadiness(
+      "vision",
+      nodes,
+      [],
       "project-1",
     );
 

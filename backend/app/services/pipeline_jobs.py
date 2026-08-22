@@ -108,6 +108,7 @@ def upsert_node_trace(
     model_id: str,
     status: str,
     page_count: int | None = None,
+    item_count: int | None = None,
     output_kind: str | None = None,
     error: str | None = None,
     message: str | None = None,
@@ -128,6 +129,8 @@ def upsert_node_trace(
     existing["model_id"] = model_id
     if page_count is not None:
         existing["page_count"] = page_count
+    if item_count is not None:
+        existing["item_count"] = item_count
     if output_kind:
         existing["output_kind"] = output_kind
     if error:

@@ -12,10 +12,14 @@ from app.models.errors import ModelLoadError
 
 if TYPE_CHECKING:
     from surya.foundation import FoundationPredictor
+    from surya.layout import LayoutPredictor
 
 _lock = asyncio.Lock()
 _foundation: FoundationPredictor | None = None
 _loaded_config_key: tuple[str, str] | None = None
+_layout_lock = asyncio.Lock()
+_layout: LayoutPredictor | None = None
+_layout_config_key: tuple[str, str] | None = None
 
 
 def _configure_surya_env(config: ModelConfig) -> None:
@@ -67,3 +71,25 @@ async def get_foundation_predictor(config: ModelConfig) -> FoundationPredictor:
         _foundation = await run_sync(_load_foundation, config)
         _loaded_config_key = config_key
         return _foundation
+
+
+async def get_layout_predictor(config: ModelConfig) -> LayoutPredictor:
+    """Share one LayoutPredictor across surya/layout and surya/reading-order."""
+    global _layout, _layout_config_key
+    foundation = await get_foundation_predictor(config)
+    config_key = (device_to_torch(config.device), str(config.model_cache_dir))
+    if _layout is not None and _layout_config_key == config_key:
+        return _layout
+
+    async with _layout_lock:
+        if _layout is not None and _layout_config_key == config_key:
+            return _layout
+
+        def _load_layout() -> LayoutPredictor:
+            from surya.layout import LayoutPredictor
+
+            return LayoutPredictor(foundation)
+
+        _layout = await run_sync(_load_layout)
+        _layout_config_key = config_key
+        return _layout

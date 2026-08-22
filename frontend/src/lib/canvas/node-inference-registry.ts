@@ -61,17 +61,36 @@ function tablesFromUpstream(ctx: InferenceContext) {
   return regionsToTableInputs(regions);
 }
 
+function isUsablePageImage(
+  page: InferenceContext["upstreamPages"][number]["page"] | unknown,
+): page is NonNullable<InferenceContext["upstreamPages"][number]["page"]> {
+  if (!page || typeof page !== "object") return false;
+  const candidate = page as { image_base64?: unknown; image_url?: unknown };
+  return (
+    (typeof candidate.image_base64 === "string" &&
+      candidate.image_base64.length > 0) ||
+    (typeof candidate.image_url === "string" && candidate.image_url.length > 0)
+  );
+}
+
 function extractPageImageFromCtx(ctx: InferenceContext) {
-  if (ctx.upstreamOutput?.preview?.pageImage) {
+  if (isUsablePageImage(ctx.upstreamOutput?.preview?.pageImage)) {
     return ctx.upstreamOutput.preview.pageImage;
   }
   const page = ctx.upstreamPages[0]?.page;
-  if (page) return page;
+  if (isUsablePageImage(page)) return page;
   if (ctx.upstreamOutput?.kind === "page") {
     const raw = ctx.upstreamOutput.raw as { page?: { page?: unknown } };
-    return raw.page?.page ?? raw.page;
+    const nested = raw.page?.page ?? raw.page;
+    if (isUsablePageImage(nested)) return nested;
   }
   return null;
+}
+
+export function assetLoaderModelId(
+  format: unknown,
+): "loader/pdf" | "loader/image" {
+  return String(format).toLowerCase() === "pdf" ? "loader/pdf" : "loader/image";
 }
 
 function resolveDocumentAsset(
@@ -100,6 +119,80 @@ function resolveDocumentAsset(
         ? upstreamFormat
         : ((ctx.data.params.format as string) ?? "pdf"),
   };
+}
+
+function textFromUpstream(output: NodeCachedOutput | null): string | null {
+  if (!output || typeof output.raw !== "object" || output.raw === null) {
+    return null;
+  }
+  const raw = output.raw as Record<string, unknown>;
+  if (typeof raw.text === "string" && raw.text.trim()) return raw.text.trim();
+  if (Array.isArray(raw.lines)) {
+    const text = raw.lines
+      .map((line) =>
+        typeof line === "object" &&
+        line !== null &&
+        typeof (line as { text?: unknown }).text === "string"
+          ? (line as { text: string }).text.trim()
+          : "",
+      )
+      .filter(Boolean)
+      .join("\n");
+    if (text) return text;
+  }
+  if (typeof raw.markdown === "string" && raw.markdown.trim()) {
+    return raw.markdown.trim();
+  }
+  if (Array.isArray(raw.tables)) {
+    const text = raw.tables
+      .map((table) => {
+        if (typeof table !== "object" || table === null) return "";
+        const value = table as { html?: unknown; otsl?: unknown };
+        return typeof value.html === "string"
+          ? value.html
+          : typeof value.otsl === "string"
+            ? value.otsl
+            : "";
+      })
+      .filter(Boolean)
+      .join("\n\n");
+    if (text) return text;
+  }
+  const structured = raw.data ?? raw.json;
+  if (structured && typeof structured === "object") {
+    return JSON.stringify(structured);
+  }
+  return null;
+}
+
+function ollamaOptions(
+  params: Record<string, string | boolean | number>,
+  defaultModel: string,
+) {
+  return {
+    model: String(params.model ?? defaultModel),
+    temperature: Number(params.temperature ?? 0),
+    max_tokens: Number(params.max_tokens ?? 1024),
+    ...(typeof params.system_prompt === "string" && params.system_prompt.trim()
+      ? { system_prompt: params.system_prompt }
+      : {}),
+  };
+}
+
+function parseConfiguredJsonSchema(
+  params: Record<string, string | boolean | number>,
+): Record<string, unknown> | null {
+  if (typeof params.json_schema !== "string" || !params.json_schema.trim()) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(params.json_schema);
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 const REGISTRY: Record<string, ModelInferenceDef> = {
@@ -451,10 +544,22 @@ REGISTRY["surya/latex-ocr"] = {
   apiPath: "/api/v1/models/surya/latex-ocr",
   buildPayload(ctx) {
     const page = extractPageImageFromCtx(ctx);
+    if (!page) return null;
     const regions =
-      (ctx.upstreamOutput?.raw as { regions?: unknown[] })?.regions ?? [];
-    if (!page || !regions.length) return null;
-    return { page, regions };
+      (ctx.upstreamOutput?.raw as { regions?: RegionWire[] })?.regions ?? [];
+    const formulaRegions = regions.filter(
+      (region) => region.label === "formula" || region.label === "code",
+    );
+    const source = formulaRegions.length ? formulaRegions : regions;
+    return {
+      page,
+      formulas: source
+        .filter((region) => Array.isArray(region.bbox) && region.bbox.length === 4)
+        .map((region, index) => ({
+          id: region.id || `formula-${index + 1}`,
+          bbox: region.bbox,
+        })),
+    };
   },
   extractOutput(_id, response) {
     const formulas = (response.formulas as unknown[]) ?? [];
@@ -503,6 +608,111 @@ for (const id of ["docling/vlm-granite-docling", "docling/convert-pipeline"]) {
           pageCount: pages.length,
           markdownPreview: markdown,
           jsonPreview: json,
+        },
+      };
+    },
+  };
+}
+
+for (const id of ["ollama/text-prompt", "ollama/structured-extract"]) {
+  const structured = id === "ollama/structured-extract";
+  REGISTRY[id] = {
+    apiPath: `/api/v1/models/${id}`,
+    buildPayload(ctx) {
+      const text =
+        textFromUpstream(ctx.upstreamOutput) ||
+        (typeof ctx.data.params.text === "string"
+          ? ctx.data.params.text.trim()
+          : "");
+      if (!text) return null;
+      const payload: Record<string, unknown> = {
+        text,
+        prompt: String(
+          ctx.data.params.prompt ??
+            (structured
+              ? "Extract the requested fields from the input."
+              : "Summarize the input accurately and concisely."),
+        ),
+        options: ollamaOptions(ctx.data.params, "qwen3:0.6b"),
+      };
+      if (structured) {
+        const schema = parseConfiguredJsonSchema(ctx.data.params);
+        if (!schema) return null;
+        payload.json_schema = schema;
+      }
+      return payload;
+    },
+    extractOutput(_modelId, response) {
+      if (structured) {
+        const data =
+          typeof response.data === "object" && response.data !== null
+            ? response.data
+            : {};
+        return {
+          kind: "json",
+          raw: response,
+          preview: { jsonPreview: data },
+        };
+      }
+      const text = typeof response.text === "string" ? response.text : "";
+      return {
+        kind: "text",
+        raw: response,
+        preview: {
+          itemCount: text ? 1 : 0,
+          textSnippets: text ? [text] : [],
+        },
+      };
+    },
+  };
+}
+
+for (const id of [
+  "ollama/vision-prompt",
+  "ollama/vision-structured-extract",
+]) {
+  const structured = id === "ollama/vision-structured-extract";
+  REGISTRY[id] = {
+    apiPath: `/api/v1/models/${id}`,
+    buildPayload(ctx) {
+      const page = extractPageImageFromCtx(ctx);
+      if (!page) return null;
+      const payload: Record<string, unknown> = {
+        page,
+        prompt: String(
+          ctx.data.params.prompt ??
+            (structured
+              ? "Extract the requested fields from this document page."
+              : "Describe this document page, including charts and tables."),
+        ),
+        options: ollamaOptions(ctx.data.params, "qwen3.5:0.8b"),
+      };
+      if (structured) {
+        const schema = parseConfiguredJsonSchema(ctx.data.params);
+        if (!schema) return null;
+        payload.json_schema = schema;
+      }
+      return payload;
+    },
+    extractOutput(_modelId, response) {
+      if (structured) {
+        const data =
+          typeof response.data === "object" && response.data !== null
+            ? response.data
+            : {};
+        return {
+          kind: "json",
+          raw: response,
+          preview: { jsonPreview: data },
+        };
+      }
+      const text = typeof response.text === "string" ? response.text : "";
+      return {
+        kind: "text",
+        raw: response,
+        preview: {
+          itemCount: text ? 1 : 0,
+          textSnippets: text ? [text] : [],
         },
       };
     },

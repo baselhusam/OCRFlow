@@ -37,6 +37,7 @@ _LOCAL_PROVIDER_MODULES: dict[str, tuple[str, ...]] = {
 }
 
 _HEALTH_PATH = "/internal/health"
+_RUNTIME_PROVIDERS = frozenset((*REMOTE_PROVIDERS, "ollama"))
 
 
 class ProviderRuntime(BaseModel):
@@ -80,7 +81,8 @@ async def _probe_provider(
             mode=RunnerMode.remote.value,
             detail="no service url configured",
         )
-    url = f"{base_url.rstrip('/')}{_HEALTH_PATH}"
+    health_path = "/api/tags" if provider == "ollama" else _HEALTH_PATH
+    url = f"{base_url.rstrip('/')}{health_path}"
     try:
         response = await client.get(url)
     except httpx.HTTPError as exc:
@@ -100,12 +102,21 @@ async def _probe_provider(
 
 
 async def get_runtime_availability(settings: Settings) -> RuntimeAvailability:
-    providers = sorted(REMOTE_PROVIDERS)
+    providers = sorted(_RUNTIME_PROVIDERS)
 
     if settings.runner_mode != RunnerMode.remote:
+        timeout = settings.runtime_health_timeout_seconds
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            ollama = await _probe_provider("ollama", settings, client)
         return RuntimeAvailability(
             mode=RunnerMode.local.value,
-            providers=[_local_provider_runtime(provider) for provider in providers],
+            providers=[
+                *[
+                    _local_provider_runtime(provider)
+                    for provider in sorted(REMOTE_PROVIDERS)
+                ],
+                ollama.model_copy(update={"mode": RunnerMode.local.value}),
+            ],
         )
 
     timeout = settings.runtime_health_timeout_seconds

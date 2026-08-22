@@ -52,7 +52,15 @@ CATEGORIES: dict[str, CategoryMeta] = {
     "figure_captioning": CategoryMeta(id="figure_captioning", display_name="Figure Captioning"),
     "vlm_convert": CategoryMeta(id="vlm_convert", display_name="VLM Convert (end-to-end)"),
     "assembler": CategoryMeta(id="assembler", display_name="Document Assembler"),
+    "text_generation": CategoryMeta(
+        id="text_generation",
+        display_name="Text & Prompt",
+    ),
     "llm_extract": CategoryMeta(id="llm_extract", display_name="LLM Structured Extract"),
+    "vision_language": CategoryMeta(
+        id="vision_language",
+        display_name="Vision Language",
+    ),
     "export": CategoryMeta(id="export", display_name="Export"),
 }
 
@@ -453,6 +461,43 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         provider="paddle",
         status=ModelStatus.deferred,
         compute=ComputeTier.gpu_low,
+    ),
+    # Local Ollama text and vision tasks (Qwen <= 0.8B defaults)
+    _entry(
+        "ollama/text-prompt",
+        category="text_generation",
+        provider="ollama",
+        status=ModelStatus.done,
+        compute=ComputeTier.cpu,
+        display_name="Local Text Prompt",
+        notes="Qwen3 0.6B default; Qwen3.5 0.8B optional.",
+    ),
+    _entry(
+        "ollama/structured-extract",
+        category="llm_extract",
+        provider="ollama",
+        status=ModelStatus.done,
+        compute=ComputeTier.cpu,
+        display_name="Local Structured Extract",
+        notes="JSON Schema-constrained output through Ollama.",
+    ),
+    _entry(
+        "ollama/vision-prompt",
+        category="vision_language",
+        provider="ollama",
+        status=ModelStatus.done,
+        compute=ComputeTier.cpu,
+        display_name="Local Vision Prompt",
+        notes="Qwen3.5 0.8B text+image model.",
+    ),
+    _entry(
+        "ollama/vision-structured-extract",
+        category="vision_language",
+        provider="ollama",
+        status=ModelStatus.done,
+        compute=ComputeTier.cpu,
+        display_name="Local Vision Structured Extract",
+        notes="Qwen3.5 0.8B vision with JSON Schema output.",
     ),
     # Phase 4 — LLM tasks
     _entry(

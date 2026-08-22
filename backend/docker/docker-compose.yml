@@ -80,6 +80,7 @@ services:
       OCRFLOW_DOCLING_SERVICE_URL: http://docling:8000
       OCRFLOW_SURYA_SERVICE_URL: http://surya:8000
       OCRFLOW_PADDLE_SERVICE_URL: http://paddle:8000
+      OCRFLOW_OLLAMA_BASE_URL: http://ollama:11434
       OCRFLOW_UPLOAD_DIR: /data/uploads
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     ports:
@@ -115,6 +116,7 @@ services:
       OCRFLOW_DOCLING_SERVICE_URL: http://docling:8000
       OCRFLOW_SURYA_SERVICE_URL: http://surya:8000
       OCRFLOW_PADDLE_SERVICE_URL: http://paddle:8000
+      OCRFLOW_OLLAMA_BASE_URL: http://ollama:11434
       OCRFLOW_UPLOAD_DIR: /data/uploads
     command: ["celery", "-A", "app.celery_app:celery_app", "worker", "--loglevel=info"]
     volumes:
@@ -183,6 +185,22 @@ services:
       - ocrflow_surya_models:/models
       - ocrflow_uploads:/data/uploads:ro
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ocrflow-ollama
+    restart: unless-stopped
+    profiles: ["ollama", "all"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ocrflow_ollama_models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 volumes:
   ocrflow_pg_data:
   ocrflow_redis_data:
@@ -190,3 +208,4 @@ volumes:
   ocrflow_paddle_models:
   ocrflow_docling_models:
   ocrflow_surya_models:
+  ocrflow_ollama_models:

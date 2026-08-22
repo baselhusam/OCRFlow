@@ -15,7 +15,7 @@ from app.models.base import ModelConfig
 from app.models.base_runner import BaseRunner
 from app.models.errors import ModelLoadError
 from app.models.surya._mappers import image_bbox_dimensions, offset_text_line, polygon_box_to_text_line
-from app.models.surya.text_detection_validate import validate_text_lines
+from app.models.surya.text_detection_validate import keep_valid_text_lines, validate_text_lines
 from app.schemas.models.surya._meta import InferenceMeta
 from app.schemas.models.surya.text_detection import TextDetectionInput, TextDetectionOutput
 
@@ -69,9 +69,20 @@ class SuryaTextDetectionRunner(BaseRunner[TextDetectionInput, TextDetectionOutpu
                     line = polygon_box_to_text_line(
                         box, f"l{line_index}", crop_width, crop_height
                     )
-                    lines.append(
-                        offset_text_line(line, left, top, pil.width, pil.height)
-                    )
+                    try:
+                        lines.append(
+                            offset_text_line(
+                                line,
+                                left,
+                                top,
+                                pil.width,
+                                pil.height,
+                                source_width=crop_width,
+                                source_height=crop_height,
+                            )
+                        )
+                    except ValueError:
+                        continue
                     line_index += 1
         else:
             boxes, width, height = await self._detect_on_image(pil)
@@ -81,6 +92,7 @@ class SuryaTextDetectionRunner(BaseRunner[TextDetectionInput, TextDetectionOutpu
                 )
                 line_index += 1
 
+        lines = keep_valid_text_lines(lines)
         validate_text_lines(lines)
         latency_ms = (time.perf_counter() - start) * 1000
         return TextDetectionOutput(

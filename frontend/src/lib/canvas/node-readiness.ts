@@ -20,7 +20,12 @@ import {
   SURYA_LANGUAGE_OPTIONS,
   validateLanguageCodes,
 } from "@/lib/canvas/node-param-schema";
-import { getModelWireKinds, getNodeWireKinds, isCustomPipelineModelId } from "@/lib/canvas/wire-types";
+import {
+  getModelWireKinds,
+  getNodeWireKinds,
+  isCustomPipelineModelId,
+  type WireKind,
+} from "@/lib/canvas/wire-types";
 
 export type NodeReadiness = {
   ready: boolean;
@@ -78,6 +83,46 @@ export function validateNodeParams(
     const tableMode = String(params.tableformer_mode ?? "accurate");
     if (!CONVERT_PIPELINE_TABLEFORMER_MODE_OPTIONS.some((opt) => opt.value === tableMode)) {
       issues.push("tableformer_mode must be accurate or fast");
+    }
+  }
+
+  if (modelId.startsWith("ollama/")) {
+    const model = String(
+      params.model ??
+        (modelId.includes("vision") ? "qwen3.5:0.8b" : "qwen3:0.6b"),
+    );
+    const allowedModels = modelId.includes("vision")
+      ? ["qwen3.5:0.8b"]
+      : ["qwen3:0.6b", "qwen3.5:0.8b"];
+    if (!allowedModels.includes(model)) {
+      issues.push("Select a supported local model under 1B parameters");
+    }
+    if (!String(params.prompt ?? "").trim()) {
+      issues.push("Prompt is required");
+    }
+    const temperature = Number(params.temperature ?? 0);
+    if (temperature < 0 || temperature > 2) {
+      issues.push("temperature must be between 0 and 2");
+    }
+    const maxTokens = Number(params.max_tokens ?? 1024);
+    if (maxTokens < 1 || maxTokens > 8192) {
+      issues.push("max_tokens must be between 1 and 8192");
+    }
+    if (modelId.includes("structured-extract")) {
+      try {
+        const schema = JSON.parse(String(params.json_schema ?? ""));
+        if (
+          typeof schema !== "object" ||
+          schema === null ||
+          schema.type !== "object" ||
+          typeof schema.properties !== "object" ||
+          schema.properties === null
+        ) {
+          issues.push("JSON Schema must define an object with properties");
+        }
+      } catch {
+        issues.push("JSON Schema must be valid JSON");
+      }
     }
   }
 
@@ -178,11 +223,28 @@ export function getNodeReadiness(
     return { ready: issues.length === 0, issues };
   }
 
+  if (
+    (modelId === "ollama/text-prompt" ||
+      modelId === "ollama/structured-extract") &&
+    typeof data.params.text === "string" &&
+    data.params.text.trim()
+  ) {
+    return { ready: issues.length === 0, issues };
+  }
+
   if (requiredInput !== "file" && requiredInput !== "document_input") {
+    const hasDirectDocument =
+      nodeAcceptsDirectDocument(modelId, requiredInput) && paramsAssetId(data);
     if (!upstream.nodeId) {
-      issues.push("Connect an upstream node");
+      if (!hasDirectDocument) {
+        issues.push(
+          nodeAcceptsDirectDocument(modelId, requiredInput)
+            ? "Upload a test document or connect an upstream node"
+            : "Connect an upstream node",
+        );
+      }
     } else if (!upstream.output) {
-      if (!upstreamWillAutoRun(upstream, options)) {
+      if (!upstreamWillAutoRun(upstream, options) && !hasDirectDocument) {
         issues.push("Run the upstream node first");
       }
     } else if (!upstreamSatisfiesInput(requiredInput, upstream.output)) {
@@ -202,12 +264,11 @@ export function getNodeReadiness(
 
   if (requiredInput === "page_artifact_regions") {
     const regions = extractRegions(upstream.output);
-    const needsRegions =
-      modelId === "surya/reading-order" ||
-      modelId === "docling/tableformer-accurate" ||
-      modelId === "docling/code-formula-v2" ||
-      modelId === "surya/latex-ocr";
-    if (needsRegions && upstream.output && regions.length === 0) {
+    if (
+      REGION_REQUIRED_MODELS.has(modelId) &&
+      upstream.output &&
+      regions.length === 0
+    ) {
       issues.push("Run from layout detection first");
     }
   }
@@ -281,6 +342,28 @@ export function getNodeTestRunReadiness(
 
 function paramsAssetId(data: PipelineNodeData): boolean {
   return Boolean(data.params.assetId);
+}
+
+const REGION_REQUIRED_MODELS = new Set([
+  "surya/reading-order",
+  "docling/tableformer-accurate",
+  "docling/code-formula-v2",
+  "surya/latex-ocr",
+]);
+
+/** Page-input models can be tested from an attached document instead of a loader. */
+export function nodeAcceptsDirectDocument(
+  modelId: string,
+  requiredInput: WireKind,
+): boolean {
+  if (SOURCE_NODE_MODELS.has(modelId) || isCustomPipelineModelId(modelId)) {
+    return false;
+  }
+  if (requiredInput === "page_artifact") return true;
+  if (requiredInput === "page_artifact_regions") {
+    return !REGION_REQUIRED_MODELS.has(modelId);
+  }
+  return false;
 }
 
 export function getUpstreamPagesForNode(

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, ApiRequestError } from "@/lib/api/client";
 import { AUTH_COOKIE_NAME } from "@/lib/auth/cookies";
 
 export class UnauthenticatedError extends Error {
@@ -27,11 +27,18 @@ export async function authenticatedApiFetch<T>(
 ): Promise<{ data: T; response: Response }> {
   const token = await getAuthToken();
 
-  return apiFetch<T>(path, {
-    ...init,
-    headers: {
-      ...init?.headers,
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  try {
+    return await apiFetch<T>(path, {
+      ...init,
+      headers: {
+        ...init?.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (error) {
+    if (error instanceof ApiRequestError && error.status === 401) {
+      throw new UnauthenticatedError();
+    }
+    throw error;
+  }
 }
