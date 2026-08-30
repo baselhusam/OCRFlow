@@ -147,7 +147,7 @@ export function DocsSearchTrigger({ onOpen, className }: DocsSearchTriggerProps)
       type="button"
       onClick={onOpen}
       className={cn(
-        "inline-flex h-8 items-center gap-2 rounded-[7px] border border-border bg-background px-2.5 text-[13px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground",
+        "inline-flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-[13px] text-muted-foreground transition-[border-color,color,box-shadow] hover:border-primary/40 hover:text-foreground hover:shadow-[0_1px_2px_color-mix(in_srgb,var(--foreground)_6%,transparent)]",
         className,
       )}
     >

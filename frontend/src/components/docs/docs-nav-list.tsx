@@ -27,9 +27,9 @@ export function DocsNavList({ currentSlug, onNavigate }: DocsNavListProps) {
                     href={href}
                     onClick={onNavigate}
                     className={cn(
-                      "flex items-center rounded-[7px] px-2.5 py-[7px] text-[13.5px] transition-colors",
+                      "relative flex items-center rounded-md px-3 py-2 text-[13.5px] leading-5 transition-[background-color,color,box-shadow] duration-150",
                       active
-                        ? "bg-[var(--workspace-sidebar-active)] font-semibold text-[var(--workspace-sidebar-active-fg)] shadow-[inset_3px_0_0_var(--primary)]"
+                        ? "bg-[color-mix(in_srgb,var(--primary)_9%,transparent)] font-semibold text-[var(--workspace-sidebar-active-fg)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--primary)_14%,transparent)] before:absolute before:top-2 before:bottom-2 before:left-0 before:w-[3px] before:rounded-full before:bg-primary"
                         : "text-[var(--subtle-foreground)] hover:bg-[var(--workspace-sidebar-hover)] hover:text-foreground",
                     )}
                   >

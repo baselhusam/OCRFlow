@@ -58,7 +58,7 @@ export function DocsHeader({ searchIndex }: DocsHeaderProps) {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-border bg-[color-mix(in_srgb,var(--background)_88%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex h-[57px] max-w-[1440px] items-center gap-3 px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-5 sm:px-6 lg:px-8">
           <Button
             type="button"
             variant="ghost"
@@ -80,29 +80,32 @@ export function DocsHeader({ searchIndex }: DocsHeaderProps) {
               OCRFlow
             </span>
           </Link>
-          <span className="hidden h-4 w-px bg-border sm:block" />
+          <span className="hidden h-5 w-px bg-border sm:block" />
           <Link
             href={DOCS_BASE_PATH}
-            className="hidden font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase transition-colors hover:text-foreground sm:inline"
+            className="hidden font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase transition-colors hover:text-foreground sm:inline"
           >
             Docs
           </Link>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <DocsSearchTrigger onOpen={() => setSearchOpen(true)} />
             <a
               href={DOCS_GITHUB_URL}
               target="_blank"
               rel="noreferrer"
-              className="hidden items-center gap-1.5 rounded-[7px] px-2 py-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+              className="hidden h-9 items-center gap-1.5 rounded-md px-2.5 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground sm:inline-flex"
             >
               <GitHubIcon />
               GitHub
             </a>
-            <ThemeToggle />
+            <span className="hidden h-5 w-px bg-border sm:block" aria-hidden />
+            <div className="flex h-9 items-center justify-center">
+              <ThemeToggle />
+            </div>
             <Link
               href="/login?next=/app"
-              className="hidden h-8 items-center rounded-[7px] bg-primary px-3 text-[13px] font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:inline-flex"
+              className="hidden h-9 items-center rounded-md bg-primary px-3.5 text-[13px] font-semibold text-primary-foreground shadow-[0_1px_2px_color-mix(in_srgb,var(--primary)_28%,transparent)] transition-[background-color,box-shadow] hover:bg-[color-mix(in_srgb,var(--primary)_88%,black)] hover:shadow-[0_3px_8px_color-mix(in_srgb,var(--primary)_24%,transparent)] sm:inline-flex"
             >
               Open app
             </Link>
