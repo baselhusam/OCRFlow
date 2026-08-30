@@ -16,23 +16,42 @@ export function DocsToc({ headings }: DocsTocProps) {
   useEffect(() => {
     if (headings.length === 0) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        const id = visible[0]?.target.id;
-        if (id) setActiveId(id);
-      },
-      { rootMargin: "-20% 0px -65% 0px", threshold: [0, 1] },
-    );
+    let frameId: number | null = null;
+    const markerOffset = 132;
 
-    for (const heading of headings) {
-      const el = document.getElementById(heading.id);
-      if (el) observer.observe(el);
-    }
+    const updateActiveHeading = () => {
+      frameId = null;
+      let nextActiveId = headings[0].id;
 
-    return () => observer.disconnect();
+      for (const heading of headings) {
+        const element = document.getElementById(heading.id);
+        if (element && element.getBoundingClientRect().top <= markerOffset) {
+          nextActiveId = heading.id;
+        } else {
+          break;
+        }
+      }
+
+      setActiveId((current) =>
+        current === nextActiveId ? current : nextActiveId,
+      );
+    };
+
+    const onScroll = () => {
+      if (frameId === null) {
+        frameId = window.requestAnimationFrame(updateActiveHeading);
+      }
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
+    };
   }, [headings]);
 
   if (headings.length === 0) {
@@ -51,6 +70,7 @@ export function DocsToc({ headings }: DocsTocProps) {
             <li key={`${heading.depth}-${heading.id}`}>
               <Link
                 href={`#${heading.id}`}
+                onClick={() => setActiveId(heading.id)}
                 className={cn(
                   "relative block py-1 text-[13px] leading-snug transition-colors",
                   heading.depth === 3 ? "pl-6" : "pl-3.5",
