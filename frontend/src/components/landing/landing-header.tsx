@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { SegmentMark } from "@/components/brand/segment-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getLatestReleaseTag, RELEASES_URL } from "@/lib/releases/latest";
 
 function GitHubIcon() {
   return (
@@ -11,31 +12,34 @@ function GitHubIcon() {
   );
 }
 
-export function LandingHeader() {
+export async function LandingHeader() {
+  const releaseTag = await getLatestReleaseTag();
+
   return (
     <header className="relative z-[2] flex flex-wrap items-center justify-between gap-4 px-8 py-[22px]">
-      <Link
-        href="/"
-        aria-label="OCRFlow home"
-        className="flex items-center gap-[11px] transition-opacity hover:opacity-80"
-      >
-        <SegmentMark className="h-[26px] w-[26px] text-foreground" />
-        <span className="text-lg font-extrabold tracking-[-0.03em] text-foreground">
-          OCRFlow
-        </span>
-        <span className="ml-2 rounded-[5px] border border-[var(--landing-hairline)] px-[9px] py-[3px] font-mono text-[11px] text-muted-foreground">
-          v1.0.0
-        </span>
-      </Link>
+      <div className="flex items-center gap-[11px]">
+        <Link
+          href="/"
+          aria-label="OCRFlow home"
+          className="flex items-center gap-[11px] transition-opacity hover:opacity-80"
+        >
+          <SegmentMark className="h-[26px] w-[26px] text-foreground" />
+          <span className="text-lg font-extrabold tracking-[-0.03em] text-foreground">
+            OCRFlow
+          </span>
+        </Link>
+        <a
+          href={RELEASES_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`View OCRFlow ${releaseTag} release notes`}
+          className="ml-2 rounded-[5px] border border-[var(--landing-hairline)] px-[9px] py-[3px] font-mono text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+        >
+          {releaseTag}
+        </a>
+      </div>
 
       <div className="flex flex-wrap items-center gap-[18px]">
-        <span className="inline-flex items-center gap-2 font-mono text-xs text-muted-foreground">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--status-ok)] opacity-75 ocrflow-animate-pulse" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--status-ok)] shadow-[0_0_0_4px_color-mix(in_srgb,var(--status-ok)_18%,transparent)]" />
-          </span>
-          instance running · localhost:8080
-        </span>
         <Link
           href="/templates"
           className="font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
