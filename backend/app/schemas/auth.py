@@ -29,7 +29,7 @@ class UserLogin(BaseModel):
 
 
 class UserPreferencesRead(BaseModel):
-    appearance: Literal["system", "light", "dark"] = "dark"
+    appearance: Literal["system", "light", "dark"] = "light"
     default_output_format: Literal["json", "csv", "markdown"] = "json"
     default_ocr_model: str = "ocrflow-base v2.4"
     auto_run_on_upload: bool = True

@@ -2,7 +2,17 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, ArrowUpDown, Plus } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  KeyRound,
+  MoreHorizontal,
+  Plus,
+  ShieldOff,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 
 import { dashboardStatCardClassName } from "@/components/dashboard/dashboard-styles";
 import { Button } from "@/components/ui/button";
@@ -14,6 +24,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -32,7 +59,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { AdminUser, AdminUserCreate } from "@/lib/api/admin";
-import { createAdminUser } from "@/lib/api/admin";
+import {
+  createAdminUser,
+  deleteAdminUser,
+  resetAdminUserPassword,
+  updateAdminUser,
+} from "@/lib/api/admin";
 import type { User, UserRole } from "@/lib/api/client";
 import { getRoleBadgeClassName, getRoleLabel } from "@/lib/auth/roles";
 import {
@@ -104,7 +136,7 @@ function toDisplayUser(member: AdminUser): User {
     bio: null,
     role: member.role,
     preferences: {
-      appearance: "dark",
+      appearance: "light",
       default_output_format: "json",
       default_ocr_model: "ocrflow-base v2.4",
       auto_run_on_upload: true,
@@ -177,6 +209,7 @@ export function AdminUsersTab({
   );
 
   const activeCount = users.filter((user) => user.is_active).length;
+  const totalProjects = users.reduce((sum, user) => sum + user.project_count, 0);
   const totalRuns = users.reduce((sum, user) => sum + user.run_count, 0);
 
   function handleSort(column: SortColumn) {
@@ -209,32 +242,12 @@ export function AdminUsersTab({
     }
   }
 
-  async function handleDeactivate(userId: string) {
-    setPendingUserId(userId);
-    setError(null);
-    try {
-      const response = await fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
-      if (!response.ok) {
-        const body = (await response.json()) as { detail?: string };
-        throw new Error(body.detail ?? "Failed to deactivate user");
-      }
-      router.refresh();
-    } catch (deactivateError) {
-      setError(
-        deactivateError instanceof Error
-          ? deactivateError.message
-          : "Failed to deactivate user",
-      );
-    } finally {
-      setPendingUserId(null);
-    }
-  }
-
   return (
     <div className="mt-8">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total users" value={String(users.length)} />
         <StatCard label="Active users" value={String(activeCount)} />
+        <StatCard label="Projects" value={totalProjects.toLocaleString()} />
         <StatCard label="Total runs" value={String(totalRuns)} />
       </div>
 
@@ -464,21 +477,10 @@ export function AdminUsersTab({
 
                     {canManage ? (
                       <TableCell className="px-5 py-4 text-right align-middle">
-                        {!isYou && member.is_active ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-xs text-destructive hover:text-destructive"
-                            disabled={pendingUserId === member.id}
-                            onClick={() => void handleDeactivate(member.id)}
-                          >
-                            Deactivate
-                          </Button>
-                        ) : (
-                          <span className="font-mono text-[10px] text-muted-foreground/60">
-                            —
-                          </span>
-                        )}
+                        <AdminUserActions
+                          user={member}
+                          isCurrentUser={isYou}
+                        />
                       </TableCell>
                     ) : null}
                   </TableRow>
@@ -555,6 +557,206 @@ function StatCard({ label, value }: { label: string; value: string }) {
       </p>
       <p className="mt-2 text-2xl font-extrabold tracking-tight text-foreground">{value}</p>
     </div>
+  );
+}
+
+function AdminUserActions({
+  user,
+  isCurrentUser,
+}: {
+  user: AdminUser;
+  isCurrentUser: boolean;
+}) {
+  const router = useRouter();
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const displayName = getUserDisplayName(toDisplayUser(user));
+
+  async function handleStatusChange() {
+    setIsSaving(true);
+    setError(null);
+    try {
+      const response = await updateAdminUser(user.id, { is_active: !user.is_active });
+      if (!response.ok) {
+        const body = (await response.json()) as { detail?: string };
+        throw new Error(body.detail ?? "Failed to update account status");
+      }
+      router.refresh();
+    } catch (statusError) {
+      setError(
+        statusError instanceof Error ? statusError.message : "Failed to update account status",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handlePasswordReset() {
+    setIsSaving(true);
+    setError(null);
+    try {
+      const response = await resetAdminUserPassword(user.id, newPassword);
+      if (!response.ok) {
+        const body = (await response.json()) as { detail?: string };
+        throw new Error(body.detail ?? "Failed to change password");
+      }
+      setNewPassword("");
+      setPasswordOpen(false);
+    } catch (passwordError) {
+      setError(passwordError instanceof Error ? passwordError.message : "Failed to change password");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    setIsSaving(true);
+    setError(null);
+    try {
+      const response = await deleteAdminUser(user.id);
+      if (!response.ok) {
+        const body = (await response.json()) as { detail?: string };
+        throw new Error(body.detail ?? "Failed to delete user");
+      }
+      setDeleteOpen(false);
+      router.refresh();
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Failed to delete user");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={`Actions for ${displayName}`}
+              className="size-8 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground"
+            >
+              <MoreHorizontal className="size-4" aria-hidden />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={() => setPasswordOpen(true)}>
+            <KeyRound className="size-4" aria-hidden />
+            Change password
+          </DropdownMenuItem>
+          {!isCurrentUser ? (
+            <>
+              <DropdownMenuItem
+                disabled={isSaving}
+                onClick={() => void handleStatusChange()}
+              >
+                {user.is_active ? (
+                  <>
+                    <ShieldOff className="size-4" aria-hidden />
+                    Suspend account
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="size-4" aria-hidden />
+                    Reactivate account
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="size-4" aria-hidden />
+                Delete user
+              </DropdownMenuItem>
+            </>
+          ) : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {error && !passwordOpen && !deleteOpen ? (
+        <p className="mt-1 text-right text-xs text-destructive">{error}</p>
+      ) : null}
+
+      <Dialog
+        open={passwordOpen}
+        onOpenChange={(open) => {
+          setPasswordOpen(open);
+          if (!open) {
+            setNewPassword("");
+            setError(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change password</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Set a new password for <strong className="text-foreground">{user.email}</strong>.
+              They will use it the next time they sign in.
+            </p>
+            <div>
+              <Label htmlFor={`password-${user.id}`}>New password</Label>
+              <Input
+                id={`password-${user.id}`}
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                className="mt-2"
+              />
+            </div>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          </div>
+          <DialogFooter showCloseButton>
+            <Button
+              disabled={isSaving || newPassword.length < 8}
+              onClick={() => void handlePasswordReset()}
+            >
+              {isSaving ? "Saving..." : "Save password"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={deleteOpen}
+        onOpenChange={(open) => {
+          setDeleteOpen(open);
+          if (!open) setError(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes <strong>{user.email}</strong>, including their {user.project_count} project{user.project_count === 1 ? "" : "s"}, runs, and activity. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isSaving}
+              onClick={(event) => {
+                event.preventDefault();
+                void handleDelete();
+              }}
+            >
+              {isSaving ? "Deleting..." : "Delete user"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 

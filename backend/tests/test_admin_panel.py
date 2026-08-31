@@ -138,11 +138,37 @@ async def test_admin_user_crud_and_view_admin_read_only(client: AsyncClient):
     assert patch_response.status_code == 200
     assert patch_response.json()["role"] == "view_admin"
 
+    password_response = await client.post(
+        f"/api/v1/admin/users/{created['id']}/password",
+        json={"password": "new-password123"},
+        headers=_auth_headers(admin_token),
+    )
+    assert password_response.status_code == 204
+
+    updated_login = await client.post(
+        "/api/v1/auth/login",
+        json={"email": created["email"], "password": "new-password123"},
+    )
+    assert updated_login.status_code == 200
+
+    view_admin_password = await client.post(
+        f"/api/v1/admin/users/{created['id']}/password",
+        json={"password": "blocked-password123"},
+        headers=_auth_headers(view_admin_token),
+    )
+    assert view_admin_password.status_code == 403
+
     delete_response = await client.delete(
         f"/api/v1/admin/users/{created['id']}",
         headers=_auth_headers(admin_token),
     )
     assert delete_response.status_code == 204
+
+    user_list_after_delete = await client.get(
+        "/api/v1/admin/users",
+        headers=_auth_headers(admin_token),
+    )
+    assert all(item["id"] != created["id"] for item in user_list_after_delete.json()["items"])
 
 
 @pytest.mark.asyncio

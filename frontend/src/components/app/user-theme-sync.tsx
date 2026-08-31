@@ -15,7 +15,7 @@ type UserThemeSyncProps = {
 
 export function UserThemeSync({ user }: UserThemeSyncProps) {
   const { setTheme } = useTheme();
-  const appearance = user.preferences?.appearance ?? "dark";
+  const appearance = user.preferences?.appearance ?? "light";
 
   useEffect(() => {
     syncThemeFromPreferences(appearance as ThemeSetting);

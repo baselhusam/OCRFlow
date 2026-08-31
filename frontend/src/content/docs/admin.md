@@ -17,7 +17,9 @@ The **Admin panel** (`/app/admin`) is hidden unless the signed-in user has `admi
 
 The first account whose email matches `ADMIN_EMAIL` is promoted on register/login. Set that in the gateway environment before the first signup.
 
-## Users tab
+## Users page
+
+The **Users** page (`/app/admin/users`) is the account directory for the instance. It shows every account with its role, account status, projects, runs, pages processed, last login, and latest run.
 
 Sortable columns: user, role, projects, runs, last login, last run, status.
 
@@ -25,7 +27,11 @@ Admins can:
 
 - Create a user
 - Change roles
-- Deactivate
+- Change a password
+- Suspend or reactivate an account
+- Permanently delete an account and its owned projects, runs, and activity
+
+OCRFlow protects the signed-in account, the account configured through `ADMIN_EMAIL`, and the final active administrator from being suspended, demoted, or deleted.
 
 View-admins see the same table read-only.
 

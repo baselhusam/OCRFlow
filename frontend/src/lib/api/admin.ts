@@ -123,6 +123,17 @@ export async function updateAdminUser(
   });
 }
 
-export async function deactivateAdminUser(userId: string): Promise<Response> {
+export async function resetAdminUserPassword(
+  userId: string,
+  password: string,
+): Promise<Response> {
+  return fetch(`/api/admin/users/${userId}/password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+}
+
+export async function deleteAdminUser(userId: string): Promise<Response> {
   return fetch(`/api/admin/users/${userId}`, { method: "DELETE" });
 }

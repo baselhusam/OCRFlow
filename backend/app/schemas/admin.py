@@ -43,3 +43,7 @@ class AdminUserUpdate(BaseModel):
     display_name: str | None = Field(default=None, max_length=255)
     role: UserRole | None = None
     is_active: bool | None = None
+
+
+class AdminUserPasswordUpdate(BaseModel):
+    password: str = Field(min_length=8, max_length=128)

@@ -58,7 +58,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const initialTab =
     tabParam && VALID_TABS.has(tabParam as AdminTab)
       ? (tabParam as AdminTab)
-      : "users";
+      : "analytics";
   const range = parseRange(params.range);
   const analyticsTab = parseAnalyticsTab(params.analyticsTab);
   const activityRange = resolveActivityRangeDates(range);

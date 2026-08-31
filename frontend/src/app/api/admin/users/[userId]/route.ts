@@ -4,6 +4,7 @@ import {
   authenticatedApiFetch,
   UnauthenticatedError,
 } from "@/lib/api/server";
+import { ApiRequestError } from "@/lib/api/client";
 
 type RouteContext = {
   params: Promise<{ userId: string }>;
@@ -22,6 +23,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (error instanceof UnauthenticatedError) {
       return NextResponse.json({ detail: "Not authenticated" }, { status: 401 });
     }
+    if (error instanceof ApiRequestError) {
+      return NextResponse.json({ detail: error.message }, { status: error.status });
+    }
     const message = error instanceof Error ? error.message : "Request failed";
     return NextResponse.json({ detail: message }, { status: 403 });
   }
@@ -37,6 +41,9 @@ export async function DELETE(_request: Request, context: RouteContext) {
   } catch (error) {
     if (error instanceof UnauthenticatedError) {
       return NextResponse.json({ detail: "Not authenticated" }, { status: 401 });
+    }
+    if (error instanceof ApiRequestError) {
+      return NextResponse.json({ detail: error.message }, { status: error.status });
     }
     const message = error instanceof Error ? error.message : "Request failed";
     return NextResponse.json({ detail: message }, { status: 403 });

@@ -55,6 +55,7 @@ async def test_register_defaults_to_user_role(client: AsyncClient):
     email = f"role-user-{uuid.uuid4()}@example.com"
     _, user = await _register_and_login(client, email)
     assert user["role"] == UserRole.USER.value
+    assert user["preferences"]["appearance"] == "light"
 
 
 @pytest.mark.asyncio

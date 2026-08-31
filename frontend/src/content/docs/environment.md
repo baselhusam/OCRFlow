@@ -51,7 +51,7 @@ Device / accelerator is usually injected by compose overlays (`docker-compose.nv
 
 ## Theme of the product vs docs
 
-The marketing landing page is forced **light**. The app and these docs follow the stored theme (default **dark**). That is `THEME_INIT_SCRIPT` in the frontend — not an env var.
+The marketing landing page is forced **light**. The app and these docs follow the stored theme (default **light**). That is `THEME_INIT_SCRIPT` in the frontend — not an env var.
 
 ## Celery
 

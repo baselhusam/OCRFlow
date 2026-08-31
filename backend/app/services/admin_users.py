@@ -121,6 +121,25 @@ async def create_admin_user(db: AsyncSession, payload: AdminUserCreate) -> Admin
     return _to_admin_user_item(user, stats_map.get(user.id, {}))
 
 
+def _is_configured_admin(user: User) -> bool:
+    admin_email = get_settings().admin_email.strip().lower()
+    return bool(admin_email) and user.email.lower() == admin_email
+
+
+async def _ensure_admin_remains(db: AsyncSession, user: User) -> None:
+    if user.user_role != UserRole.ADMIN or not user.is_active:
+        return
+
+    admin_count = await db.scalar(
+        select(func.count(User.id)).where(
+            User.role == UserRole.ADMIN.value,
+            User.is_active.is_(True),
+        )
+    )
+    if int(admin_count or 0) <= 1:
+        raise ValueError("You cannot remove the last active administrator")
+
+
 async def update_admin_user(
     db: AsyncSession,
     user_id: uuid.UUID,
@@ -140,6 +159,19 @@ async def update_admin_user(
         if updates.get("role") is not None and updates["role"] != UserRole.ADMIN:
             raise ValueError("You cannot demote your own admin role")
 
+    if _is_configured_admin(user):
+        if updates.get("is_active") is False:
+            raise ValueError("You cannot deactivate the configured administrator")
+        if updates.get("role") is not None and updates["role"] != UserRole.ADMIN:
+            raise ValueError("You cannot demote the configured administrator")
+
+    removes_admin_access = (
+        (updates.get("role") is not None and updates["role"] != UserRole.ADMIN)
+        or updates.get("is_active") is False
+    )
+    if removes_admin_access:
+        await _ensure_admin_remains(db, user)
+
     if "full_name" in updates:
         user.full_name = updates["full_name"]
     if "display_name" in updates:
@@ -155,19 +187,37 @@ async def update_admin_user(
     return _to_admin_user_item(user, stats_map.get(user.id, {}))
 
 
-async def deactivate_admin_user(
+async def reset_admin_user_password(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    password: str,
+) -> None:
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise LookupError("User not found")
+
+    user.hashed_password = hash_password(password)
+    await db.commit()
+
+
+async def delete_admin_user(
     db: AsyncSession,
     user_id: uuid.UUID,
     *,
     acting_user_id: uuid.UUID,
 ) -> None:
     if user_id == acting_user_id:
-        raise ValueError("You cannot deactivate your own account")
+        raise ValueError("You cannot delete your own account")
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if user is None:
         raise LookupError("User not found")
 
-    user.is_active = False
+    if _is_configured_admin(user):
+        raise ValueError("You cannot delete the configured administrator")
+
+    await _ensure_admin_remains(db, user)
+    await db.delete(user)
     await db.commit()

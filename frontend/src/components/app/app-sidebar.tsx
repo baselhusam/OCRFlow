@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, FileStack, FolderKanban, GitBranch, LayoutDashboard, Shield } from "lucide-react";
+import {
+  BarChart3,
+  FileStack,
+  FolderKanban,
+  GitBranch,
+  LayoutDashboard,
+  Shield,
+  UsersRound,
+} from "lucide-react";
 
 import { SegmentMark } from "@/components/brand/segment-mark";
 import type { User } from "@/lib/api/client";
@@ -60,9 +68,16 @@ const baseNavItems = [
 
 const adminNavItem = {
   title: "Admin Panel",
-  href: "/app/admin",
+  href: "/app/admin?tab=analytics",
   icon: Shield,
-  isActive: (pathname: string) => pathname.startsWith("/app/admin"),
+  isActive: (pathname: string) => pathname === "/app/admin",
+};
+
+const adminUsersNavItem = {
+  title: "Users",
+  href: "/app/admin/users",
+  icon: UsersRound,
+  isActive: (pathname: string) => pathname.startsWith("/app/admin/users"),
 };
 
 type AppSidebarProps = {
@@ -75,7 +90,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
   const avatarInitial = getUserAvatarInitial(user);
   const accountActive = pathname.startsWith("/app/account");
   const navItems = canAccessAdminPanel(user)
-    ? [...baseNavItems, adminNavItem]
+    ? [...baseNavItems, adminNavItem, adminUsersNavItem]
     : baseNavItems;
 
   return (
@@ -87,7 +102,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
         <Link
           href="/app"
           aria-label="OCRFlow home"
-          className="flex min-w-0 items-center gap-[11px] group-data-[collapsible=icon]:justify-center"
+          className="flex w-full min-w-0 items-center justify-center gap-[11px]"
         >
           <SegmentMark className="h-[26px] w-[26px] shrink-0 text-[var(--workspace-sidebar-fg)]" />
           <span className="truncate text-lg font-extrabold tracking-[-0.03em] text-[var(--workspace-sidebar-fg)] group-data-[collapsible=icon]:hidden">

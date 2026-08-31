@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import type { AdminUserList } from "@/lib/api/admin";
+import { ApiRequestError } from "@/lib/api/client";
 import {
   authenticatedApiFetch,
   UnauthenticatedError,
@@ -13,6 +14,9 @@ export async function GET() {
   } catch (error) {
     if (error instanceof UnauthenticatedError) {
       return NextResponse.json({ detail: "Not authenticated" }, { status: 401 });
+    }
+    if (error instanceof ApiRequestError) {
+      return NextResponse.json({ detail: error.message }, { status: error.status });
     }
     const message = error instanceof Error ? error.message : "Request failed";
     return NextResponse.json({ detail: message }, { status: 403 });
@@ -30,6 +34,9 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof UnauthenticatedError) {
       return NextResponse.json({ detail: "Not authenticated" }, { status: 401 });
+    }
+    if (error instanceof ApiRequestError) {
+      return NextResponse.json({ detail: error.message }, { status: error.status });
     }
     const message = error instanceof Error ? error.message : "Request failed";
     return NextResponse.json({ detail: message }, { status: 403 });
