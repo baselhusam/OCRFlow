@@ -161,7 +161,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
         <Link
           href="/app/account"
           className={cn(
-            "flex items-center gap-[11px] overflow-hidden rounded-[10px] px-3 py-[11px] transition-colors group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-2",
+            "flex items-center gap-[11px] overflow-hidden rounded-[10px] px-3 py-[11px] transition-colors group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:bg-transparent! group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-2 group-data-[collapsible=icon]:shadow-none! group-data-[collapsible=icon]:hover:bg-transparent!",
             accountActive
               ? "bg-[rgba(91,46,239,0.20)] shadow-[inset_0_0_0_1px_rgba(91,46,239,0.4)]"
               : "bg-[var(--workspace-sidebar-hover)] hover:bg-[rgba(91,46,239,0.12)]",

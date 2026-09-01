@@ -370,10 +370,10 @@ function ProviderPicker({
         </span>
       </SelectTrigger>
       <SelectContent className="min-w-[330px] rounded-2xl border-border bg-card p-1.5 shadow-[0_18px_48px_rgba(31,20,76,.18)]">
-        <SelectLabel className="px-2.5 py-2 font-mono text-[10px] tracking-[0.12em] uppercase">
-          Supported providers
-        </SelectLabel>
         <SelectGroup className="space-y-1 p-0">
+          <SelectLabel className="px-2.5 py-2 font-mono text-[10px] tracking-[0.12em] uppercase">
+            Supported providers
+          </SelectLabel>
           {PROVIDERS.map((item) => (
             <SelectItem
               key={item.value}

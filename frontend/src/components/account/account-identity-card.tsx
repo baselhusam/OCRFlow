@@ -1,4 +1,4 @@
-import { Shield } from "lucide-react";
+import { BadgeCheck, Shield } from "lucide-react";
 
 import { dashboardStatCardClassName } from "@/components/dashboard/dashboard-styles";
 import type { User } from "@/lib/api/client";
@@ -28,11 +28,12 @@ export function AccountIdentityCard({ user }: AccountIdentityCardProps) {
     <div
       className={cn(
         dashboardStatCardClassName,
-        "flex flex-wrap items-center gap-6 px-7 py-6 sm:gap-7",
+        "relative isolate flex flex-wrap items-center gap-5 overflow-hidden px-6 py-6 sm:gap-7 sm:px-7",
       )}
     >
+      <div className="absolute inset-y-0 left-0 w-1 bg-primary" aria-hidden />
       <div className="relative shrink-0">
-        <span className="flex size-[88px] items-center justify-center rounded-full bg-primary/10 text-3xl font-bold text-primary shadow-[0_0_0_3px_var(--accent-tint)]">
+        <span className="flex size-[76px] items-center justify-center rounded-2xl bg-primary text-3xl font-bold text-primary-foreground shadow-[0_12px_24px_-14px_rgba(91,46,239,0.85)] sm:size-[84px]">
           {getUserAvatarInitial(user)}
         </span>
       </div>
@@ -52,18 +53,18 @@ export function AccountIdentityCard({ user }: AccountIdentityCardProps) {
             {getRoleLabel(user.role)}
           </span>
         </div>
-        <p className="mt-2 font-mono text-xs text-muted-foreground">
-          {user.email} · member since {formatMemberSince(user.created_at)}
+        <p className="mt-2 font-mono text-xs text-muted-foreground sm:text-[13px]">
+          {user.email}
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Member since {formatMemberSince(user.created_at)}
         </p>
       </div>
 
-      <button
-        type="button"
-        disabled
-        className="rounded-lg border border-border bg-card px-4 py-2.5 text-[13px] font-semibold text-muted-foreground"
-      >
-        Change photo
-      </button>
+      <div className="flex items-center gap-2 rounded-full border border-border bg-secondary/45 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+        <BadgeCheck className="size-3.5 text-primary" aria-hidden />
+        Workspace profile
+      </div>
     </div>
   );
 }
