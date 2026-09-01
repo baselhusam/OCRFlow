@@ -20,6 +20,7 @@ from app.models.device import resolve_device
 from app.models.registry import ModelNotFoundError
 from app.models.runner_factory import get_cached_runner, probe_runner_health
 from app.models.servable import get_servable_model
+from app.models.servable import models_for_provider
 
 
 def _resolve_servable(model_id: str):
@@ -55,6 +56,8 @@ def create_internal_app() -> FastAPI:
             "status": "ok",
             "provider": settings.service_provider or "",
             "device": resolve_device(settings.default_device).value,
+            "api_version": "1",
+            "engine_version": app.version,
         }
 
     @app.get("/health")
@@ -64,6 +67,18 @@ def create_internal_app() -> FastAPI:
     @app.get("/internal/health")
     async def internal_health() -> dict[str, str]:
         return _health_payload()
+
+    @app.get("/internal/capabilities")
+    async def capabilities() -> dict[str, object]:
+        """Machine-readable engine contract used by the Configuration page."""
+        return {
+            "api_version": "1",
+            "provider": settings.service_provider or "",
+            "models": [
+                model.model_id
+                for model in models_for_provider(settings.service_provider)
+            ],
+        }
 
     @app.get("/internal/models/{model_id:path}/health")
     async def model_health(model_id: str) -> JSONResponse:

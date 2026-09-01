@@ -42,8 +42,20 @@ Each provider image runs the slim app in `app/internal_service/app.py`:
   typed output. No auth, no database, no analytics — those stay in the gateway.
 - `GET  /internal/models/{model_id}/health` — per-model health.
 - `GET  /internal/health`, `GET /health` — liveness.
+- `GET  /internal/capabilities` — engine protocol version and served model IDs.
 
 It binds no public ports; it is only reachable on the private compose network.
+
+## External engines
+
+The **Configuration** page can connect a supported provider running on a
+different host or port. It expects the same OCRFlow engine protocol as the
+internal services: `/internal/health` must return `status`, `provider`, and
+`api_version: "1"`; `/internal/capabilities` lists model IDs; and every
+advertised model must implement its health and inference endpoints. The gateway
+tests this contract and uses only model APIs that pass. A verified external
+engine takes precedence over the environment-configured provider URL for those
+models.
 
 ## Runtime availability
 

@@ -6,6 +6,7 @@ from app.api.v1 import (
     analytics,
     auth,
     members,
+    # Admin routes are imported directly below to keep their paths grouped.
     pipeline_jobs,
     pipeline_runs,
     pipelines,
@@ -13,11 +14,13 @@ from app.api.v1 import (
     project_runs,
     projects,
 )
+from app.api.v1.admin import ocr_engines
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(account.router, prefix="/account", tags=["account"])
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
+api_router.include_router(ocr_engines.router, prefix="/admin", tags=["admin-engines"])
 api_router.include_router(members.router, prefix="/members", tags=["members"])
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
 api_router.include_router(pipelines.router, prefix="/pipelines", tags=["pipelines"])

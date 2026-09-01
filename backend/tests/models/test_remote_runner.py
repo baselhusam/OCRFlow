@@ -13,6 +13,7 @@ from app.models.errors import (
 )
 from app.models.registry import ModelNotFoundError
 from app.models.remote_runner import RemoteModelRunner
+from app.services.ocr_engines import EngineTarget
 from app.models.servable import get_servable_model
 from app.schemas.artifacts import LayoutLabel, Region
 from app.schemas.models.paddle._meta import InferenceMeta
@@ -71,6 +72,30 @@ async def test_forwards_and_parses_typed_output(sample_page_image):
     assert result.regions[0].id == "r1"
     assert captured["method"] == "POST"
     assert captured["url"] == f"{SERVICE_URL}/internal/models/paddle/doclayout-s"
+
+
+async def test_configured_engine_is_used_for_a_validated_model(monkeypatch, sample_page_image):
+    captured = {}
+
+    async def configured_target(_provider: str, _model_id: str):
+        return EngineTarget(
+            base_url="http://lan-paddle:9103", headers={"X-API-Key": "secret"}
+        )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["url"] = str(request.url)
+        captured["api_key"] = request.headers.get("x-api-key")
+        return httpx.Response(200, json=_valid_output_dict())
+
+    monkeypatch.setattr("app.models.remote_runner.resolve_engine_target", configured_target)
+    runner = _make_runner(handler)
+    await _load(runner)
+    await runner.run(_sample_input(sample_page_image))
+
+    assert captured == {
+        "url": "http://lan-paddle:9103/internal/models/paddle/doclayout-s",
+        "api_key": "secret",
+    }
 
 
 async def test_service_inference_error_maps_to_inference_error(sample_page_image):

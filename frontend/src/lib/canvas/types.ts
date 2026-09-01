@@ -54,6 +54,7 @@ export type ProviderRuntime = {
   running: boolean;
   mode: string;
   detail: string | null;
+  models?: string[];
 };
 
 export type RuntimeAvailability = {

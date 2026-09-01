@@ -78,13 +78,23 @@ export function isProviderOffline(
 
 /** Runtime status for a specific model given the offline-provider set. */
 export function getModelRuntimeStatus(
-  model: Pick<ModelCatalogEntry, "provider">,
-  offlineProviders: Set<string>,
+  model: Pick<ModelCatalogEntry, "id" | "provider">,
+  runtime: RuntimeAvailability | null | undefined,
 ): ProviderRuntimeStatus {
-  if (isProviderOffline(model.provider, offlineProviders)) {
+  if (!runtime) {
     return {
       offline: true,
       message: providerOfflineMessage(model.provider),
+    };
+  }
+  const provider = runtime.providers.find((entry) => entry.provider === model.provider);
+  if (!provider || !provider.running) {
+    return { offline: true, message: providerOfflineMessage(model.provider) };
+  }
+  if (REMOTE_PROVIDERS.has(model.provider) && provider.models?.length && !provider.models.includes(model.id)) {
+    return {
+      offline: true,
+      message: `${model.id} is not available on the connected ${providerDisplayName(model.provider)} engine.`,
     };
   }
   return AVAILABLE;

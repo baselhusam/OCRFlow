@@ -23,6 +23,7 @@ from app.models.errors import ModelLoadError
 from app.models.remote_runner import RemoteModelRunner
 from app.models.registry import ModelNotFoundError
 from app.models.servable import get_servable_model, is_remote_provider
+from app.services.ocr_engines import resolve_engine_target
 from app.models.timeout_policy import resolve_inference_timeout
 
 
@@ -162,6 +163,15 @@ async def probe_runner_health(model_id: str) -> ModelHealth:
     at module load time. CI and lightweight installs omit those extras, so
     health must return ``loaded=False`` instead of raising ``ImportError``.
     """
+    servable = get_servable_model(model_id)
+    if servable is not None:
+        target = await resolve_engine_target(servable.provider, model_id)
+        if target is not None:
+            # A configured external engine is valid in both runner modes. Do
+            # not force the local package to be importable merely to answer
+            # health for a model that will run remotely.
+            return await RemoteModelRunner(servable, target.base_url).health()
+
     cached = await get_runner_cache().get(model_id)
     if cached is not None:
         return await cached.health()
@@ -178,11 +188,27 @@ async def probe_runner_health(model_id: str) -> ModelHealth:
 
 
 async def get_cached_runner(model_id: str, config: ModelConfig) -> BaseRunner:
-    factory = _resolve_factory(model_id)
-
     settings = get_settings()
     timeout_seconds = resolve_inference_timeout(model_id, settings)
     effective_config = config.model_copy(update={"timeout_seconds": timeout_seconds})
+
+    servable = get_servable_model(model_id)
+    if settings.runner_mode != RunnerMode.remote and servable is not None:
+        target = await resolve_engine_target(servable.provider, model_id)
+        if target is not None:
+            # Keep the external and local runners distinct in the process cache
+            # so enabling an engine never reuses a prior local model instance.
+            cache_key = f"external::{model_id}"
+            runner = await get_runner_cache().get_or_load(
+                cache_key,
+                lambda: RemoteModelRunner(servable, target.base_url),
+                effective_config,
+            )
+            if runner.config is not None and runner.config.timeout_seconds != timeout_seconds:
+                runner._config = runner.config.model_copy(update={"timeout_seconds": timeout_seconds})
+            return runner
+
+    factory = _resolve_factory(model_id)
 
     runner = await get_runner_cache().get_or_load(model_id, factory, effective_config)
     if runner.config is not None and runner.config.timeout_seconds != timeout_seconds:

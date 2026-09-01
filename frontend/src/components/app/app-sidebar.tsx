@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
+  Cable,
   FileStack,
   FolderKanban,
   GitBranch,
@@ -80,6 +81,13 @@ const adminUsersNavItem = {
   isActive: (pathname: string) => pathname.startsWith("/app/admin/users"),
 };
 
+const configurationNavItem = {
+  title: "Configuration",
+  href: "/app/configuration",
+  icon: Cable,
+  isActive: (pathname: string) => pathname.startsWith("/app/configuration"),
+};
+
 type AppSidebarProps = {
   user: User;
 };
@@ -90,7 +98,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
   const avatarInitial = getUserAvatarInitial(user);
   const accountActive = pathname.startsWith("/app/account");
   const navItems = canAccessAdminPanel(user)
-    ? [...baseNavItems, adminNavItem, adminUsersNavItem]
+    ? [...baseNavItems, configurationNavItem, adminNavItem, adminUsersNavItem]
     : baseNavItems;
 
   return (

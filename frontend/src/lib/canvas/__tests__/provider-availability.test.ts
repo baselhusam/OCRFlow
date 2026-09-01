@@ -9,7 +9,7 @@ import {
 import type { ModelCatalogEntry, RuntimeAvailability } from "@/lib/canvas/types";
 
 function runtime(
-  providers: Array<{ provider: string; running: boolean }>,
+  providers: Array<{ provider: string; running: boolean; models?: string[] }>,
   mode = "remote",
 ): RuntimeAvailability {
   return {
@@ -19,12 +19,16 @@ function runtime(
       running: p.running,
       mode,
       detail: null,
+      models: p.models,
     })),
   };
 }
 
-function model(provider: string): Pick<ModelCatalogEntry, "provider"> {
-  return { provider };
+function model(
+  provider: string,
+  id = `${provider}/model`,
+): Pick<ModelCatalogEntry, "id" | "provider"> {
+  return { provider, id };
 }
 
 describe("buildOfflineProviderSet", () => {
@@ -72,22 +76,30 @@ describe("buildOfflineProviderSet", () => {
 
 describe("getModelRuntimeStatus", () => {
   it("marks a model offline with a start-service hint", () => {
-    const offline = buildOfflineProviderSet(
-      runtime([{ provider: "docling", running: false }]),
-    );
-    const status = getModelRuntimeStatus(model("docling"), offline);
+    const availability = runtime([{ provider: "docling", running: false }]);
+    const status = getModelRuntimeStatus(model("docling"), availability);
     expect(status.offline).toBe(true);
     expect(status.message).toBe(providerOfflineMessage("docling"));
     expect(status.message).toContain("Docling");
   });
 
   it("leaves online providers available", () => {
-    const offline = buildOfflineProviderSet(
-      runtime([{ provider: "paddle", running: true }]),
-    );
-    const status = getModelRuntimeStatus(model("paddle"), offline);
+    const availability = runtime([{ provider: "paddle", running: true }]);
+    const status = getModelRuntimeStatus(model("paddle"), availability);
     expect(status.offline).toBe(false);
     expect(status.message).toBeUndefined();
+  });
+
+  it("marks a model unavailable when a partial engine did not pass its API check", () => {
+    const availability = runtime([
+      { provider: "surya", running: true, models: ["surya/layout"] },
+    ]);
+    const status = getModelRuntimeStatus(
+      model("surya", "surya/text-recognition"),
+      availability,
+    );
+    expect(status.offline).toBe(true);
+    expect(status.message).toContain("not available");
   });
 });
 

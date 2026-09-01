@@ -9,6 +9,7 @@ from app.models import runner_factory
 from app.models.base_runner import BaseRunner
 from app.models.errors import ModelLoadError
 from app.models.remote_runner import RemoteModelRunner
+from app.services.ocr_engines import EngineTarget
 
 
 @pytest.fixture
@@ -113,3 +114,22 @@ async def test_probe_health_when_remote_provider_url_missing(monkeypatch, reset_
     assert health.model_id == "paddle/doclayout-s"
     assert health.loaded is False
     assert health.message is not None
+
+
+@pytest.mark.asyncio
+async def test_local_mode_uses_a_verified_external_engine(monkeypatch, reset_settings):
+    monkeypatch.setenv("OCRFLOW_RUNNER_MODE", "local")
+    get_settings.cache_clear()
+
+    async def external_target(provider: str, model_id: str):
+        assert (provider, model_id) == ("paddle", "paddle/doclayout-s")
+        return EngineTarget(base_url="http://lan-paddle:9103", headers={})
+
+    monkeypatch.setattr(runner_factory, "resolve_engine_target", external_target)
+    await runner_factory.get_runner_cache().unload_all()
+
+    runner = await runner_factory.get_cached_runner(
+        "paddle/doclayout-s", runner_factory.get_settings().build_model_config()
+    )
+    assert isinstance(runner, RemoteModelRunner)
+    assert runner._service_url == "http://lan-paddle:9103"

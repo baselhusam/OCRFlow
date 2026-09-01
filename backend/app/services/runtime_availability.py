@@ -25,6 +25,8 @@ from pydantic import BaseModel
 
 from app.core.config import RunnerMode, Settings
 from app.models.servable import REMOTE_PROVIDERS
+from app.models.servable import models_for_provider
+from app.services.ocr_engines import get_live_engine_capabilities
 
 #: Importable top-level modules that indicate a provider stack is installed
 #: for in-process (``local``) mode. Mirrors the optional requirements-*.txt
@@ -45,6 +47,7 @@ class ProviderRuntime(BaseModel):
     running: bool
     mode: str
     detail: str | None = None
+    models: list[str] = []
 
 
 class RuntimeAvailability(BaseModel):
@@ -61,12 +64,14 @@ def _local_provider_runtime(provider: str) -> ProviderRuntime:
             running=False,
             mode=RunnerMode.local.value,
             detail=f"missing package(s): {', '.join(missing)}",
+            models=[],
         )
     return ProviderRuntime(
         provider=provider,
         running=True,
         mode=RunnerMode.local.value,
         detail="in-process",
+        models=[model.model_id for model in models_for_provider(provider)],
     )
 
 
@@ -80,6 +85,7 @@ async def _probe_provider(
             running=False,
             mode=RunnerMode.remote.value,
             detail="no service url configured",
+            models=[],
         )
     health_path = "/api/tags" if provider == "ollama" else _HEALTH_PATH
     url = f"{base_url.rstrip('/')}{health_path}"
@@ -91,13 +97,25 @@ async def _probe_provider(
             running=False,
             mode=RunnerMode.remote.value,
             detail=f"unreachable: {exc.__class__.__name__}",
+            models=[],
         )
     running = response.is_success
+    models: list[str] = []
+    if running and provider in REMOTE_PROVIDERS:
+        try:
+            capabilities = await client.get(f"{base_url.rstrip('/')}/internal/capabilities")
+            payload = capabilities.json() if capabilities.is_success else {}
+            if isinstance(payload, dict) and isinstance(payload.get("models"), list):
+                models = [model for model in payload["models"] if isinstance(model, str)]
+        except (httpx.HTTPError, ValueError):
+            # Older engines remain online but have no model-level inventory.
+            pass
     return ProviderRuntime(
         provider=provider,
         running=running,
         mode=RunnerMode.remote.value,
         detail=None if running else f"status {response.status_code}",
+        models=models,
     )
 
 
@@ -108,7 +126,7 @@ async def get_runtime_availability(settings: Settings) -> RuntimeAvailability:
         timeout = settings.runtime_health_timeout_seconds
         async with httpx.AsyncClient(timeout=timeout) as client:
             ollama = await _probe_provider("ollama", settings, client)
-        return RuntimeAvailability(
+        runtime = RuntimeAvailability(
             mode=RunnerMode.local.value,
             providers=[
                 *[
@@ -118,10 +136,35 @@ async def get_runtime_availability(settings: Settings) -> RuntimeAvailability:
                 ollama.model_copy(update={"mode": RunnerMode.local.value}),
             ],
         )
+        return await _with_configured_engines(runtime)
 
     timeout = settings.runtime_health_timeout_seconds
     async with httpx.AsyncClient(timeout=timeout) as client:
         results = await asyncio.gather(
             *(_probe_provider(provider, settings, client) for provider in providers)
         )
-    return RuntimeAvailability(mode=RunnerMode.remote.value, providers=list(results))
+    return await _with_configured_engines(
+        RuntimeAvailability(mode=RunnerMode.remote.value, providers=list(results))
+    )
+
+
+async def _with_configured_engines(runtime: RuntimeAvailability) -> RuntimeAvailability:
+    """Give valid external engines precedence over the built-in provider URL."""
+    configured = await get_live_engine_capabilities()
+    if not configured:
+        return runtime
+
+    providers_by_id = {provider.provider: provider for provider in runtime.providers}
+    for provider, (name, validation) in configured.items():
+        models = [check.model_id for check in validation.model_checks if check.available]
+        providers_by_id[provider] = ProviderRuntime(
+            provider=provider,
+            running=bool(models),
+            mode="configured",
+            detail=f"Connected engine: {name}. {validation.detail}",
+            models=models,
+        )
+    return RuntimeAvailability(
+        mode=runtime.mode,
+        providers=[providers_by_id[provider] for provider in sorted(providers_by_id)],
+    )

@@ -23,8 +23,33 @@ Each provider image runs a slim app:
 - `POST /internal/models/{model_id}` — validate, run, return typed output
 - `GET /internal/models/{model_id}/health`
 - `GET /internal/health` and `GET /health`
+- `GET /internal/capabilities` — protocol version, provider name, and model IDs
 
 No public ports, no auth, no database. Those stay on the gateway. Only the compose/Kubernetes network should reach `/internal/*`.
+
+## Connect a remote engine
+
+Administrators can open **Configuration → OCR engine control room** and connect a
+supported provider at any reachable HTTP(S) IP address and port. The connection
+is tested before it can be enabled:
+
+1. `GET /internal/health` confirms the provider, detects whether an API key is
+   required, and checks protocol version **v1**.
+2. `GET /internal/capabilities` compares the engine's advertised models with
+   OCRFlow's supported models.
+3. `GET /internal/models/{model_id}/health` is called for every advertised,
+   supported model API.
+
+The page reports an exact state: ready, partial, credentials needed,
+incompatible (including the found vs required protocol version), or offline.
+For a partial engine, only the model APIs that passed are enabled on the
+canvas; the other nodes remain unavailable. A verified, enabled remote engine
+is selected by the gateway for its passing models, without requiring the
+engine to be launched from this repository.
+
+Bearer tokens and `X-API-Key` credentials are supported. Stored credentials
+are encrypted with the deployment `SECRET_KEY` and are never returned by the
+API.
 
 ## Start providers
 

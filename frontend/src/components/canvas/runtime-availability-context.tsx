@@ -69,7 +69,7 @@ function buildValue(
     onlineRemoteProviders: confirmedOnline,
     isProviderOffline: (provider: string) => offlineProviders.has(provider),
     getModelStatus: (model) =>
-      getModelRuntimeStatus(model, offlineProviders),
+      getModelRuntimeStatus(model, runtime),
   };
 }
 

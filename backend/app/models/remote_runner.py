@@ -23,6 +23,7 @@ from app.models.errors import (
 )
 from app.models.registry import ModelNotFoundError
 from app.models.servable import ServableModel
+from app.services.ocr_engines import EngineTarget, resolve_engine_target
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +51,12 @@ class RemoteModelRunner(BaseRunner[BaseModel, BaseModel]):
     async def _unload_impl(self) -> None:
         return None
 
-    @property
-    def _infer_url(self) -> str:
-        return f"{self._service_url}{INTERNAL_INFER_PATH}/{self.model_id}"
+    def _infer_url(self, service_url: str | None = None) -> str:
+        return f"{(service_url or self._service_url).rstrip('/')}{INTERNAL_INFER_PATH}/{self.model_id}"
+
+    async def _target(self) -> EngineTarget:
+        target = await resolve_engine_target(self._servable.provider, self.model_id)
+        return target or EngineTarget(base_url=self._service_url, headers={})
 
     def _http_timeout(self) -> float:
         base = self._config.timeout_seconds if self._config else 120.0
@@ -64,9 +68,12 @@ class RemoteModelRunner(BaseRunner[BaseModel, BaseModel]):
 
     async def _run_impl(self, input: BaseModel) -> BaseModel:
         payload = input.model_dump(mode="json", by_alias=True)
+        target = await self._target()
         try:
             async with self._new_client() as client:
-                response = await client.post(self._infer_url, json=payload)
+                response = await client.post(
+                    self._infer_url(target.base_url), json=payload, headers=target.headers
+                )
         except httpx.HTTPError as exc:
             raise ModelLoadError(
                 f"Cannot reach {self._servable.provider} service for "
@@ -105,10 +112,11 @@ class RemoteModelRunner(BaseRunner[BaseModel, BaseModel]):
         raise ModelInferenceError(message)
 
     async def health(self) -> ModelHealth:
-        url = f"{self._infer_url}/health"
+        target = await self._target()
+        url = f"{self._infer_url(target.base_url)}/health"
         try:
             async with self._new_client() as client:
-                response = await client.get(url)
+                response = await client.get(url, headers=target.headers)
             if response.is_success:
                 return ModelHealth.model_validate(response.json())
         except (httpx.HTTPError, ValueError) as exc:
