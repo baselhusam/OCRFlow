@@ -1,7 +1,16 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Download } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Activity,
+  ChartColumn,
+  Clock3,
+  Download,
+  GitBranch,
+  LayoutDashboard,
+  Table2,
+} from "lucide-react";
 
 import { AdminAnalyticsBreakdown } from "@/components/admin/analytics/admin-analytics-breakdown";
 import { AdminAnalyticsEngagement } from "@/components/admin/analytics/admin-analytics-engagement";
@@ -32,12 +41,16 @@ import type {
 import { ANALYTICS_RANGES, RANGE_LABELS } from "@/lib/api/analytics";
 import { cn } from "@/lib/utils";
 
-const ANALYTICS_SUB_TABS: { key: AdminAnalyticsSubTab; label: string }[] = [
-  { key: "overview", label: "Overview" },
-  { key: "engagement", label: "Engagement" },
-  { key: "pipelines", label: "Pipelines" },
-  { key: "breakdown", label: "Breakdown" },
-  { key: "timeline", label: "Timeline" },
+const ANALYTICS_SUB_TABS: {
+  key: AdminAnalyticsSubTab;
+  label: string;
+  icon: LucideIcon;
+}[] = [
+  { key: "overview", label: "Overview", icon: LayoutDashboard },
+  { key: "engagement", label: "Engagement", icon: Activity },
+  { key: "pipelines", label: "Pipelines", icon: GitBranch },
+  { key: "breakdown", label: "Breakdown", icon: Table2 },
+  { key: "timeline", label: "Timeline", icon: Clock3 },
 ];
 
 type AdminAnalyticsTabProps = {
@@ -102,7 +115,12 @@ export function AdminAnalyticsTab({
     <div className="mt-8 space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-[17px] font-bold text-foreground">Platform analytics</h2>
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <ChartColumn className="size-3.5" aria-hidden />
+            </span>
+            <h2 className="text-[17px] font-bold text-foreground">Platform analytics</h2>
+          </div>
           <p className="mt-1 font-mono text-[11px] tracking-[0.08em] text-muted-foreground uppercase">
             cross-workspace metrics
           </p>
@@ -143,18 +161,20 @@ export function AdminAnalyticsTab({
       <div className="flex gap-7 border-b border-border">
         {ANALYTICS_SUB_TABS.map((tab) => {
           const active = analyticsTab === tab.key;
+          const Icon = tab.icon;
           return (
             <button
               key={tab.key}
               type="button"
               onClick={() => setAnalyticsTab(tab.key)}
               className={cn(
-                "pb-3.5 text-sm font-semibold transition-colors",
+                "flex items-center gap-2 pb-3.5 text-sm font-semibold transition-colors",
                 active
                   ? "border-b-2 border-primary text-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
+              <Icon className="size-3.5" aria-hidden />
               {tab.label}
             </button>
           );

@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
+import { ChartColumn, UsersRound } from "lucide-react";
 
 import {
   AdminAnalyticsTab,
@@ -54,9 +56,9 @@ type AdminDashboardProps = {
   analyticsTab: AdminAnalyticsSubTab;
 };
 
-const TAB_OPTIONS: { key: AdminTab; label: string }[] = [
-  { key: "users", label: "Users" },
-  { key: "analytics", label: "Analytics" },
+const TAB_OPTIONS: { key: AdminTab; label: string; icon: LucideIcon }[] = [
+  { key: "users", label: "Users", icon: UsersRound },
+  { key: "analytics", label: "Analytics", icon: ChartColumn },
 ];
 
 export function AdminDashboard({
@@ -108,18 +110,20 @@ export function AdminDashboard({
       <div className="mt-9 flex gap-7 border-b border-border">
         {TAB_OPTIONS.map((tab) => {
           const active = activeTab === tab.key;
+          const Icon = tab.icon;
           return (
             <button
               key={tab.key}
               type="button"
               onClick={() => setTab(tab.key)}
               className={cn(
-                "pb-3.5 text-sm font-semibold transition-colors",
+                "flex items-center gap-2 pb-3.5 text-sm font-semibold transition-colors",
                 active
                   ? "border-b-2 border-primary text-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
+              <Icon className="size-3.5" aria-hidden />
               {tab.label}
             </button>
           );
