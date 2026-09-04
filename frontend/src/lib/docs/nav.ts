@@ -178,6 +178,12 @@ export const DOCS_NAV: DocsNavSection[] = [
         description: "Make targets for stack, OCR, GPU, and host development.",
       },
       {
+        title: "Keyboard shortcuts",
+        slug: "keyboard-shortcuts",
+        file: "keyboard-shortcuts.md",
+        description: "Navigate OCRFlow and work faster on the canvas.",
+      },
+      {
         title: "API",
         slug: "api",
         file: "api.md",

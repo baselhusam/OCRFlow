@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CanvasToast } from "@/components/canvas/canvas-toast";
+import { CommandPalette } from "@/components/app/command-palette";
 import { BatchDocumentsDialog } from "@/components/canvas/batch-documents-dialog";
 import { CreatePipelineFromCanvasDialog } from "@/components/pipelines/create-pipeline-from-canvas-dialog";
 import { NodeErrorPanel } from "@/components/canvas/node-detail/node-error-panel";
@@ -361,6 +362,8 @@ export function CanvasProjectHeader({
           </div>
 
           <HeaderDivider />
+
+          <CommandPalette compact />
 
           <Tooltip>
             <TooltipTrigger

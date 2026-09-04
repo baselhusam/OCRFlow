@@ -1,10 +1,12 @@
 "use client";
 
 import { PanelLeft, PanelLeftClose } from "lucide-react";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { isEditableKeyboardTarget } from "@/lib/keyboard-shortcuts";
 
 type SidebarToggleButtonProps = {
   className?: string;
@@ -13,6 +15,21 @@ type SidebarToggleButtonProps = {
 export function SidebarToggleButton({ className }: SidebarToggleButtonProps) {
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "b" &&
+        !isEditableKeyboardTarget(event.target)
+      ) {
+        event.preventDefault();
+        toggleSidebar();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [toggleSidebar]);
 
   return (
     <Button

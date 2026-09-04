@@ -51,6 +51,10 @@ import {
   PIPELINE_NODE_TYPE,
 } from "@/lib/canvas/types";
 import { cn } from "@/lib/utils";
+import {
+  CANVAS_COMMAND_EVENT,
+  type CanvasCommand,
+} from "@/lib/keyboard-shortcuts";
 
 import "@xyflow/react/dist/style.css";
 
@@ -540,6 +544,22 @@ function PipelineCanvasInner({
     handleInteractionModeChange,
     readOnly,
   ]);
+
+  useEffect(() => {
+    const onCanvasCommand = (event: Event) => {
+      const command = (event as CustomEvent<CanvasCommand>).detail;
+      if (readOnly && (command === "run" || command === "save")) return;
+      if (command === "run") {
+        void runFullPipeline();
+      } else if (command === "save") {
+        void saveNow();
+      } else if (command === "auto-layout") {
+        autoLayout();
+      }
+    };
+    window.addEventListener(CANVAS_COMMAND_EVENT, onCanvasCommand);
+    return () => window.removeEventListener(CANVAS_COMMAND_EVENT, onCanvasCommand);
+  }, [autoLayout, readOnly, runFullPipeline, saveNow]);
 
   return (
     <CanvasToastProvider>

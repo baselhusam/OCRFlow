@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 
 import { SidebarToggleButton } from "@/components/app/sidebar-toggle-button";
+import { CommandPalette } from "@/components/app/command-palette";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/lib/auth/session";
@@ -19,7 +20,10 @@ export function AppHeader() {
 
   return (
     <header className="flex h-[73px] shrink-0 items-center justify-between gap-4 border-b border-border bg-background px-4 md:px-9">
-      <SidebarToggleButton />
+      <div className="flex min-w-0 items-center gap-3">
+        <SidebarToggleButton />
+        <CommandPalette responsive />
+      </div>
       <div className="flex items-center gap-[18px]">
         <ThemeToggle />
         <Button

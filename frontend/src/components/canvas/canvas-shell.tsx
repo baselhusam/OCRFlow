@@ -12,6 +12,7 @@ import {
   writePaletteCollapsed,
 } from "@/lib/canvas/palette-prefs";
 import { BLOCKED_PIPELINE_MODELS } from "@/lib/canvas/wire-types";
+import { CANVAS_COMMAND_EVENT, type CanvasCommand } from "@/lib/keyboard-shortcuts";
 import type {
   CategoryMeta,
   ModelCatalogEntry,
@@ -58,6 +59,17 @@ export function CanvasShell({
     setPaletteCollapsed(collapsed);
     writePaletteCollapsed(collapsed);
   }, []);
+
+  useEffect(() => {
+    const onCanvasCommand = (event: Event) => {
+      const command = (event as CustomEvent<CanvasCommand>).detail;
+      if (command === "toggle-library") {
+        handlePaletteCollapsedChange(!paletteCollapsed);
+      }
+    };
+    window.addEventListener(CANVAS_COMMAND_EVENT, onCanvasCommand);
+    return () => window.removeEventListener(CANVAS_COMMAND_EVENT, onCanvasCommand);
+  }, [handlePaletteCollapsedChange, paletteCollapsed]);
 
   return (
     <TooltipProvider delay={400}>

@@ -12,6 +12,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { CanvasToast } from "@/components/canvas/canvas-toast";
+import { CommandPalette } from "@/components/app/command-palette";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -238,6 +239,7 @@ export function PipelineDefinitionHeader({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <CommandPalette compact />
           <Tooltip>
             <TooltipTrigger
               render={
