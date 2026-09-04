@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.core.engine_url import EngineUrlSafetyError, normalise_engine_url
 
-EngineProvider = Literal["docling", "surya", "paddle"]
+EngineProvider = Literal["docling", "surya", "paddle", "liquid"]
 EngineAuthType = Literal["none", "bearer", "x-api-key"]
 EngineStatus = Literal[
     "ready", "partial", "authentication_required", "incompatible", "unreachable", "blocked"

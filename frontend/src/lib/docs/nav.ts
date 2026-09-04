@@ -120,6 +120,12 @@ export const DOCS_NAV: DocsNavSection[] = [
         description: "DocLayout, OCR v6, and PP-Structure.",
       },
       {
+        title: "Liquid AI",
+        slug: "liquid",
+        file: "liquid.md",
+        description: "LFM2.5-VL document understanding and structured extraction.",
+      },
+      {
         title: "Loaders",
         slug: "loaders",
         file: "loaders.md",

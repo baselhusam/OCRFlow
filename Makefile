@@ -106,7 +106,7 @@ build: ## Build core images without starting anything
 
 .PHONY: build-ocr
 build-ocr: ## Build OCR provider images for the detected accelerator
-	$(COMPOSE_CMD) --profile surya --profile docling --profile paddle build surya docling paddle
+	$(COMPOSE_CMD) --profile surya --profile docling --profile paddle --profile liquid build surya docling paddle liquid
 
 .PHONY: ps
 ps: ## Show the status of stack containers
@@ -152,34 +152,43 @@ else
 	$(COMPOSE_CMD) --profile paddle up -d --build paddle
 endif
 
+.PHONY: ocr-liquid
+ocr-liquid: ## Start the Liquid LFM2.5-VL-1.6B service (:8104), GPU auto-detected
+ifeq ($(SERVE_MODE),host)
+	$(HOST_OCR) start liquid
+else
+	$(COMPOSE_CMD) --profile liquid up -d --build liquid
+endif
+
 .PHONY: ocr-up
 ocr-up: ## Start all OCR microservices (each or all; GPU auto-detected)
 ifeq ($(SERVE_MODE),host)
 	$(HOST_OCR) start surya
 	$(HOST_OCR) start docling
+	$(HOST_OCR) start liquid
 	$(COMPOSE_CMD) --profile paddle up -d --build paddle
 else
-	$(COMPOSE_CMD) --profile surya --profile docling --profile paddle up -d --build surya docling paddle
+	$(COMPOSE_CMD) --profile surya --profile docling --profile paddle --profile liquid up -d --build surya docling paddle liquid
 endif
 
 .PHONY: ocr-down
 ocr-down: ## Stop OCR microservices (leaves postgres/redis/gateway alone)
 	-$(HOST_OCR) stop
-	-$(COMPOSE) stop surya docling paddle
-	-$(COMPOSE) rm -f surya docling paddle
+	-$(COMPOSE) stop surya docling paddle liquid
+	-$(COMPOSE) rm -f surya docling paddle liquid
 
 .PHONY: ocr-ps
 ocr-ps: ## Show OCR microservice status (Docker + host)
-	-$(COMPOSE) ps surya docling paddle
+	-$(COMPOSE) ps surya docling paddle liquid
 	@$(HOST_OCR) status
 
 .PHONY: ocr-logs
 ocr-logs: ## Follow OCR logs (host files on Apple Silicon, else compose)
 ifeq ($(SERVE_MODE),host)
-	tail -f .ocr-run/surya.log .ocr-run/docling.log .ocr-run/paddle.log 2>/dev/null || \
-		$(COMPOSE) logs -f surya docling paddle
+	tail -f .ocr-run/surya.log .ocr-run/docling.log .ocr-run/paddle.log .ocr-run/liquid.log 2>/dev/null || \
+		$(COMPOSE) logs -f surya docling paddle liquid
 else
-	$(COMPOSE) --profile surya --profile docling --profile paddle logs -f surya docling paddle
+	$(COMPOSE) --profile surya --profile docling --profile paddle --profile liquid logs -f surya docling paddle liquid
 endif
 
 ##@ Backend — host dev (activate your venv first)
@@ -217,6 +226,12 @@ be-ocr-paddle: ## Host-dev Paddle microservice on :8103 (requires requirements-p
 	cd $(BACKEND) && OCRFLOW_SERVICE_PROVIDER=paddle OCRFLOW_RUNNER_MODE=local \
 		OCRFLOW_DEFAULT_DEVICE=$(PADDLE_DEVICE) \
 		uvicorn app.internal_service.app:app --host 127.0.0.1 --port 8103 --reload
+
+.PHONY: be-ocr-liquid
+be-ocr-liquid: ## Host-dev Liquid LFM2.5-VL-1.6B service on :8104 (requires requirements-liquid)
+	cd $(BACKEND) && OCRFLOW_SERVICE_PROVIDER=liquid OCRFLOW_RUNNER_MODE=local \
+		OCRFLOW_DEFAULT_DEVICE=$(DEVICE) PYTORCH_ENABLE_MPS_FALLBACK=1 \
+		uvicorn app.internal_service.app:app --host 127.0.0.1 --port 8104 --reload
 
 .PHONY: be-test
 be-test: ## Run the backend test suite (skips GPU tests)

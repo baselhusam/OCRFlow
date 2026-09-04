@@ -28,6 +28,11 @@ from app.schemas.models.ollama.generation import (
     OllamaVisionInput,
     OllamaVisionStructuredInput,
 )
+from app.schemas.models.liquid.generation import (
+    DEFAULT_VISION_MODEL as DEFAULT_LIQUID_VISION_MODEL,
+    LiquidVisionInput,
+    LiquidVisionStructuredInput,
+)
 from app.schemas.models.paddle.doclayout import DocLayoutInput
 from app.schemas.models.paddle.ocr import PaddleOcrInput
 from app.schemas.models.paddle.pp_structure import PpStructureInput
@@ -345,6 +350,48 @@ def _ollama_vision_structured_payload(
     return payload
 
 
+def _liquid_options(node: PipelineNodeRecord) -> dict[str, Any]:
+    options: dict[str, Any] = {
+        "model": DEFAULT_LIQUID_VISION_MODEL,
+        "temperature": node.config.get("temperature", 0.1),
+        "max_tokens": node.config.get("max_tokens", 1024),
+    }
+    system_prompt = node.config.get("system_prompt")
+    if isinstance(system_prompt, str) and system_prompt.strip():
+        options["system_prompt"] = system_prompt
+    return options
+
+
+def _liquid_vision_payload(
+    _project_id: str,
+    node: PipelineNodeRecord,
+    ctx: UpstreamContext,
+) -> dict[str, Any] | None:
+    page = _page_from_upstream(ctx)
+    if page is None:
+        return None
+    return {
+        "page": page,
+        "prompt": node.config.get(
+            "prompt",
+            "Read this document page accurately, preserving meaningful structure.",
+        ),
+        "options": _liquid_options(node),
+    }
+
+
+def _liquid_vision_structured_payload(
+    project_id: str,
+    node: PipelineNodeRecord,
+    ctx: UpstreamContext,
+) -> dict[str, Any] | None:
+    payload = _liquid_vision_payload(project_id, node, ctx)
+    if payload is None:
+        return None
+    payload["json_schema"] = _json_schema_from_node(node)
+    return payload
+
+
 def _reading_order_payload(_project_id: str, node: PipelineNodeRecord, ctx: UpstreamContext) -> dict[str, Any] | None:
     page = _page_from_upstream(ctx)
     regions = _regions_from_upstream(ctx)
@@ -521,6 +568,8 @@ MODEL_EXECUTION_SPECS: dict[str, tuple[type[BaseModel], PayloadBuilder, OutputEx
     "ollama/structured-extract": (OllamaStructuredInput, _ollama_structured_payload, _extract_json),
     "ollama/vision-prompt": (OllamaVisionInput, _ollama_vision_payload, _extract_text),
     "ollama/vision-structured-extract": (OllamaVisionStructuredInput, _ollama_vision_structured_payload, _extract_json),
+    "liquid/vision-prompt": (LiquidVisionInput, _liquid_vision_payload, _extract_text),
+    "liquid/vision-structured-extract": (LiquidVisionStructuredInput, _liquid_vision_structured_payload, _extract_json),
 }
 
 

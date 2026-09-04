@@ -56,3 +56,11 @@ services:
         <<: *rocm-build-args
     environment:
       <<: *rocm-env
+
+  liquid:
+    <<: *rocm-runtime
+    build:
+      args:
+        <<: *rocm-build-args
+    environment:
+      <<: *rocm-env

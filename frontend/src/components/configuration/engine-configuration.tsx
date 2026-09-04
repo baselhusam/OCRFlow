@@ -78,6 +78,12 @@ const PROVIDERS: {
     port: "8103",
     detail: "Document layout, OCR & PP-Structure",
   },
+  {
+    value: "liquid",
+    label: "Liquid AI",
+    port: "8104",
+    detail: "LFM2.5-VL-1.6B document understanding & extraction",
+  },
 ];
 
 const EMPTY_FORM: EngineInput = {
@@ -329,7 +335,7 @@ export function EngineConfiguration() {
             </div>
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary"><Network className="size-4" /></span>
           </div>
-          <div className="grid overflow-hidden rounded-xl border border-border bg-card md:grid-cols-3 md:divide-x md:divide-y-0 divide-y divide-border">
+          <div className="grid overflow-hidden rounded-xl border border-border bg-card md:grid-cols-2 xl:grid-cols-4 md:divide-x md:divide-y-0 divide-y divide-border">
             {PROVIDERS.map((provider) => <DefaultEngineCard key={provider.value} provider={provider} runtime={runtimeProviders.get(provider.value)} loading={loading && !runtime} />)}
           </div>
         </div>

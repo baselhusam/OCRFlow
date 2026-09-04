@@ -38,13 +38,14 @@ make db-migrate             # alembic upgrade inside the gateway container
 make ocr-surya              # :8101
 make ocr-docling            # :8102
 make ocr-paddle             # :8103
-make ocr-up                 # all three
+make ocr-liquid             # :8104, LFM2.5-VL-1.6B
+make ocr-up                 # all four
 make ocr-down
 make ocr-ps
 make ocr-logs
 ```
 
-On Apple Silicon, Docling/Surya start via `scripts/run-ocr-host.sh` (Metal). Paddle stays in Docker.
+On Apple Silicon, Docling/Surya/Liquid start via `scripts/run-ocr-host.sh` (Metal). Paddle stays in Docker.
 
 ## Host development
 
@@ -56,6 +57,7 @@ make be-worker              # Celery
 make be-ocr-surya
 make be-ocr-docling
 make be-ocr-paddle
+make be-ocr-liquid
 make fe-dev                 # Next.js :3000
 ```
 

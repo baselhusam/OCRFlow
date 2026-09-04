@@ -93,6 +93,14 @@ RUNNER_FACTORIES: dict[str, Callable[[], BaseRunner]] = {
         "app.models.ollama.generation",
         "OllamaVisionStructuredRunner",
     ),
+    "liquid/vision-prompt": _lazy(
+        "app.models.liquid.generation",
+        "LiquidVisionRunner",
+    ),
+    "liquid/vision-structured-extract": _lazy(
+        "app.models.liquid.generation",
+        "LiquidVisionStructuredRunner",
+    ),
     "loader/pdf": _lazy("app.models.loader.pdf", "PdfLoaderRunner"),
     "loader/image": _lazy("app.models.loader.image", "ImageLoaderRunner"),
     "loader/page-at": _lazy("app.models.loader.page_at", "PageAtRunner"),

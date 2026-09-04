@@ -1,7 +1,7 @@
 # Containerized model serving
 
-OCR models pull mutually-incompatible dependency stacks (Docling, Surya, and
-PaddleOCR cannot reliably share one Python environment). To isolate them, each
+OCR models pull mutually-incompatible dependency stacks (Docling, Surya,
+PaddleOCR, and Liquid LFM cannot reliably share one Python environment). To isolate them, each
 provider runs as its own Docker image/service and the OCRFlow API becomes a thin
 **gateway** that forwards inference to the right service over HTTP.
 
@@ -11,7 +11,8 @@ For on-prem / air-gapped packaging, image transfer, and smoke tests, see
 ```
 frontend ─► Next proxy ─► OCRFlow API (gateway)      ┌─ paddle  svc (requirements-paddle + internal app)
                           RUNNER_MODE=remote         ├─ docling svc (requirements-docling + internal app)
-                          RemoteModelRunner ─HTTP──►  └─ surya   svc (requirements-surya + internal app)
+                          RemoteModelRunner ─HTTP──►  ├─ surya   svc (requirements-surya + internal app)
+                                                     └─ liquid  svc (requirements-liquid + internal app)
                           GET /api/v1/models/runtime  (health-checks each service → who's running)
      postgres + redis (unchanged)
 ```
@@ -23,7 +24,7 @@ frontend ─► Next proxy ─► OCRFlow API (gateway)      ┌─ paddle  svc 
 - **local** — models load and run in-process, exactly as before. Single image,
   no behavior change. This is what the test suite exercises.
 - **remote** — the gateway routes each remote-provider model
-  (`docling/*`, `surya/*`, `paddle/*`) to a `RemoteModelRunner`
+  (`docling/*`, `surya/*`, `paddle/*`, `liquid/*`) to a `RemoteModelRunner`
   (`app/models/remote_runner.py`) that POSTs the typed input to the provider
   service and parses the typed output back. Loaders and other light in-process
   work still run inside the gateway.
@@ -94,14 +95,14 @@ unless you add their profiles (or use `--profile all`).
 
 From the repo root, **`make detect`** prints the OS, GPU vendor, device string,
 and compose overlay that will be used. `make ocr-up`, `make ocr-surya` /
-`ocr-docling` / `ocr-paddle`, and `make up-all` / `make gpu-up` all honor that
+`ocr-docling` / `ocr-paddle` / `ocr-liquid`, and `make up-all` / `make gpu-up` all honor that
 detection (override with `ACCELERATOR=cpu|nvidia|amd|mlx`).
 
 | Host | How OCR runs | GPU |
 |------|----------------|-----|
 | Linux / Windows (WSL2) + NVIDIA | Docker + `docker-compose.nvidia.yml` | CUDA torch + `paddlepaddle-gpu` |
-| Linux + AMD ROCm | Docker + `docker-compose.amd.yml` | PyTorch ROCm for Docling/Surya; Paddle CPU (no 3.x ROCm wheel) |
-| macOS Apple Silicon | Host processes for Docling/Surya; Docker `linux/amd64` for Paddle | Metal/MPS for Docling/Surya; Paddle CPU |
+| Linux + AMD ROCm | Docker + `docker-compose.amd.yml` | PyTorch ROCm for Docling/Surya/Liquid; Paddle CPU (no 3.x ROCm wheel) |
+| macOS Apple Silicon | Host processes for Docling/Surya/Liquid; Docker `linux/amd64` for Paddle | Metal/MPS for Docling/Surya/Liquid; Paddle CPU |
 | Anything else | Docker CPU images | CPU |
 
 Apple GPU is **not** available inside Docker Desktop's Linux VM, so MLX/Metal
@@ -115,14 +116,15 @@ optional Docker microservices. They are **not** loaded into the gateway process.
 
 1. Postgres + Redis: `docker compose -f backend/docker/docker-compose.yml up postgres redis`
 2. Copy `backend/.env.example` → `backend/.env` (includes `OCRFLOW_RUNNER_MODE=remote`
-   and localhost service URLs on ports `8101` / `8102` / `8103`).
+   and localhost service URLs on ports `8101` / `8102` / `8103` / `8104`).
 3. Gateway: `cd backend && uvicorn app.main:app --reload`
 4. Start only the OCR engines you need from the repo root (`make detect` first):
    - `make ocr-surya` → `http://127.0.0.1:8101`
    - `make ocr-docling` → `http://127.0.0.1:8102`
    - `make ocr-paddle` → `http://127.0.0.1:8103`
-   - `make ocr-up` / `make ocr-down` for all three
-   On Apple Silicon, Docling/Surya start as host processes so they can use
+   - `make ocr-liquid` → `http://127.0.0.1:8104`
+   - `make ocr-up` / `make ocr-down` for all four
+   On Apple Silicon, Docling/Surya/Liquid start as host processes so they can use
    Metal/MPS; Paddle still starts in Docker. Force CPU containers with
    `ACCELERATOR=cpu`.
 5. Frontend: `cd frontend && npm run dev`
@@ -168,8 +170,9 @@ on Apple Silicon).
 
 ```bash
 make detect              # OS, GPU vendor, overlay, serve mode
-make ocr-up              # all three providers, GPU auto-detected
+make ocr-up              # all four providers, GPU auto-detected
 make ocr-surya           # one provider
+make ocr-liquid          # Liquid LFM2.5-VL-1.6B
 make gpu-up              # full stack including OCR, GPU auto-detected
 make nvidia-up           # force NVIDIA CUDA overlay
 make amd-up              # force AMD ROCm overlay
@@ -190,11 +193,11 @@ docker compose -f docker-compose.yml -f backend/docker/docker-compose.amd.yml \
   --profile all up --build
 ```
 
-The NVIDIA overlay rebuilds Docling/Surya with CUDA torch and Paddle with
-`paddlepaddle-gpu`. The AMD overlay rebuilds Docling/Surya with ROCm torch;
+The NVIDIA overlay rebuilds Docling/Surya/Liquid with CUDA torch and Paddle with
+`paddlepaddle-gpu`. The AMD overlay rebuilds Docling/Surya/Liquid with ROCm torch;
 Paddle stays CPU because PaddlePaddle 3.x has no ROCm wheel. The gateway stays
 CPU-only; it does no inference.
 
 `OCRFLOW_DEFAULT_DEVICE` on a provider service can be `cpu`, `cuda`, `rocm`,
 `mps`, `mlx`, or `auto`. `mlx` is accepted as an alias for Apple GPU and maps
-to PyTorch `mps` (upstream Docling/Surya do not ship an MLX backend).
+to PyTorch `mps` (the Liquid provider uses PyTorch MPS; upstream Docling/Surya do not ship an MLX backend).

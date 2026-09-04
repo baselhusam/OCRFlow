@@ -10,6 +10,7 @@ const PROVIDER_LOGOS: Record<string, string | undefined> = {
   docling: "/models_logos/docling.png",
   surya: "/models_logos/surya_ocr_svg.svg",
   paddle: "/models_logos/paddle_ocr_logo.png",
+  liquid: "/models_logos/liquid-ai.svg",
 };
 
 /** Native OCRFlow pipeline providers (loaders, export, transforms, etc.). */
@@ -27,6 +28,7 @@ const PROVIDER_MONOGRAMS: Record<string, string> = {
   docling: "DL",
   surya: "SY",
   paddle: "PD",
+  liquid: "LI",
   ibm: "IBM",
   loader: "LD",
   export: "EX",

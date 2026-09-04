@@ -80,6 +80,7 @@ services:
       OCRFLOW_DOCLING_SERVICE_URL: http://docling:8000
       OCRFLOW_SURYA_SERVICE_URL: http://surya:8000
       OCRFLOW_PADDLE_SERVICE_URL: http://paddle:8000
+      OCRFLOW_LIQUID_SERVICE_URL: http://liquid:8000
       OCRFLOW_OLLAMA_BASE_URL: http://ollama:11434
       OCRFLOW_UPLOAD_DIR: /data/uploads
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -116,6 +117,7 @@ services:
       OCRFLOW_DOCLING_SERVICE_URL: http://docling:8000
       OCRFLOW_SURYA_SERVICE_URL: http://surya:8000
       OCRFLOW_PADDLE_SERVICE_URL: http://paddle:8000
+      OCRFLOW_LIQUID_SERVICE_URL: http://liquid:8000
       OCRFLOW_OLLAMA_BASE_URL: http://ollama:11434
       OCRFLOW_UPLOAD_DIR: /data/uploads
     command: ["celery", "-A", "app.celery_app:celery_app", "worker", "--loglevel=info"]
@@ -185,6 +187,23 @@ services:
       - ocrflow_surya_models:/models
       - ocrflow_uploads:/data/uploads:ro
 
+  liquid:
+    <<: *service-base
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: liquid
+    container_name: ocrflow-liquid
+    profiles: ["liquid", "all"]
+    ports:
+      - "8104:8000"
+    environment:
+      <<: *service-env
+      OCRFLOW_SERVICE_PROVIDER: liquid
+    volumes:
+      - ocrflow_liquid_models:/models
+      - ocrflow_uploads:/data/uploads:ro
+
   ollama:
     image: ollama/ollama:latest
     container_name: ocrflow-ollama
@@ -209,3 +228,4 @@ volumes:
   ocrflow_docling_models:
   ocrflow_surya_models:
   ocrflow_ollama_models:
+  ocrflow_liquid_models:

@@ -47,6 +47,7 @@ async def test_local_mode_reports_importable_providers(monkeypatch):
         "docling": True,
         "surya": True,
         "paddle": False,
+        "liquid": False,
         "ollama": True,
     }
     paddle = next(p for p in result.providers if p.provider == "paddle")
@@ -84,6 +85,7 @@ async def test_remote_mode_reports_reachable_providers(monkeypatch):
         "paddle": True,
         "docling": False,
         "surya": False,
+        "liquid": False,
         "ollama": False,
     }
 

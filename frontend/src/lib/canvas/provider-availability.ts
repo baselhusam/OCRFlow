@@ -14,6 +14,7 @@ export const REMOTE_PROVIDERS = new Set([
   "surya",
   "paddle",
   "ollama",
+  "liquid",
 ]);
 
 /** Stable display order for OCR microservice status chips. */
@@ -22,6 +23,7 @@ export const REMOTE_PROVIDER_ORDER = [
   "docling",
   "paddle",
   "ollama",
+  "liquid",
 ] as const;
 
 const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
@@ -29,6 +31,7 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   surya: "Surya",
   paddle: "PaddleOCR",
   ollama: "Ollama",
+  liquid: "Liquid AI",
 };
 
 export type ProviderRuntimeStatus = {

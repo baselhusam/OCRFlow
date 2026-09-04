@@ -36,6 +36,7 @@ _LOCAL_PROVIDER_MODULES: dict[str, tuple[str, ...]] = {
     "docling": ("docling",),
     "surya": ("surya",),
     "paddle": ("paddleocr",),
+    "liquid": ("torch", "transformers"),
 }
 
 _HEALTH_PATH = "/internal/health"

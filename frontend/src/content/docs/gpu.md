@@ -16,15 +16,15 @@ Typical output includes:
 - **accelerator** — `cpu`, `nvidia`, `amd`, or `mlx`
 - **device** — the string passed into runners (`cuda`, `rocm`, `mps`, `cpu`)
 - **overlay** — extra compose file for CUDA or ROCm
-- **serve-mode** — `docker` vs `host` (Apple Silicon uses host for Docling/Surya)
+- **serve-mode** — `docker` vs `host` (Apple Silicon uses host for Docling/Surya/Liquid)
 
 ## Platform matrix
 
-| Host | Docling / Surya | Paddle | GPU |
+| Host | Docling / Surya / Liquid | Paddle | GPU |
 | --- | --- | --- | --- |
 | Linux / Windows (WSL2) + NVIDIA | Docker + CUDA overlay | Docker GPU (`paddlepaddle-gpu`) | CUDA |
-| Linux + AMD ROCm | Docker + ROCm overlay | CPU (no Paddle 3.x ROCm wheel) | ROCm for Docling/Surya |
-| macOS Apple Silicon | **Host processes** (Metal/MPS) | Docker `linux/amd64`, CPU | MPS for Docling/Surya |
+| Linux + AMD ROCm | Docker + ROCm overlay | CPU (no Paddle 3.x ROCm wheel) | ROCm for Docling/Surya/Liquid |
+| macOS Apple Silicon | **Host processes** (Metal/MPS) | Docker `linux/amd64`, CPU | MPS for Docling/Surya/Liquid |
 | Anything else | Docker CPU images | Docker CPU | CPU |
 
 Apple GPU is **not** available inside Docker Desktop's Linux VM. That is why MLX/Metal acceleration is host-native.
@@ -32,7 +32,7 @@ Apple GPU is **not** available inside Docker Desktop's Linux VM. That is why MLX
 ## Start OCR on the detected GPU
 
 ```bash
-make ocr-up          # all three engines
+make ocr-up          # all four engines
 make gpu-up          # core stack + OCR, same detection
 make nvidia-up       # force CUDA overlay
 make amd-up          # force ROCm overlay
@@ -45,6 +45,7 @@ Individual engines:
 make ocr-surya       # :8101
 make ocr-docling     # :8102
 make ocr-paddle      # :8103
+make ocr-liquid      # :8104
 make ocr-ps          # status
 make ocr-logs        # follow provider logs
 make ocr-down        # stop OCR only
@@ -59,7 +60,7 @@ The gateway probes each provider's `/internal/health` when `OCRFLOW_RUNNER_MODE=
 - Can reveal offline nodes via **Show offline**.
 - Refreshes about every 10 seconds and on window focus — no full reload required.
 
-Light in-process work (PDF/image loaders, page-at) still runs inside the gateway. Only `docling/*`, `surya/*`, and `paddle/*` inference is forwarded.
+Light in-process work (PDF/image loaders, page-at) still runs inside the gateway. Only `docling/*`, `surya/*`, `paddle/*`, and `liquid/*` inference is forwarded.
 
 ## Device on each runner
 

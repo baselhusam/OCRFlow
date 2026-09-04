@@ -66,6 +66,8 @@ MODEL_WIRE_KINDS: dict[str, dict[str, WireKind]] = {
         "input": "page_artifact",
         "output": "json",
     },
+    "liquid/vision-prompt": {"input": "page_artifact", "output": "text"},
+    "liquid/vision-structured-extract": {"input": "page_artifact", "output": "json"},
 }
 
 CATEGORY_WIRE_TYPES: dict[str, dict[str, str]] = {

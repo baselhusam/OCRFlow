@@ -719,6 +719,59 @@ for (const id of [
   };
 }
 
+for (const id of [
+  "liquid/vision-prompt",
+  "liquid/vision-structured-extract",
+]) {
+  const structured = id === "liquid/vision-structured-extract";
+  REGISTRY[id] = {
+    apiPath: `/api/v1/models/${id}`,
+    buildPayload(ctx) {
+      const page = extractPageImageFromCtx(ctx);
+      if (!page) return null;
+      const payload: Record<string, unknown> = {
+        page,
+        prompt: String(
+          ctx.data.params.prompt ??
+            (structured
+              ? "Extract the requested fields from this document page."
+              : "Read this document page accurately, preserving meaningful structure."),
+        ),
+        options: {
+          model: "LiquidAI/LFM2.5-VL-1.6B",
+          temperature: Number(ctx.data.params.temperature ?? 0.1),
+          max_tokens: Number(ctx.data.params.max_tokens ?? 1024),
+          ...(typeof ctx.data.params.system_prompt === "string" &&
+          ctx.data.params.system_prompt.trim()
+            ? { system_prompt: ctx.data.params.system_prompt }
+            : {}),
+        },
+      };
+      if (structured) {
+        const schema = parseConfiguredJsonSchema(ctx.data.params);
+        if (!schema) return null;
+        payload.json_schema = schema;
+      }
+      return payload;
+    },
+    extractOutput(_modelId, response) {
+      if (structured) {
+        const data =
+          typeof response.data === "object" && response.data !== null
+            ? response.data
+            : {};
+        return { kind: "json", raw: response, preview: { jsonPreview: data } };
+      }
+      const text = typeof response.text === "string" ? response.text : "";
+      return {
+        kind: "text",
+        raw: response,
+        preview: { itemCount: text ? 1 : 0, textSnippets: text ? [text] : [] },
+      };
+    },
+  };
+}
+
 export function getModelInferenceDef(
   modelId: string,
 ): ModelInferenceDef | null {

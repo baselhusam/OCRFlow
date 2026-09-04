@@ -812,6 +812,8 @@ introducing provider-specific canvas contracts.
 | `ollama/structured-extract` | `llm_extract` | text + prompt + JSON Schema | validated JSON | Qwen3 0.6B | done |
 | `ollama/vision-prompt` | `vision_language` | page image + prompt | text | Qwen3.5 0.8B | done |
 | `ollama/vision-structured-extract` | `vision_language` | page image + prompt + JSON Schema | validated JSON | Qwen3.5 0.8B | done |
+| `liquid/vision-prompt` | `vision_language` | page image + prompt | text | LFM2.5-VL-1.6B | done |
+| `liquid/vision-structured-extract` | `vision_language` | page image + prompt + JSON Schema | validated JSON | LFM2.5-VL-1.6B | done |
 
 Supported selectable models are intentionally allowlisted at or below one
 billion parameters: `qwen3:0.6b` for text and `qwen3.5:0.8b` for text or
@@ -825,6 +827,14 @@ Install the local weights:
 ollama pull qwen3:0.6b
 ollama pull qwen3.5:0.8b
 ```
+
+## Liquid AI LFM2.5-VL
+
+Liquid runs as an isolated OCRFlow provider service, not through Ollama. The
+default checkpoint is `LiquidAI/LFM2.5-VL-1.6B`, a multilingual document VLM
+for page understanding and prompted JSON extraction. Its service is available
+through `make ocr-liquid` on port `8104`; the gateway forwards both Liquid node
+APIs in remote mode. The model uses the LFM Open License v1.0.
 
 ---
 

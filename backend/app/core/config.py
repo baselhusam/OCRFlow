@@ -78,6 +78,10 @@ class Settings(BaseSettings):
         default="http://127.0.0.1:8103",
         validation_alias="OCRFLOW_PADDLE_SERVICE_URL",
     )
+    liquid_service_url: str = Field(
+        default="http://127.0.0.1:8104",
+        validation_alias="OCRFLOW_LIQUID_SERVICE_URL",
+    )
     ollama_base_url: str = Field(
         default="http://127.0.0.1:11434",
         validation_alias="OCRFLOW_OLLAMA_BASE_URL",
@@ -102,6 +106,7 @@ class Settings(BaseSettings):
             "docling": self.docling_service_url,
             "surya": self.surya_service_url,
             "paddle": self.paddle_service_url,
+            "liquid": self.liquid_service_url,
             "ollama": self.ollama_base_url,
         }.get(provider)
 

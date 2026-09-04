@@ -2,8 +2,8 @@
 # Run an OCR provider as a host microservice (Apple Silicon GPU path).
 #
 # Usage:
-#   scripts/run-ocr-host.sh start <surya|docling|paddle>
-#   scripts/run-ocr-host.sh stop  [surya|docling|paddle]
+#   scripts/run-ocr-host.sh start <surya|docling|paddle|liquid>
+#   scripts/run-ocr-host.sh stop  [surya|docling|paddle|liquid]
 #   scripts/run-ocr-host.sh status
 #
 # Apple GPU is not available inside Docker Desktop's Linux VM, so Docling and
@@ -27,7 +27,8 @@ port_for() {
     surya) echo 8101 ;;
     docling) echo 8102 ;;
     paddle) echo 8103 ;;
-    *) die "Unknown provider '$1' (surya|docling|paddle)" ;;
+    liquid) echo 8104 ;;
+    *) die "Unknown provider '$1' (surya|docling|paddle|liquid)" ;;
   esac
 }
 
@@ -135,7 +136,7 @@ status_one() {
 
 case "$ACTION" in
   start)
-    [ -n "$PROVIDER" ] || die "usage: $0 start <surya|docling|paddle>"
+    [ -n "$PROVIDER" ] || die "usage: $0 start <surya|docling|paddle|liquid>"
     start_one "$PROVIDER"
     ;;
   stop)
@@ -145,14 +146,16 @@ case "$ACTION" in
       stop_one surya
       stop_one docling
       stop_one paddle
+      stop_one liquid
     fi
     ;;
   status)
     status_one surya
     status_one docling
     status_one paddle
+    status_one liquid
     ;;
   *)
-    die "usage: $0 start <surya|docling|paddle> | stop [provider] | status"
+    die "usage: $0 start <surya|docling|paddle|liquid> | stop [provider] | status"
     ;;
 esac

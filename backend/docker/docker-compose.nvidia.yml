@@ -54,3 +54,11 @@ services:
         <<: *nvidia-build-args
     environment:
       <<: *nvidia-env
+
+  liquid:
+    <<: *nvidia-reservation
+    build:
+      args:
+        <<: *nvidia-build-args
+    environment:
+      <<: *nvidia-env

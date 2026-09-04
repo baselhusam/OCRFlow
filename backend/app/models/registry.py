@@ -499,6 +499,29 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         display_name="Local Vision Structured Extract",
         notes="Qwen3.5 0.8B vision with JSON Schema output.",
     ),
+    # Liquid AI — local, multilingual document vision (LFM2.5-VL-1.6B)
+    _entry(
+        "liquid/vision-prompt",
+        category="vision_language",
+        provider="liquid",
+        status=ModelStatus.done,
+        compute=ComputeTier.gpu_low,
+        license="lfm-open-license-v1.0",
+        python_extra="liquid",
+        display_name="Liquid Vision Prompt",
+        notes="LFM2.5-VL-1.6B; multilingual document understanding and OCR.",
+    ),
+    _entry(
+        "liquid/vision-structured-extract",
+        category="vision_language",
+        provider="liquid",
+        status=ModelStatus.done,
+        compute=ComputeTier.gpu_low,
+        license="lfm-open-license-v1.0",
+        python_extra="liquid",
+        display_name="Liquid Vision Structured Extract",
+        notes="LFM2.5-VL-1.6B with schema-validated JSON output.",
+    ),
     # Phase 4 — LLM tasks
     _entry(
         "llm/structured-extract",

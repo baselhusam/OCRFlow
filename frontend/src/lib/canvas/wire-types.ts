@@ -199,6 +199,11 @@ export const MODEL_WIRE_KINDS: Record<
     input: "page_artifact",
     output: "json",
   },
+  "liquid/vision-prompt": { input: "page_artifact", output: "text" },
+  "liquid/vision-structured-extract": {
+    input: "page_artifact",
+    output: "json",
+  },
 };
 
 export const BLOCKED_PIPELINE_MODELS = new Set([
@@ -255,6 +260,8 @@ const MODEL_CATEGORIES: Record<string, string> = {
   "ollama/structured-extract": "llm_extract",
   "ollama/vision-prompt": "vision_language",
   "ollama/vision-structured-extract": "vision_language",
+  "liquid/vision-prompt": "vision_language",
+  "liquid/vision-structured-extract": "vision_language",
 };
 
 export function getModelWireLabels(

@@ -2,12 +2,12 @@
 
 OCRFlow is designed for on-prem and air-gapped environments: the API gateway
 never requires outbound network access once images and model weights are
-staged. OCR engines (Surya, Docling, Paddle) are optional microservices.
+staged. OCR engines (Surya, Docling, Paddle, Liquid) are optional microservices.
 
 ## Core principles
 
 1. **Control plane** — frontend, gateway, Celery worker, PostgreSQL, Redis.
-2. **Data plane** — only the OCR providers you choose (`surya`, `docling`, `paddle`).
+2. **Data plane** — only the OCR providers you choose (`surya`, `docling`, `paddle`, `liquid`).
 3. **No OCR by default** — `make up` / `make up-core` start core only.
 4. **Runtime truth** — `GET /api/v1/models/runtime` reports which providers are up;
    the project canvas sidebar mirrors that automatically.
@@ -50,7 +50,7 @@ TRANSFORMERS_OFFLINE=1
 | `postgres`, `redis` | Always on |
 | `gateway` + `worker` | API + background runs |
 | `frontend` | UI |
-| `surya` / `docling` / `paddle` | Opt-in OCR |
+| `surya` / `docling` / `paddle` / `liquid` | Opt-in OCR and document VLM |
 
 Host hybrid (dev):
 
@@ -92,7 +92,7 @@ Options:
 3. **Bind-mount** — mount the host upload dir into each OCR service at the same
    absolute path the gateway writes.
 
-Mismatched paths surface as file-not-found inside Docling/Surya/Paddle, not as
+Mismatched paths surface as file-not-found inside Docling/Surya/Paddle/Liquid, not as
 gateway upload failures.
 
 ## Security hardening (production)

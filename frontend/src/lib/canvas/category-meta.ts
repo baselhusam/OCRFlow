@@ -126,6 +126,20 @@ export const DEFAULT_NODE_PARAMS: Record<
     json_schema:
       '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}',
   },
+  "liquid/vision-prompt": {
+    model: "LiquidAI/LFM2.5-VL-1.6B",
+    prompt: "Read this document page accurately, preserving meaningful structure.",
+    temperature: 0.1,
+    max_tokens: 1024,
+  },
+  "liquid/vision-structured-extract": {
+    model: "LiquidAI/LFM2.5-VL-1.6B",
+    prompt: "Extract the requested fields from this document page.",
+    temperature: 0.1,
+    max_tokens: 1024,
+    json_schema:
+      '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}',
+  },
   export: { pretty: true },
 };
 

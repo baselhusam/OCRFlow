@@ -9,9 +9,9 @@ by:
 * the internal provider service app — needs the input schema to validate the
   forwarded JSON body before handing it to the local runner.
 
-Only the heavy ML providers (docling, surya, paddle) are served remotely. Light
-in-process work (loaders, transforms) always runs inside whichever process
-handles the request.
+Only the optional ML providers (Docling, Surya, Paddle, and Liquid) are served
+remotely. Light in-process work (loaders, transforms) always runs inside
+whichever process handles the request.
 """
 
 from __future__ import annotations
@@ -45,6 +45,12 @@ from app.schemas.models.docling.table_structure import (
     TableStructureOutput,
 )
 from app.schemas.models.docling.vlm_convert import VlmConvertInput, VlmConvertOutput
+from app.schemas.models.liquid.generation import (
+    LiquidStructuredOutput,
+    LiquidVisionInput,
+    LiquidVisionStructuredInput,
+    LiquidTextOutput,
+)
 from app.schemas.models.paddle.doclayout import DocLayoutInput, DocLayoutOutput
 from app.schemas.models.paddle.ocr import PaddleOcrInput, PaddleOcrOutput
 from app.schemas.models.paddle.pp_structure import PpStructureInput, PpStructureOutput
@@ -70,7 +76,7 @@ from app.schemas.models.surya.text_recognition import (
 )
 
 #: Providers that run as their own containerized service in remote mode.
-REMOTE_PROVIDERS: frozenset[str] = frozenset({"docling", "surya", "paddle"})
+REMOTE_PROVIDERS: frozenset[str] = frozenset({"docling", "surya", "paddle", "liquid"})
 
 
 @dataclass(frozen=True)
@@ -136,6 +142,13 @@ SERVABLE_MODELS: dict[str, ServableModel] = {
         _servable("paddle/doclayout-s", DocLayoutInput, DocLayoutOutput),
         _servable("paddle/ocr-v6-small", PaddleOcrInput, PaddleOcrOutput),
         _servable("paddle/pp-structure", PpStructureInput, PpStructureOutput),
+        # Liquid AI — LFM2.5-VL-1.6B document vision
+        _servable("liquid/vision-prompt", LiquidVisionInput, LiquidTextOutput),
+        _servable(
+            "liquid/vision-structured-extract",
+            LiquidVisionStructuredInput,
+            LiquidStructuredOutput,
+        ),
     )
 }
 

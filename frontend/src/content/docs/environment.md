@@ -25,6 +25,7 @@ When `OCRFLOW_RUNNER_MODE=remote`, the gateway needs URLs for each engine you st
 - Surya `http://127.0.0.1:8101`
 - Docling `http://127.0.0.1:8102`
 - Paddle `http://127.0.0.1:8103`
+- Liquid AI `http://127.0.0.1:8104`
 
 Compose sets service DNS instead of localhost. See `backend/.env.example` and `backend/.env.remote.example` for the exact names.
 

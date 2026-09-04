@@ -1,0 +1,6 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Liquid AI</title>
+  <path d="M48 8C48 8 22 36.7 22 57.1C22 71.9 33.6 84 48 84C62.4 84 74 71.9 74 57.1C74 36.7 48 8 48 8Z" fill="#0B8F88"/>
+  <path d="M32 56.5C38.1 50.6 44.3 47.7 50.5 47.7C57.5 47.7 62.6 50.4 67 54.2" stroke="white" stroke-width="6" stroke-linecap="round"/>
+  <path d="M32 67C38.1 61.1 44.3 58.2 50.5 58.2C57.5 58.2 62.6 60.9 67 64.7" stroke="white" stroke-width="6" stroke-linecap="round" opacity=".72"/>
+</svg>

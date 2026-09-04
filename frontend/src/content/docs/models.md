@@ -55,6 +55,19 @@ Details: [Surya](/documentation/surya). Check license compatibility before shipp
 
 Details: [Paddle](/documentation/paddle).
 
+## Liquid AI (`:8104`)
+
+Liquid's optional provider runs `LiquidAI/LFM2.5-VL-1.6B` in an isolated
+Transformers service. It is a multilingual VLM for document comprehension and
+prompted extraction rather than a bounding-box OCR engine.
+
+| ID | Input → output |
+| --- | --- |
+| `liquid/vision-prompt` | page image + instruction → text |
+| `liquid/vision-structured-extract` | page image + JSON Schema → validated JSON |
+
+Details: [Liquid AI](/documentation/liquid).
+
 ## Local text and vision (`Ollama :11434`)
 
 | ID | Input → output | Default |

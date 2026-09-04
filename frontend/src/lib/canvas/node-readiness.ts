@@ -126,6 +126,38 @@ export function validateNodeParams(
     }
   }
 
+  if (modelId.startsWith("liquid/")) {
+    if (String(params.model ?? "LiquidAI/LFM2.5-VL-1.6B") !== "LiquidAI/LFM2.5-VL-1.6B") {
+      issues.push("Liquid nodes use the bundled LFM2.5-VL-1.6B model");
+    }
+    if (!String(params.prompt ?? "").trim()) {
+      issues.push("Prompt is required");
+    }
+    const temperature = Number(params.temperature ?? 0.1);
+    if (temperature < 0 || temperature > 2) {
+      issues.push("temperature must be between 0 and 2");
+    }
+    const maxTokens = Number(params.max_tokens ?? 1024);
+    if (maxTokens < 1 || maxTokens > 8192) {
+      issues.push("max_tokens must be between 1 and 8192");
+    }
+    if (modelId.includes("structured-extract")) {
+      try {
+        const schema = JSON.parse(String(params.json_schema ?? ""));
+        if (
+          typeof schema !== "object" ||
+          schema === null ||
+          schema.type !== "object" ||
+          typeof schema.properties !== "object" ||
+          schema.properties === null
+        ) {
+          issues.push("JSON Schema must define an object with properties");
+        }
+      } catch {
+        issues.push("JSON Schema must be valid JSON");
+      }
+    }
+  }
   const confidence = params.confidence_threshold;
   if (confidence !== undefined) {
     const v = Number(confidence);
