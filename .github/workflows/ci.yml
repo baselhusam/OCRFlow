@@ -47,6 +47,9 @@ jobs:
       REDIS_URL: redis://localhost:6379/0
       CELERY_BROKER_URL: redis://localhost:6379/0
       CELERY_RESULT_BACKEND: redis://localhost:6379/1
+      # pytest-asyncio creates a loop per test; asyncpg connections cannot be
+      # safely returned to a pool and reused on another loop.
+      SQLALCHEMY_POOL_CLASS: "null"
 
     steps:
       - uses: actions/checkout@v4

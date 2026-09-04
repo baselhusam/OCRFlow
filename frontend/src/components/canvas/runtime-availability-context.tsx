@@ -29,7 +29,7 @@ type RuntimeAvailabilityValue = {
   onlineRemoteProviders: string[];
   isProviderOffline: (provider: string) => boolean;
   getModelStatus: (
-    model: Pick<ModelCatalogEntry, "provider">,
+    model: Pick<ModelCatalogEntry, "id" | "provider">,
   ) => ProviderRuntimeStatus;
 };
 
