@@ -1,6 +1,7 @@
 from app.db.models.analytics_event import AnalyticsEvent
 from app.db.models.api_key import ApiKey, ApiKeyUsage
 from app.db.models.ocr_engine import OcrEngine
+from app.db.models.model_connection import ModelConnection
 from app.db.models.pipeline import Pipeline
 from app.db.models.pipeline_job import PipelineJob
 from app.db.models.pipeline_run import PipelineRun
@@ -13,6 +14,7 @@ __all__ = [
     "ApiKey",
     "ApiKeyUsage",
     "OcrEngine",
+    "ModelConnection",
     "Pipeline",
     "PipelineJob",
     "PipelineRun",

@@ -1,5 +1,6 @@
 import type { NodeCachedOutput, OutputPreview, PipelineNodeData } from "@/lib/canvas/types";
 import { SOURCE_NODE_MODELS } from "@/lib/canvas/category-meta";
+import { connectedNodeIds, getConnectedProtocol } from "@/lib/canvas/connected-node-meta";
 import { parseLanguageCodes } from "@/lib/canvas/node-param-schema";
 import {
   regionsToFigures,
@@ -769,6 +770,27 @@ for (const id of [
         preview: { itemCount: text ? 1 : 0, textSnippets: text ? [text] : [] },
       };
     },
+  };
+}
+
+for (const id of ["llm/text-prompt", "llm/structured-extract", "vlm/vision-prompt", "vlm/vision-structured-extract", ...connectedNodeIds()]) {
+  const vision = id.startsWith("vlm/");
+  const structured = id.includes("structured-extract");
+  REGISTRY[id] = {
+    apiPath: `/api/v1/models/connected/${vision ? (structured ? "vision-structured-extract" : "vision-prompt") : (structured ? "structured-extract" : "text-prompt")}`,
+    buildPayload(ctx) {
+      const connection_id = String(ctx.data.params.connection_id ?? "").trim();
+      const model = String(ctx.data.params.model ?? "").trim();
+      if (!connection_id || !model) return null;
+      const provider_protocol = getConnectedProtocol(id);
+      const options = { connection_id, model, temperature: Number(ctx.data.params.temperature ?? 0), max_tokens: Number(ctx.data.params.max_tokens ?? 1024), ...(provider_protocol ? { provider_protocol } : {}), ...(typeof ctx.data.params.system_prompt === "string" && ctx.data.params.system_prompt.trim() ? {system_prompt:ctx.data.params.system_prompt} : {}) };
+      const payload: Record<string, unknown> = { prompt: String(ctx.data.params.prompt ?? ""), options };
+      if (vision) { const page=extractPageImageFromCtx(ctx); if(!page)return null; payload.page=page; }
+      else { const text=textFromUpstream(ctx.upstreamOutput) ?? (typeof ctx.data.params.text === "string" ? ctx.data.params.text.trim() : ""); if(!text)return null; payload.text=text; }
+      if (structured) { const schema=parseConfiguredJsonSchema(ctx.data.params); if(!schema)return null; payload.json_schema=schema; }
+      return payload;
+    },
+    extractOutput(_id,response) { if(structured){const data=typeof response.data === "object" && response.data !== null ? response.data : {};return {kind:"json",raw:response,preview:{jsonPreview:data}};} const text=typeof response.text === "string"?response.text:"";return {kind:"text",raw:response,preview:{itemCount:text?1:0,textSnippets:text?[text]:[]}}; },
   };
 }
 

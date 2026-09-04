@@ -82,6 +82,18 @@ parameters. Start Ollama, pull `qwen3:0.6b` and `qwen3.5:0.8b`, then configure
 the instruction and optional system prompt in Setup. Structured nodes require a
 top-level object JSON Schema; malformed schemas are blocked before a run.
 
+## Connected LLM and VLM providers
+
+| ID | Input → output |
+| --- | --- |
+| `llm/text-prompt` | text + prompt → text |
+| `llm/structured-extract` | text + JSON Schema → JSON |
+| `vlm/vision-prompt` | page image + prompt → text |
+| `vlm/vision-structured-extract` | page image + JSON Schema → JSON |
+
+These nodes run through a validated connection configured for OpenAI,
+Anthropic, or an API-compatible hosted/on-prem provider.
+
 ## Planned and deferred
 
 The backend registry also lists Tesseract, RapidOCR, EasyOCR, docTR, TrOCR, Table Transformer, RapidLaTeXOCR, Florence-2, vLLM, export nodes, and more. They appear as future palette rows. Do not wire them expecting inference.

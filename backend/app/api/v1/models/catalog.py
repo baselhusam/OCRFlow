@@ -1,6 +1,7 @@
 """Model catalog HTTP endpoints."""
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.models.registry import (
@@ -14,6 +15,7 @@ from app.services.runtime_availability import (
     RuntimeAvailability,
     get_runtime_availability,
 )
+from app.db.session import get_db
 
 router = APIRouter()
 
@@ -35,9 +37,10 @@ async def list_all_categories() -> list[CategoryMeta]:
 @router.get("/runtime", response_model=RuntimeAvailability)
 async def get_runtime(
     settings: Settings = Depends(get_settings),
+    db: AsyncSession = Depends(get_db),
 ) -> RuntimeAvailability:
     """Which provider backends are reachable right now (drives UI gating)."""
-    return await get_runtime_availability(settings)
+    return await get_runtime_availability(settings, db)
 
 
 @router.get("/{model_id:path}", response_model=ModelRegistryEntry)

@@ -5,6 +5,7 @@ import { FileText, Loader2, Upload, X } from "lucide-react";
 
 import { DetailSection } from "@/components/canvas/node-detail/detail-section";
 import { ParamField } from "@/components/canvas/node-detail/param-field";
+import { ConnectionSelectField } from "@/components/canvas/node-detail/connection-select-field";
 import { PageIndexPicker } from "@/components/canvas/page-index-picker";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
 import { uploadPipelineAsset, uploadProjectAsset } from "@/lib/api/assets";
@@ -26,6 +27,7 @@ import {
 } from "@/lib/canvas/region-branch-meta";
 import type { PipelineNodeData } from "@/lib/canvas/types";
 import { cn } from "@/lib/utils";
+import { isConnectedModel, isConnectedVisionModel } from "@/lib/canvas/connected-node-meta";
 
 type NodeDetailSetupTabProps = {
   nodeId: string;
@@ -234,17 +236,31 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
         >
           <div className="space-y-3">
             {editableFields.map((field) => (
-              <ParamField
-                key={field.key}
-                field={field}
-                value={resolveParamValue(data.modelId, data.params, field)}
-                maxOverride={
-                  field.key === "page_index"
-                    ? Math.max(1, upstreamPages.length)
-                    : undefined
-                }
-                onChange={(val) => updateNodeConfig(nodeId, { [field.key]: val })}
-              />
+              field.key === "connection_id" && isConnectedModel(data.modelId) ? (
+                <ConnectionSelectField
+                  key={field.key}
+                  modelId={data.modelId}
+                  value={resolveParamValue(data.modelId, data.params, field)}
+                  onChange={(connection) => updateNodeConfig(nodeId, {
+                    connection_id: connection?.id ?? "",
+                    model: (isConnectedVisionModel(data.modelId)
+                      ? connection?.vision_model
+                      : connection?.text_model) ?? "",
+                  })}
+                />
+              ) : (
+                <ParamField
+                  key={field.key}
+                  field={field}
+                  value={resolveParamValue(data.modelId, data.params, field)}
+                  maxOverride={
+                    field.key === "page_index"
+                      ? Math.max(1, upstreamPages.length)
+                      : undefined
+                  }
+                  onChange={(val) => updateNodeConfig(nodeId, { [field.key]: val })}
+                />
+              )
             ))}
           </div>
           {paramErrors.length > 0 && (

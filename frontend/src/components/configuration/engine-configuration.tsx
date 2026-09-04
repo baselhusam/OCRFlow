@@ -53,6 +53,7 @@ import type {
 } from "@/lib/api/ocr-engines";
 import type { RuntimeAvailability } from "@/lib/canvas/types";
 import { cn } from "@/lib/utils";
+import { ModelConnectionConfiguration } from "@/components/configuration/model-connection-configuration";
 
 const PROVIDERS: {
   value: EngineProvider;
@@ -357,6 +358,8 @@ export function EngineConfiguration() {
           </div>
         </div>
       </section>
+
+      <ModelConnectionConfiguration />
 
       <AddEngineDialog
         open={addDialogOpen}

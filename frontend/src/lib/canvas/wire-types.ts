@@ -1,4 +1,5 @@
 import { CATEGORY_WIRE_TYPES } from "@/lib/canvas/category-meta";
+import { CONNECTED_PROTOCOLS } from "@/lib/canvas/connected-node-meta";
 
 /** Structured wire kinds aligned with backend pipeline artifacts. */
 
@@ -204,7 +205,18 @@ export const MODEL_WIRE_KINDS: Record<
     input: "page_artifact",
     output: "json",
   },
+  "llm/text-prompt": { input: "text", output: "text" },
+  "llm/structured-extract": { input: "text", output: "json" },
+  "vlm/vision-prompt": { input: "page_artifact", output: "text" },
+  "vlm/vision-structured-extract": { input: "page_artifact", output: "json" },
 };
+
+for (const protocol of CONNECTED_PROTOCOLS) {
+  MODEL_WIRE_KINDS[`${protocol}/text-prompt`] = { input: "text", output: "text" };
+  MODEL_WIRE_KINDS[`${protocol}/structured-extract`] = { input: "text", output: "json" };
+  MODEL_WIRE_KINDS[`${protocol}/vision-prompt`] = { input: "page_artifact", output: "text" };
+  MODEL_WIRE_KINDS[`${protocol}/vision-structured-extract`] = { input: "page_artifact", output: "json" };
+}
 
 export const BLOCKED_PIPELINE_MODELS = new Set([
   "loader/page-at",
@@ -262,6 +274,10 @@ const MODEL_CATEGORIES: Record<string, string> = {
   "ollama/vision-structured-extract": "vision_language",
   "liquid/vision-prompt": "vision_language",
   "liquid/vision-structured-extract": "vision_language",
+  "llm/text-prompt": "text_generation",
+  "llm/structured-extract": "llm_extract",
+  "vlm/vision-prompt": "vision_language",
+  "vlm/vision-structured-extract": "vision_language",
 };
 
 export function getModelWireLabels(

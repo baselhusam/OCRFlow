@@ -22,11 +22,13 @@ import importlib.util
 
 import httpx
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import RunnerMode, Settings
 from app.models.servable import REMOTE_PROVIDERS
 from app.models.servable import models_for_provider
 from app.services.ocr_engines import get_live_engine_capabilities
+from app.services.model_connections import get_connection_runtime_statuses
 
 #: Importable top-level modules that indicate a provider stack is installed
 #: for in-process (``local``) mode. Mirrors the optional requirements-*.txt
@@ -120,7 +122,9 @@ async def _probe_provider(
     )
 
 
-async def get_runtime_availability(settings: Settings) -> RuntimeAvailability:
+async def get_runtime_availability(
+    settings: Settings, db: AsyncSession | None = None,
+) -> RuntimeAvailability:
     providers = sorted(_RUNTIME_PROVIDERS)
 
     if settings.runner_mode != RunnerMode.remote:
@@ -137,7 +141,7 @@ async def get_runtime_availability(settings: Settings) -> RuntimeAvailability:
                 ollama.model_copy(update={"mode": RunnerMode.local.value}),
             ],
         )
-        return await _with_configured_engines(runtime)
+        return await _with_configured_engines(runtime, db)
 
     timeout = settings.runtime_health_timeout_seconds
     async with httpx.AsyncClient(timeout=timeout) as client:
@@ -145,14 +149,17 @@ async def get_runtime_availability(settings: Settings) -> RuntimeAvailability:
             *(_probe_provider(provider, settings, client) for provider in providers)
         )
     return await _with_configured_engines(
-        RuntimeAvailability(mode=RunnerMode.remote.value, providers=list(results))
+        RuntimeAvailability(mode=RunnerMode.remote.value, providers=list(results)),
+        db,
     )
 
 
-async def _with_configured_engines(runtime: RuntimeAvailability) -> RuntimeAvailability:
+async def _with_configured_engines(
+    runtime: RuntimeAvailability, db: AsyncSession | None = None,
+) -> RuntimeAvailability:
     """Give valid external engines precedence over the built-in provider URL."""
     configured = await get_live_engine_capabilities()
-    if not configured:
+    if not configured and db is None:
         return runtime
 
     providers_by_id = {provider.provider: provider for provider in runtime.providers}
@@ -165,6 +172,9 @@ async def _with_configured_engines(runtime: RuntimeAvailability) -> RuntimeAvail
             detail=f"Connected engine: {name}. {validation.detail}",
             models=models,
         )
+    if db is not None:
+        for item in await get_connection_runtime_statuses(db):
+            providers_by_id[str(item["provider"])] = ProviderRuntime.model_validate(item)
     return RuntimeAvailability(
         mode=runtime.mode,
         providers=[providers_by_id[provider] for provider in sorted(providers_by_id)],

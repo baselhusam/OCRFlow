@@ -1,0 +1,1 @@
+"""Configured model provider routes."""

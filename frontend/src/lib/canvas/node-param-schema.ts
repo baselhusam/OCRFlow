@@ -1,3 +1,5 @@
+import { CONNECTED_PROTOCOLS } from "@/lib/canvas/connected-node-meta";
+
 export type ParamFieldType =
   | "number"
   | "text"
@@ -187,6 +189,11 @@ const LIQUID_BASE_FIELDS: ParamFieldDef[] = [
   },
   { key: "system_prompt", label: "System prompt", type: "textarea", rows: 3 },
 ];
+const CONNECTED_BASE_FIELDS: ParamFieldDef[] = [
+  { key: "connection_id", label: "Provider connection name or ID", type: "text" },
+  { key: "model", label: "Model name", type: "text" },
+  ...OLLAMA_BASE_FIELDS,
+];
 
 const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
   "loader/pdf": [
@@ -312,7 +319,18 @@ const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
     ...LIQUID_BASE_FIELDS,
     { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 },
   ],
+  "llm/text-prompt": [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS],
+  "llm/structured-extract": [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 }],
+  "vlm/vision-prompt": CONNECTED_BASE_FIELDS,
+  "vlm/vision-structured-extract": [...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 }],
 };
+
+for (const protocol of CONNECTED_PROTOCOLS) {
+  MODEL_PARAM_SCHEMA[`${protocol}/text-prompt`] = [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS];
+  MODEL_PARAM_SCHEMA[`${protocol}/structured-extract`] = [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 }];
+  MODEL_PARAM_SCHEMA[`${protocol}/vision-prompt`] = CONNECTED_BASE_FIELDS;
+  MODEL_PARAM_SCHEMA[`${protocol}/vision-structured-extract`] = [...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 }];
+}
 
 const CATEGORY_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
   layout_detection: [

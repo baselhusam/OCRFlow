@@ -51,6 +51,28 @@ Bearer tokens and `X-API-Key` credentials are supported. Stored credentials
 are encrypted with the deployment `SECRET_KEY` and are never returned by the
 API.
 
+## Connect LLM and vision-language APIs
+
+Open **Configuration → LLM & vision connections** to register OpenAI, Anthropic,
+or an OpenAI-/Anthropic-compatible endpoint. This supports hosted APIs as well
+as on-prem installations such as vLLM, LiteLLM, LM Studio, and a team gateway.
+Enter the endpoint base URL, API key, and the default text and vision model
+names. OCRFlow validates the provider's models endpoint before enabling it.
+
+The canvas offers four connected-provider nodes:
+
+| Node | Input → output |
+| --- | --- |
+| `llm/text-prompt` | text → text |
+| `llm/structured-extract` | text → validated JSON |
+| `vlm/vision-prompt` | page image → text |
+| `vlm/vision-structured-extract` | page image → validated JSON |
+
+Each node uses its configured connection name (or ID), model name, instruction, and
+optional system prompt. Structured nodes require a top-level-object JSON
+Schema. Connections are revalidated before use so disabled, failed, or unsafe
+endpoints cannot receive document content.
+
 ## Start providers
 
 From the repo root, after `make detect`:

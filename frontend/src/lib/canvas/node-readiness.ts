@@ -26,6 +26,7 @@ import {
   isCustomPipelineModelId,
   type WireKind,
 } from "@/lib/canvas/wire-types";
+import { isConnectedModel } from "@/lib/canvas/connected-node-meta";
 
 export type NodeReadiness = {
   ready: boolean;
@@ -158,6 +159,18 @@ export function validateNodeParams(
       }
     }
   }
+  if (modelId.startsWith("llm/") || modelId.startsWith("vlm/") || isConnectedModel(modelId)) {
+    if (!String(params.connection_id ?? "").trim()) issues.push("Provider connection ID is required");
+    if (!String(params.model ?? "").trim()) issues.push("Model name is required");
+    if (!String(params.prompt ?? "").trim()) issues.push("Prompt is required");
+    const temperature = Number(params.temperature ?? 0);
+    if (temperature < 0 || temperature > 2) issues.push("temperature must be between 0 and 2");
+    if (Number(params.max_tokens ?? 1024) < 1 || Number(params.max_tokens ?? 1024) > 32768) issues.push("max_tokens must be between 1 and 32768");
+    if (modelId.includes("structured-extract")) {
+      try { const schema = JSON.parse(String(params.json_schema ?? "")); if (!schema || schema.type !== "object" || !schema.properties) issues.push("JSON Schema must define an object with properties"); } catch { issues.push("JSON Schema must be valid JSON"); }
+    }
+  }
+
   const confidence = params.confidence_threshold;
   if (confidence !== undefined) {
     const v = Number(confidence);

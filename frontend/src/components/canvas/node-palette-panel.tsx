@@ -1,6 +1,6 @@
 "use client";
 
-import { Move, PanelLeft, PanelLeftClose, Search } from "lucide-react";
+import { ChevronDown, Move, PanelLeft, PanelLeftClose, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { NodePaletteItem } from "@/components/canvas/node-palette-item";
@@ -31,6 +31,7 @@ import { CAPTION_SPAWN_ONLY_MODELS } from "@/lib/canvas/caption-branch-meta";
 import { writePaletteSectionPref } from "@/lib/canvas/palette-prefs";
 import {
   providerDisplayName,
+  LANGUAGE_PROVIDER_ORDER,
   REMOTE_PROVIDER_ORDER,
 } from "@/lib/canvas/provider-availability";
 import type { Pipeline } from "@/lib/api/client";
@@ -77,6 +78,7 @@ export function NodePalettePanel({
 }: NodePalettePanelProps) {
   const [query, setQuery] = useState("");
   const [showOffline, setShowOffline] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
   const pendingSearchFocusRef = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const isSearching = query.trim().length > 0;
@@ -133,6 +135,14 @@ export function NodePalettePanel({
       return { provider, online };
     });
   }, [runtime, offlineProviders]);
+
+  const languageProviderStatuses = useMemo(
+    () => LANGUAGE_PROVIDER_ORDER.map((provider) => {
+      const entry = runtime?.providers.find((item) => item.provider === provider);
+      return { provider, online: entry?.running ?? false, detail: entry?.detail };
+    }),
+    [runtime],
+  );
 
   const toggleCollapsed = () => {
     onCollapsedChange?.(!collapsed);
@@ -277,10 +287,16 @@ export function NodePalettePanel({
             </div>
             {runtime ? (
               <div className="mt-3 space-y-2">
-                <p className="font-mono text-[9px] tracking-[0.08em] text-muted-foreground uppercase">
-                  OCR services
-                </p>
-                <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setServicesOpen((value) => !value)}
+                  aria-expanded={servicesOpen}
+                  className="flex w-full items-center justify-between rounded-md px-1 py-1 text-left font-mono text-[9px] tracking-[0.08em] text-muted-foreground uppercase transition-colors hover:bg-muted/50 hover:text-foreground"
+                >
+                  <span>OCR services <span className="ml-1 text-[8px] normal-case tracking-normal">{providerStatuses.filter((item) => item.online).length}/{providerStatuses.length} connected</span></span>
+                  <ChevronDown className={cn("size-3 transition-transform", servicesOpen && "rotate-180")} />
+                </button>
+                {servicesOpen ? <div className="flex flex-wrap gap-1.5">
                   {providerStatuses.map(({ provider, online }) => (
                     <span
                       key={provider}
@@ -311,7 +327,18 @@ export function NodePalettePanel({
                       </span>
                     </span>
                   ))}
-                </div>
+                </div> : null}
+                {servicesOpen ? <>
+                  <p className="pt-1 font-mono text-[9px] tracking-[0.08em] text-muted-foreground uppercase">LLM &amp; VLM services</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {languageProviderStatuses.map(({ provider, online, detail }) => (
+                      <span key={provider} className={cn("inline-flex items-center gap-1.5 rounded-md border px-1.5 py-1", online ? "border-[var(--status-ok)]/35 bg-[var(--status-ok)]/12" : "border-border bg-muted/50")} title={online ? `${providerDisplayName(provider)} has a validated connection` : detail ?? `No ${providerDisplayName(provider)} connection configured`}>
+                        <ProviderLogo provider={provider} size={14} status={online ? "online" : "offline"} />
+                        <span className={cn("font-mono text-[9px] tracking-[0.08em] uppercase", online ? "text-foreground" : "text-muted-foreground")}>{providerDisplayName(provider)}</span>
+                      </span>
+                    ))}
+                  </div>
+                </> : null}
                 {offlineModelCount > 0 ? (
                   <button
                     type="button"

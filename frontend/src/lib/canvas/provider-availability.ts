@@ -2,6 +2,7 @@ import type {
   ModelCatalogEntry,
   RuntimeAvailability,
 } from "@/lib/canvas/types";
+import { CONNECTED_PROTOCOLS, getConnectedProtocol } from "@/lib/canvas/connected-node-meta";
 
 /**
  * Providers that run as their own containerized service in remote mode. Mirrors
@@ -26,12 +27,19 @@ export const REMOTE_PROVIDER_ORDER = [
   "liquid",
 ] as const;
 
+/** Configurable API services shown alongside OCR service health in the palette. */
+export const LANGUAGE_PROVIDER_ORDER = CONNECTED_PROTOCOLS;
+
 const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   docling: "Docling",
   surya: "Surya",
   paddle: "PaddleOCR",
   ollama: "Ollama",
   liquid: "Liquid AI",
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  "openai-compatible": "OpenAI-compatible",
+  "anthropic-compatible": "Anthropic-compatible",
 };
 
 export type ProviderRuntimeStatus = {
@@ -84,13 +92,27 @@ export function getModelRuntimeStatus(
   model: Pick<ModelCatalogEntry, "id" | "provider">,
   runtime: RuntimeAvailability | null | undefined,
 ): ProviderRuntimeStatus {
+  const configuredProtocol = getConnectedProtocol(model.id);
   if (!runtime) {
     return {
       offline: true,
-      message: providerOfflineMessage(model.provider),
+      message: configuredProtocol
+        ? `Connect and validate an ${providerDisplayName(configuredProtocol)} provider in Configuration to use this node.`
+        : providerOfflineMessage(model.provider),
     };
   }
-  const provider = runtime.providers.find((entry) => entry.provider === model.provider);
+  const provider = runtime.providers.find(
+    (entry) => entry.provider === (configuredProtocol ?? model.provider),
+  );
+  if (configuredProtocol) {
+    if (!provider || !provider.running) {
+      return {
+        offline: true,
+        message: `Connect and validate an ${providerDisplayName(configuredProtocol)} provider in Configuration to use this node.`,
+      };
+    }
+    return AVAILABLE;
+  }
   if (!provider || !provider.running) {
     return { offline: true, message: providerOfflineMessage(model.provider) };
   }

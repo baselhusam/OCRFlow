@@ -11,6 +11,10 @@ const PROVIDER_LOGOS: Record<string, string | undefined> = {
   surya: "/models_logos/surya_ocr_svg.svg",
   paddle: "/models_logos/paddle_ocr_logo.png",
   liquid: "/models_logos/liquid-ai.svg",
+  openai: "/models_logos/openai.svg",
+  "openai-compatible": "/models_logos/openai.svg",
+  anthropic: "/models_logos/claude.png",
+  "anthropic-compatible": "/models_logos/claude.png",
 };
 
 /** Native OCRFlow pipeline providers (loaders, export, transforms, etc.). */
@@ -73,9 +77,12 @@ export function ProviderLogo({
 }: ProviderLogoProps) {
   const [failed, setFailed] = useState(false);
   const src = PROVIDER_LOGOS[provider];
+  const renderedWidth = size;
   // Surya's source mark is pure black. In dark UI surfaces, invert it so the
   // actual logo remains visible without changing the brand asset itself.
-  const themeClass = provider === "surya" ? "dark:invert" : undefined;
+  const themeClass = ["surya", "openai", "openai-compatible"].includes(provider)
+    ? "dark:invert"
+    : undefined;
   const monogram =
     PROVIDER_MONOGRAMS[provider] ??
     provider.slice(0, 2).toUpperCase();
@@ -97,7 +104,7 @@ export function ProviderLogo({
             "inline-flex shrink-0 items-center justify-center font-mono text-[9px] font-medium tracking-[0.08em] text-muted-foreground uppercase",
             className,
           )}
-          style={{ width: size, height: size }}
+          style={{ width: renderedWidth, height: size }}
           aria-hidden
         >
           {monogram}
@@ -109,10 +116,10 @@ export function ProviderLogo({
       <Image
         src={src}
         alt=""
-        width={size}
+        width={renderedWidth}
         height={size}
         className={cn("shrink-0 object-contain", themeClass, className)}
-        style={{ width: size, height: "auto" }}
+        style={{ width: renderedWidth, height: size }}
         onError={() => setFailed(true)}
         aria-hidden
       />
@@ -124,7 +131,7 @@ export function ProviderLogo({
   }
 
   return (
-    <span className="relative inline-flex shrink-0" style={{ width: size, height: size }}>
+    <span className="relative inline-flex shrink-0" style={{ width: renderedWidth, height: size }}>
       {inner}
       <StatusDot status={status} />
     </span>

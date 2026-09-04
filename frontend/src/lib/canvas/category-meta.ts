@@ -1,5 +1,6 @@
 import type { CategoryWireTypes } from "@/lib/canvas/types";
 import { areWireLabelsCompatible } from "@/lib/canvas/wire-types";
+import { CONNECTED_PROTOCOLS } from "@/lib/canvas/connected-node-meta";
 
 /** Maps category id → CSS custom property for accent color */
 export const CATEGORY_COLOR_VARS: Record<string, string> = {
@@ -140,8 +141,38 @@ export const DEFAULT_NODE_PARAMS: Record<
     json_schema:
       '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}',
   },
+  "llm/text-prompt": {
+    connection_id: "",
+    model: "",
+    prompt: "Summarize the input accurately and concisely.",
+    temperature: 0,
+    max_tokens: 1024,
+  },
+  "llm/structured-extract": {
+    connection_id: "", model: "", prompt: "Extract the requested fields from the input.", temperature: 0, max_tokens: 1024,
+    json_schema: '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}',
+  },
+  "vlm/vision-prompt": { connection_id: "", model: "", prompt: "Describe this document page, including charts and tables.", temperature: 0, max_tokens: 1024 },
+  "vlm/vision-structured-extract": { connection_id: "", model: "", prompt: "Extract the requested fields from this document page.", temperature: 0, max_tokens: 1024, json_schema: '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}' },
   export: { pretty: true },
 };
+
+for (const protocol of CONNECTED_PROTOCOLS) {
+  DEFAULT_NODE_PARAMS[`${protocol}/text-prompt`] = {
+    connection_id: "", model: "", prompt: "Summarize the input accurately and concisely.", temperature: 0, max_tokens: 1024,
+  };
+  DEFAULT_NODE_PARAMS[`${protocol}/structured-extract`] = {
+    connection_id: "", model: "", prompt: "Extract the requested fields from the input.", temperature: 0, max_tokens: 1024,
+    json_schema: '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}',
+  };
+  DEFAULT_NODE_PARAMS[`${protocol}/vision-prompt`] = {
+    connection_id: "", model: "", prompt: "Describe this document page, including charts and tables.", temperature: 0, max_tokens: 1024,
+  };
+  DEFAULT_NODE_PARAMS[`${protocol}/vision-structured-extract`] = {
+    connection_id: "", model: "", prompt: "Extract the requested fields from this document page.", temperature: 0, max_tokens: 1024,
+    json_schema: '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}',
+  };
+}
 
 /** Pipeline source nodes — no upstream input handle */
 export const SOURCE_NODE_CATEGORIES = new Set(["page_loader"]);

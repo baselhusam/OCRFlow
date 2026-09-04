@@ -90,6 +90,31 @@ def _entry(
     )
 
 
+def _connected_provider_entries() -> list[ModelRegistryEntry]:
+    """Branded canvas nodes for cloud and compatible LLM/VLM connections."""
+    entries: list[ModelRegistryEntry] = []
+    providers = (
+        ("openai", "OpenAI", "Official OpenAI API"),
+        ("anthropic", "Anthropic", "Official Claude API"),
+        ("openai-compatible", "OpenAI-compatible", "vLLM, LiteLLM, LM Studio, or an on-prem gateway"),
+        ("anthropic-compatible", "Anthropic-compatible", "An Anthropic-compatible on-prem gateway"),
+    )
+    operations = (
+        ("text-prompt", "Text Prompt", "text_generation", "Prompt text and return text."),
+        ("structured-extract", "Structured Extract", "llm_extract", "Extract schema-validated JSON from text."),
+        ("vision-prompt", "Vision Prompt", "vision_language", "Prompt a page image and return text."),
+        ("vision-structured-extract", "Vision Extract", "vision_language", "Extract schema-validated JSON from a page image."),
+    )
+    for protocol, label, provider_note in providers:
+        for operation, operation_label, category, note in operations:
+            entries.append(_entry(
+                f"{protocol}/{operation}", category=category, provider=protocol,
+                status=ModelStatus.done, compute=ComputeTier.api, license="varies",
+                display_name=f"{label} {operation_label}", notes=f"{note} {provider_note}",
+            ))
+    return entries
+
+
 _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
     # Docling — layout_detection
     _entry(
@@ -522,16 +547,10 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         display_name="Liquid Vision Structured Extract",
         notes="LFM2.5-VL-1.6B with schema-validated JSON output.",
     ),
-    # Phase 4 — LLM tasks
-    _entry(
-        "llm/structured-extract",
-        category="llm_extract",
-        provider="llm",
-        compute=ComputeTier.api,
-        license="varies",
-    ),
-    _entry("llm/summarize", category="llm_extract", provider="llm", compute=ComputeTier.api, license="varies"),
-    _entry("llm/qa", category="llm_extract", provider="llm", compute=ComputeTier.api, license="varies"),
+    # Branded cloud and on-prem-compatible LLM/VLM tasks. The old generic
+    # connection ids remain executable for saved pipelines, but are no longer
+    # offered in the palette because they cannot communicate provider choice.
+    *_connected_provider_entries(),
     _entry(
         "vlm/qa",
         category="figure_captioning",
