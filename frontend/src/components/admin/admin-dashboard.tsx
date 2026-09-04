@@ -88,10 +88,6 @@ export function AdminDashboard({
   const activeTab = initialTab;
 
   function setTab(tab: AdminTab) {
-    if (tab === "users") {
-      router.push("/app/admin/users");
-      return;
-    }
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tab);
     router.push(`/app/admin?${params.toString()}`);

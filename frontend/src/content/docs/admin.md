@@ -17,9 +17,9 @@ The **Admin panel** (`/app/admin`) is hidden unless the signed-in user has `admi
 
 The first account whose email matches `ADMIN_EMAIL` is promoted on register/login. Set that in the gateway environment before the first signup.
 
-## Users page
+## Users section
 
-The **Users** page (`/app/admin/users`) is the account directory for the instance. It shows every account with its role, account status, projects, runs, pages processed, last login, and latest run.
+The **Users** section in the Admin panel (`/app/admin?tab=users`) is the account directory for the instance. It shows every account with its role, account status, projects, runs, pages processed, last login, and latest run.
 
 Sortable columns: user, role, projects, runs, last login, last run, status.
 

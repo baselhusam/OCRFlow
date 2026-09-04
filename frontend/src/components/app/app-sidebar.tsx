@@ -10,7 +10,6 @@ import {
   GitBranch,
   LayoutDashboard,
   Shield,
-  UsersRound,
 } from "lucide-react";
 
 import { SegmentMark } from "@/components/brand/segment-mark";
@@ -69,16 +68,9 @@ const baseNavItems = [
 
 const adminNavItem = {
   title: "Admin Panel",
-  href: "/app/admin?tab=analytics",
+  href: "/app/admin?tab=users",
   icon: Shield,
   isActive: (pathname: string) => pathname === "/app/admin",
-};
-
-const adminUsersNavItem = {
-  title: "Users",
-  href: "/app/admin/users",
-  icon: UsersRound,
-  isActive: (pathname: string) => pathname.startsWith("/app/admin/users"),
 };
 
 const configurationNavItem = {
@@ -98,7 +90,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
   const avatarInitial = getUserAvatarInitial(user);
   const accountActive = pathname.startsWith("/app/account");
   const navItems = canAccessAdminPanel(user)
-    ? [...baseNavItems, configurationNavItem, adminNavItem, adminUsersNavItem]
+    ? [...baseNavItems, configurationNavItem, adminNavItem]
     : baseNavItems;
 
   return (
