@@ -9,9 +9,11 @@ import {
   CircleCheck,
   CircleOff,
   CircleX,
+  Info,
   KeyRound,
   LoaderCircle,
   Network,
+  Plus,
   PlugZap,
   RefreshCw,
   ServerCog,
@@ -22,6 +24,14 @@ import { Button } from "@/components/ui/button";
 import { ProviderLogo } from "@/components/canvas/provider-logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -143,6 +153,7 @@ export function EngineConfiguration() {
   const [engines, setEngines] = useState<OcrEngine[]>([]);
   const [runtime, setRuntime] = useState<RuntimeAvailability | null>(null);
   const [form, setForm] = useState<EngineInput>(EMPTY_FORM);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [validation, setValidation] = useState<EngineValidation | null>(null);
   const [loading, setLoading] = useState(true);
   const [probing, setProbing] = useState(false);
@@ -212,6 +223,7 @@ export function EngineConfiguration() {
       setEngines((current) => [body as OcrEngine, ...current]);
       setForm(EMPTY_FORM);
       setValidation(null);
+      setAddDialogOpen(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not save engine");
     } finally {
@@ -271,13 +283,15 @@ export function EngineConfiguration() {
 
   const canSave = validation?.status === "ready" || validation?.status === "partial";
 
+  const runtimeProviders = new Map(runtime?.providers.map((provider) => [provider.provider, provider]));
+
   return (
-    <div className="space-y-9 pb-12">
+    <div className="space-y-8 pb-12">
       <header className="max-w-3xl space-y-3.5">
         <p className="font-mono text-xs tracking-[0.16em] text-primary uppercase">Configuration / engines</p>
-        <h1 className="text-[40px] font-extrabold leading-[1.02] tracking-[-0.04em] text-foreground">OCR engine control room</h1>
+        <h1 className="text-[40px] font-extrabold leading-[1.02] tracking-[-0.04em] text-foreground">Engine connections</h1>
         <p className="max-w-2xl text-[15px] leading-6 text-muted-foreground">
-          Register OCRFlow-compatible Surya, Docling, or PaddleOCR services from any reachable host. Every connection is checked for liveness, credentials, protocol version, and the model APIs the canvas needs.
+          Your platform engines are always shown first. Add a connection only when you need another OCRFlow-compatible service.
         </p>
       </header>
 
@@ -288,61 +302,68 @@ export function EngineConfiguration() {
         </div>
       ) : null}
 
-      {runtime ? <RuntimeStrip runtime={runtime} /> : null}
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_14px_40px_rgba(31,20,76,0.05)]">
-          <div className="flex items-center justify-between border-b border-border px-6 py-5">
-            <div>
+      <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_14px_40px_rgba(31,20,76,0.05)]">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border px-6 py-5">
+          <div>
+            <div className="flex items-center gap-2">
               <h2 className="text-base font-bold tracking-[-0.02em]">Connected engines</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Only ready capabilities are eligible for execution.</p>
+              {runtime ? <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">{runtime.mode} mode</span> : null}
             </div>
-            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Network className="size-5" /></div>
+            <p className="mt-1 text-sm text-muted-foreground">Default platform engines and any services you add.</p>
           </div>
-          <div className="divide-y divide-border">
-            {loading ? <div className="flex items-center gap-3 px-6 py-12 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" /> Loading engine registry…</div> : null}
+          <Button type="button" onClick={() => setAddDialogOpen(true)}>
+            <Plus /> Add engine
+          </Button>
+        </div>
+
+        <div className="border-b border-border bg-muted/20 px-6 py-5">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="font-mono text-[10px] tracking-[0.14em] text-primary uppercase">Platform defaults</p>
+              <p className="mt-1 text-sm font-semibold">Included with OCRFlow</p>
+            </div>
+            <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary"><Network className="size-4" /></span>
+          </div>
+          <div className="grid overflow-hidden rounded-xl border border-border bg-card md:grid-cols-3 md:divide-x md:divide-y-0 divide-y divide-border">
+            {PROVIDERS.map((provider) => <DefaultEngineCard key={provider.value} provider={provider} runtime={runtimeProviders.get(provider.value)} loading={loading && !runtime} />)}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between gap-4 px-6 py-4">
+            <div><p className="text-sm font-semibold">Additional connections</p><p className="mt-0.5 text-xs text-muted-foreground">Services you or your team have added.</p></div>
+            {engines.length ? <span className="rounded-full bg-muted px-2.5 py-1 font-mono text-[10px] text-muted-foreground">{engines.length}</span> : null}
+          </div>
+          <div className="divide-y divide-border border-t border-border">
+            {loading ? <div className="flex items-center gap-3 px-6 py-10 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" /> Loading connections…</div> : null}
             {!loading && engines.length === 0 ? (
-              <div className="px-6 py-14 text-center">
-                <ServerCog className="mx-auto size-7 text-muted-foreground/55" />
-                <p className="mt-3 font-semibold">No external engines connected</p>
-                <p className="mx-auto mt-1 max-w-sm text-sm leading-5 text-muted-foreground">Add a provider service to see which OCR models are actually ready to use.</p>
+              <div className="flex flex-col items-start gap-3 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3"><span className="flex size-9 items-center justify-center rounded-xl bg-muted text-muted-foreground"><ServerCog className="size-4" /></span><p className="text-sm text-muted-foreground">No additional engines connected.</p></div>
+                <Button type="button" variant="outline" size="sm" onClick={() => setAddDialogOpen(true)}><Plus /> Add engine</Button>
               </div>
             ) : null}
             {engines.map((engine) => <EngineRow key={engine.id} engine={engine} busy={busyId === engine.id} onRevalidate={() => void revalidate(engine.id)} onToggle={(enabled) => void toggleEngine(engine, enabled)} onRemove={() => void removeEngine(engine.id)} />)}
           </div>
         </div>
-
-        <aside className="rounded-2xl border border-border bg-card p-5 shadow-[0_14px_40px_rgba(31,20,76,0.05)]">
-          <div className="flex items-center gap-3"><span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground"><PlugZap className="size-4" /></span><div><h2 className="font-bold tracking-[-0.02em]">Connect an engine</h2><p className="text-xs text-muted-foreground">Run a compatibility check first.</p></div></div>
-          <div className="mt-6 space-y-4">
-            <Field label="Connection name"><Input value={form.name} onChange={(event) => setField("name", event.target.value)} placeholder="Production Surya" /></Field>
-            <Field label="OCR provider">
-              <ProviderPicker
-                provider={form.provider}
-                onChange={(provider) => setField("provider", provider)}
-              />
-            </Field>
-            <Field label="Engine URL"><Input value={form.base_url} onChange={(event) => setField("base_url", event.target.value)} placeholder="http://10.0.0.15:8101" inputMode="url" /></Field>
-            <Field label="Authentication"><select value={form.auth_type} onChange={(event) => setField("auth_type", event.target.value as EngineAuthType)} className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"><option value="none">No API key</option><option value="bearer">Bearer token</option><option value="x-api-key">X-API-Key header</option></select></Field>
-            {form.auth_type !== "none" ? <Field label="API key"><Input type="password" value={form.api_key} onChange={(event) => setField("api_key", event.target.value)} placeholder="Stored encrypted" autoComplete="new-password" /></Field> : null}
-            <label className="flex cursor-pointer items-center justify-between rounded-xl bg-muted/55 px-3.5 py-3"><span><span className="block text-sm font-semibold">Enable after saving</span><span className="block text-xs text-muted-foreground">Allow this engine’s passing capabilities.</span></span><Switch checked={form.enabled} onCheckedChange={(checked) => setField("enabled", checked)} /></label>
-            <Button type="button" variant="outline" className="w-full" onClick={() => void validateConnection()} disabled={probing || !form.base_url || !form.provider}>{probing ? <LoaderCircle className="animate-spin" /> : <RefreshCw />} Validate connection</Button>
-            <Button type="button" className="w-full" onClick={() => void saveConnection()} disabled={saving || !canSave}>{saving ? <LoaderCircle className="animate-spin" /> : <Check />} Save verified engine</Button>
-          </div>
-          <ProbeResult validation={validation} />
-        </aside>
       </section>
 
-      <section className="rounded-2xl border border-border bg-[linear-gradient(120deg,rgba(91,46,239,.10),transparent_45%)] px-6 py-5">
-        <h2 className="font-bold tracking-[-0.02em]">What the check verifies</h2>
-        <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3"><CheckItem label="Reachability" text="The configured IP and port serve an OCRFlow engine." /><CheckItem label="Access" text="Detects when credentials are required or rejected." /><CheckItem label="Capability contract" text="Requires protocol v1 and tests each supported model API." /></div>
-      </section>
+      <AddEngineDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        form={form}
+        validation={validation}
+        probing={probing}
+        saving={saving}
+        canSave={canSave}
+        onSetField={setField}
+        onValidate={() => void validateConnection()}
+        onSave={() => void saveConnection()}
+      />
     </div>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="block space-y-1.5"><Label className="text-xs font-semibold text-foreground">{label}</Label>{children}</label>; }
-function CheckItem({ label, text }: { label: string; text: string }) { return <div className="rounded-xl border border-border/80 bg-card/80 p-3.5"><p className="font-semibold">{label}</p><p className="mt-1 leading-5 text-muted-foreground">{text}</p></div>; }
 
 function ProviderPicker({
   provider,
@@ -378,7 +399,7 @@ function ProviderPicker({
             <SelectItem
               key={item.value}
               value={item.value}
-              className="min-h-15 rounded-xl px-2.5 py-2.5 pr-9 data-highlighted:bg-primary/9 data-highlighted:text-foreground"
+              className="min-h-15 rounded-xl px-2.5 py-2.5 pr-9 text-foreground data-highlighted:bg-primary/10 data-highlighted:text-foreground focus:bg-primary/10 focus:text-foreground focus:**:!text-foreground"
             >
               <span className="flex min-w-0 items-center gap-3">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-background shadow-sm">
@@ -389,7 +410,7 @@ function ProviderPicker({
                   <span className="truncate text-[11px] font-normal text-muted-foreground">
                     {item.detail}
                   </span>
-                  <span className="font-mono text-[10px] font-normal text-primary/75">
+                  <span className="font-mono text-[10px] font-normal text-primary/75 dark:text-[#c4b5fd]">
                     default port {item.port}
                   </span>
                 </span>
@@ -402,9 +423,43 @@ function ProviderPicker({
   );
 }
 
-function RuntimeStrip({ runtime }: { runtime: RuntimeAvailability }) {
-  const online = runtime.providers.filter((provider) => provider.running);
-  return <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_12px_36px_rgba(31,20,76,0.04)]"><div className="flex items-center justify-between gap-4 border-b border-border px-5 py-4"><div><p className="font-mono text-[10px] tracking-[0.14em] text-primary uppercase">Built-in runtime</p><h2 className="mt-1 text-sm font-bold">{online.length} provider service{online.length === 1 ? "" : "s"} running</h2></div><span className="rounded-full bg-muted px-2.5 py-1 font-mono text-[10px] text-muted-foreground">{runtime.mode} mode</span></div><div className="grid divide-y divide-border md:grid-cols-3 md:divide-x md:divide-y-0">{runtime.providers.filter((provider) => provider.provider !== "ollama").map((provider) => <div key={provider.provider} className="p-4"><div className="flex items-center justify-between gap-2"><span className="flex min-w-0 items-center gap-2.5"><span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/35"><ProviderLogo provider={provider.provider} size={21} /></span><span className="capitalize text-sm font-semibold">{provider.provider}</span></span><span className={provider.running ? "text-emerald-600" : "text-muted-foreground"}>{provider.running ? "●" : "○"}</span></div><p className="mt-2 text-xs text-muted-foreground">{provider.running ? `${provider.models?.length ?? 0} model APIs advertised` : provider.detail ?? "Offline"}</p>{provider.running && provider.models?.length ? <p className="mt-2 line-clamp-2 font-mono text-[10px] leading-4 text-muted-foreground">{provider.models.join(" · ")}</p> : null}</div>)}</div></section>;
+function DefaultEngineCard({
+  provider,
+  runtime,
+  loading,
+}: {
+  provider: (typeof PROVIDERS)[number];
+  runtime: RuntimeAvailability["providers"][number] | undefined;
+  loading: boolean;
+}) {
+  const online = runtime?.running ?? false;
+  return <div className="min-w-0 p-4.5"><div className="flex items-start justify-between gap-3"><span className="flex min-w-0 items-center gap-2.5"><span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/35"><ProviderLogo provider={provider.value} size={23} /></span><span><span className="block text-sm font-semibold">{provider.label}</span><span className="mt-0.5 block font-mono text-[10px] text-muted-foreground">Platform default</span></span></span><span className={cn("inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-semibold", online ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border-border bg-muted text-muted-foreground")}><span className={cn("size-1.5 rounded-full", online ? "bg-emerald-500" : "bg-muted-foreground/60")} />{loading ? "Checking" : online ? "Online" : "Offline"}</span></div><p className="mt-4 min-h-10 text-xs leading-5 text-muted-foreground">{loading ? "Checking service availability…" : online ? `${runtime?.models?.length ?? 0} model APIs available` : runtime?.detail ?? "Not running"}</p>{online && runtime?.models?.length ? <p className="mt-2 line-clamp-2 font-mono text-[10px] leading-4 text-muted-foreground">{runtime.models.join(" · ")}</p> : <p className="mt-2 font-mono text-[10px] text-muted-foreground">default port {provider.port}</p>}</div>;
+}
+
+function AddEngineDialog({
+  open,
+  onOpenChange,
+  form,
+  validation,
+  probing,
+  saving,
+  canSave,
+  onSetField,
+  onValidate,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  form: EngineInput;
+  validation: EngineValidation | null;
+  probing: boolean;
+  saving: boolean;
+  canSave: boolean;
+  onSetField: <Key extends keyof EngineInput>(key: Key, value: EngineInput[Key]) => void;
+  onValidate: () => void;
+  onSave: () => void;
+}) {
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[min(760px,calc(100%-2rem))] overflow-y-auto rounded-2xl p-0 sm:max-w-xl" showCloseButton={false}><DialogHeader className="border-b border-border px-6 py-5 pr-14"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"><PlugZap className="size-5" /></span><div><DialogTitle>Connect another engine</DialogTitle><DialogDescription className="mt-1.5">Use this for a remote, dedicated, or team-managed service. OCRFlow checks it before it can be used.</DialogDescription></div></div></DialogHeader><div className="space-y-4 px-6 py-5"><Field label="Connection name"><Input value={form.name} onChange={(event) => onSetField("name", event.target.value)} placeholder="Production Surya" /></Field><Field label="OCR provider"><ProviderPicker provider={form.provider} onChange={(provider) => onSetField("provider", provider)} /></Field><Field label="Engine URL"><Input value={form.base_url} onChange={(event) => onSetField("base_url", event.target.value)} placeholder="http://10.0.0.15:8101" inputMode="url" /></Field><Field label="Authentication"><select value={form.auth_type} onChange={(event) => onSetField("auth_type", event.target.value as EngineAuthType)} className="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus:border-ring focus:ring-3 focus:ring-ring/50"><option value="none">No API key</option><option value="bearer">Bearer token</option><option value="x-api-key">X-API-Key header</option></select></Field>{form.auth_type !== "none" ? <Field label="API key"><Input type="password" value={form.api_key} onChange={(event) => onSetField("api_key", event.target.value)} placeholder="Stored encrypted" autoComplete="new-password" /></Field> : null}<label className="flex cursor-pointer items-center justify-between rounded-xl bg-muted/55 px-3.5 py-3"><span><span className="block text-sm font-semibold">Enable after saving</span><span className="block text-xs text-muted-foreground">Only passing capabilities can run in pipelines.</span></span><Switch checked={form.enabled} onCheckedChange={(checked) => onSetField("enabled", checked)} /></label><div className="rounded-xl border border-dashed border-border bg-muted/20 px-3.5 py-3 text-xs leading-5 text-muted-foreground"><Info className="mr-2 inline size-3.5 text-primary" />The validation checks reachability, credentials, protocol compatibility, and model APIs.</div><ProbeResult validation={validation} /></div><DialogFooter className="mx-0 mb-0 rounded-b-2xl px-6"><Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button><Button type="button" variant="outline" onClick={onValidate} disabled={probing || !form.base_url || !form.provider}>{probing ? <LoaderCircle className="animate-spin" /> : <RefreshCw />} Validate connection</Button><Button type="button" onClick={onSave} disabled={saving || !canSave}>{saving ? <LoaderCircle className="animate-spin" /> : <Check />} Save engine</Button></DialogFooter></DialogContent></Dialog>;
 }
 
 function ProbeResult({ validation }: { validation: EngineValidation | null }) {

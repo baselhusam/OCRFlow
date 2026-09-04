@@ -71,6 +71,9 @@ export function ProviderLogo({
 }: ProviderLogoProps) {
   const [failed, setFailed] = useState(false);
   const src = PROVIDER_LOGOS[provider];
+  // Surya's source mark is pure black. In dark UI surfaces, invert it so the
+  // actual logo remains visible without changing the brand asset itself.
+  const themeClass = provider === "surya" ? "dark:invert" : undefined;
   const monogram =
     PROVIDER_MONOGRAMS[provider] ??
     provider.slice(0, 2).toUpperCase();
@@ -106,7 +109,7 @@ export function ProviderLogo({
         alt=""
         width={size}
         height={size}
-        className={cn("shrink-0 object-contain", className)}
+        className={cn("shrink-0 object-contain", themeClass, className)}
         style={{ width: size, height: "auto" }}
         onError={() => setFailed(true)}
         aria-hidden
