@@ -20,6 +20,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.core.engine_url import EngineUrlSafetyError, assert_safe_engine_url
 from app.db.models.ocr_engine import OcrEngine
 from app.db.session import async_session_factory
 from app.models.servable import models_for_provider
@@ -102,13 +103,16 @@ async def _get_json(
 async def validate_engine(payload: EngineValidationRequest) -> EngineValidation:
     """Validate liveness, auth, protocol version, and every provider model."""
 
-    base_url = payload.base_url.rstrip("/")
+    try:
+        base_url = await assert_safe_engine_url(payload.base_url)
+    except EngineUrlSafetyError as exc:
+        return EngineValidation(status="blocked", detail=str(exc))
     unauth_headers: dict[str, str] = {}
     configured_headers = _headers(payload.auth_type, payload.api_key)
 
     try:
         async with httpx.AsyncClient(
-            timeout=_PROBE_TIMEOUT_SECONDS, follow_redirects=False
+            timeout=_PROBE_TIMEOUT_SECONDS, follow_redirects=False, trust_env=False
         ) as client:
             health_status, health = await _get_json(
                 client, f"{base_url}/internal/health", unauth_headers
@@ -246,11 +250,14 @@ async def list_engines(db: AsyncSession) -> list[EngineConnection]:
 async def create_engine(
     db: AsyncSession, payload: EngineConnectionCreate
 ) -> EngineConnection:
+    # Do not persist an address which fails the DNS-aware guard. Validation
+    # returns a user-facing "blocked" result, but saving must be a hard stop.
+    base_url = await assert_safe_engine_url(payload.base_url)
     validation = await validate_engine(EngineValidationRequest.model_validate(payload.model_dump()))
     engine = OcrEngine(
         name=payload.name,
         provider=payload.provider,
-        base_url=payload.base_url,
+        base_url=base_url,
         auth_type=payload.auth_type,
         encrypted_api_key=_encrypt(payload.api_key),
         enabled=payload.enabled,
@@ -318,6 +325,12 @@ async def resolve_engine_target(provider: str, model_id: str) -> EngineTarget | 
                 .order_by(OcrEngine.last_checked_at.desc().nullslast())
             )
             for engine in result.scalars():
+                try:
+                    base_url = await assert_safe_engine_url(engine.base_url)
+                except EngineUrlSafetyError:
+                    # Legacy rows are checked too: an address saved before
+                    # these guards must never become a live runtime target.
+                    continue
                 validation = engine.last_validation or {}
                 if validation.get("status") not in {"ready", "partial"}:
                     continue
@@ -329,7 +342,7 @@ async def resolve_engine_target(provider: str, model_id: str) -> EngineTarget | 
                 ):
                     continue
                 return EngineTarget(
-                    base_url=engine.base_url.rstrip("/"),
+                    base_url=base_url,
                     headers=_headers(engine.auth_type, _decrypt(engine.encrypted_api_key)),
                 )
     except Exception:

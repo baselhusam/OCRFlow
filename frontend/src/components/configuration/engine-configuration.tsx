@@ -118,6 +118,11 @@ const STATUS_META: Record<
     icon: CircleOff,
     className: "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300",
   },
+  blocked: {
+    label: "Blocked",
+    icon: CircleX,
+    className: "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  },
 };
 
 function statusMeta(status: EngineStatus | undefined) {

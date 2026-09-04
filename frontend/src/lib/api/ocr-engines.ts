@@ -5,7 +5,8 @@ export type EngineStatus =
   | "partial"
   | "authentication_required"
   | "incompatible"
-  | "unreachable";
+  | "unreachable"
+  | "blocked";
 
 export type EngineModelCheck = {
   model_id: string;

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import require_admin, require_member_manager
+from app.core.engine_url import EngineUrlSafetyError
 from app.db.models.user import User
 from app.db.session import get_db
 from app.schemas.ocr_engine import (
@@ -41,7 +42,10 @@ async def create_ocr_engine(
     _: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ) -> EngineConnection:
-    return await ocr_engines.create_engine(db, payload)
+    try:
+        return await ocr_engines.create_engine(db, payload)
+    except EngineUrlSafetyError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @router.post("/engines/{engine_id}/validate", response_model=EngineConnection)

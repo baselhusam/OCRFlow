@@ -6,20 +6,20 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.core.engine_url import EngineUrlSafetyError, normalise_engine_url
+
 EngineProvider = Literal["docling", "surya", "paddle"]
 EngineAuthType = Literal["none", "bearer", "x-api-key"]
 EngineStatus = Literal[
-    "ready", "partial", "authentication_required", "incompatible", "unreachable"
+    "ready", "partial", "authentication_required", "incompatible", "unreachable", "blocked"
 ]
 
 
 def _normalise_url(value: str) -> str:
-    value = value.strip().rstrip("/")
-    if not value.startswith(("http://", "https://")):
-        raise ValueError("Use a full HTTP(S) URL, for example http://10.0.0.15:8101")
-    if any(part in value for part in ("?", "#")):
-        raise ValueError("The engine URL must not contain a query string or fragment")
-    return value
+    try:
+        return normalise_engine_url(value)
+    except EngineUrlSafetyError as exc:
+        raise ValueError(str(exc)) from exc
 
 
 class EngineModelCheck(BaseModel):
