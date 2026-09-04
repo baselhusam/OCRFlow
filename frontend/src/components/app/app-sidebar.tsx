@@ -89,9 +89,10 @@ export function AppSidebar({ user }: AppSidebarProps) {
   const displayName = getUserDisplayName(user);
   const avatarInitial = getUserAvatarInitial(user);
   const accountActive = pathname.startsWith("/app/account");
-  const navItems = canAccessAdminPanel(user)
-    ? [...baseNavItems, configurationNavItem, adminNavItem]
-    : baseNavItems;
+  const navItems = [
+    ...baseNavItems,
+    ...(canAccessAdminPanel(user) ? [configurationNavItem, adminNavItem] : []),
+  ];
 
   return (
     <Sidebar

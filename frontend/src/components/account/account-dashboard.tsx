@@ -6,14 +6,18 @@ import { AccountIdentityCard } from "@/components/account/account-identity-card"
 import { AccountPreferencesTab } from "@/components/account/account-preferences-tab";
 import { AccountProfileTab } from "@/components/account/account-profile-tab";
 import { AccountSecurityTab } from "@/components/account/account-security-tab";
+import { AccountApiKeysTab } from "@/components/account/account-api-keys-tab";
+import type { ApiKey } from "@/lib/api/account";
 import type { User } from "@/lib/api/client";
+import { canUseDeveloperApi } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 
-export type AccountTab = "profile" | "preferences" | "security";
+export type AccountTab = "profile" | "preferences" | "security" | "api-keys";
 
 type AccountDashboardProps = {
   user: User;
   initialTab: AccountTab;
+  apiKeys: ApiKey[];
 };
 
 const TAB_OPTIONS: { key: AccountTab; label: string }[] = [
@@ -22,13 +26,14 @@ const TAB_OPTIONS: { key: AccountTab; label: string }[] = [
   { key: "security", label: "Security" },
 ];
 
-export function AccountDashboard({ user, initialTab }: AccountDashboardProps) {
+export function AccountDashboard({ user, initialTab, apiKeys }: AccountDashboardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const activeTab = TAB_OPTIONS.some((tab) => tab.key === initialTab)
-    ? initialTab
-    : "profile";
+  const tabs = canUseDeveloperApi(user)
+    ? [...TAB_OPTIONS, { key: "api-keys" as AccountTab, label: "API keys" }]
+    : TAB_OPTIONS;
+  const activeTab = tabs.some((tab) => tab.key === initialTab) ? initialTab : "profile";
 
   function setTab(tab: AccountTab) {
     const params = new URLSearchParams(searchParams.toString());
@@ -58,7 +63,7 @@ export function AccountDashboard({ user, initialTab }: AccountDashboardProps) {
       <AccountIdentityCard user={user} />
 
       <div className="inline-flex w-full gap-1 rounded-xl border border-border bg-secondary/35 p-1 sm:w-auto">
-        {TAB_OPTIONS.map((tab) => {
+        {tabs.map((tab) => {
           const active = activeTab === tab.key;
           return (
             <button
@@ -81,6 +86,7 @@ export function AccountDashboard({ user, initialTab }: AccountDashboardProps) {
       {activeTab === "profile" ? <AccountProfileTab user={user} /> : null}
       {activeTab === "preferences" ? <AccountPreferencesTab user={user} /> : null}
       {activeTab === "security" ? <AccountSecurityTab /> : null}
+      {activeTab === "api-keys" && canUseDeveloperApi(user) ? <AccountApiKeysTab initialKeys={apiKeys} /> : null}
     </div>
   );
 }

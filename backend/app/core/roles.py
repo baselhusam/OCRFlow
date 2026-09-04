@@ -4,12 +4,14 @@ from enum import Enum
 class UserRole(str, Enum):
     ADMIN = "admin"
     VIEW_ADMIN = "view_admin"
+    DEVELOPER = "developer"
     USER = "user"
 
 
 ROLE_LABELS: dict[UserRole, str] = {
     UserRole.ADMIN: "Admin",
     UserRole.VIEW_ADMIN: "View Admin",
+    UserRole.DEVELOPER: "Developer",
     UserRole.USER: "User",
 }
 

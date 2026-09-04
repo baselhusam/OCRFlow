@@ -25,8 +25,9 @@ import { resolveActivityRangeDates } from "@/lib/api/analytics";
 import type { User } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
 import { canAccessAdminPanel } from "@/lib/auth/roles";
+import type { ApiKeyList, ApiKeyUsageSummary } from "@/lib/api/account";
 
-const VALID_TABS = new Set<AdminTab>(["users", "analytics"]);
+const VALID_TABS = new Set<AdminTab>(["users", "analytics", "api-keys"]);
 
 const VALID_ANALYTICS_TABS = new Set<AdminAnalyticsSubTab>([
   "overview",
@@ -86,6 +87,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     { data: pipelineLibrary },
     { data: pipelines },
     { data: runKinds },
+    { data: apiKeys },
   ] = await Promise.all([
     authenticatedApiFetch<AdminUserList>("/api/v1/admin/users"),
     authenticatedApiFetch<AnalyticsOverview>("/api/v1/admin/analytics/overview"),
@@ -123,7 +125,15 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     authenticatedApiFetch<RunKindBreakdown>(
       `/api/v1/admin/analytics/run-kinds?range=${range}`,
     ),
+    authenticatedApiFetch<ApiKeyList>("/api/v1/admin/api-keys"),
   ]);
+  const apiKeyUsageEntries = initialTab === "api-keys" ? await Promise.all(
+    apiKeys.items.map(async (key) => [
+      key.id,
+      (await authenticatedApiFetch<ApiKeyUsageSummary>(`/api/v1/admin/api-keys/${key.id}/usage`)).data,
+    ] as const),
+  ) : [];
+  const apiKeyUsage = Object.fromEntries(apiKeyUsageEntries);
 
   return (
     <main className="mx-auto w-full max-w-[1320px] flex-1 px-6 py-11 md:px-12">
@@ -149,6 +159,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           initialTab={initialTab}
           range={range}
           analyticsTab={analyticsTab}
+          apiKeys={apiKeys.items}
+          apiKeyUsage={apiKeyUsage}
         />
       </Suspense>
     </main>

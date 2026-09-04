@@ -14,7 +14,12 @@ from app.db.models.user import User
 
 
 def can_write(user: User) -> bool:
-    return user.user_role in (UserRole.ADMIN, UserRole.USER)
+    return user.user_role in (UserRole.ADMIN, UserRole.DEVELOPER, UserRole.USER)
+
+
+def can_use_developer_api(user: User) -> bool:
+    """Developer capabilities are additive to normal workspace access."""
+    return user.user_role in (UserRole.ADMIN, UserRole.DEVELOPER)
 
 
 def can_read_all(user: User) -> bool:
@@ -80,4 +85,3 @@ async def get_accessible_job(
         query = query.where(PipelineJob.owner_id == owner_scope)
     result = await db.execute(query)
     return result.scalar_one_or_none()
-

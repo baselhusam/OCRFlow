@@ -90,12 +90,13 @@ type SortColumn =
 
 type SortDirection = "asc" | "desc";
 
-const ROLE_OPTIONS: UserRole[] = ["admin", "view_admin", "user"];
+const ROLE_OPTIONS: UserRole[] = ["admin", "view_admin", "developer", "user"];
 
 const ROLE_SORT_ORDER: Record<UserRole, number> = {
   admin: 0,
   view_admin: 1,
-  user: 2,
+  developer: 2,
+  user: 3,
 };
 
 function formatTimestamp(value: string | null): string {

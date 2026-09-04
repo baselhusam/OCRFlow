@@ -2,12 +2,14 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
-import { ChartColumn, UsersRound } from "lucide-react";
+import { ChartColumn, KeyRound, UsersRound } from "lucide-react";
 
 import {
   AdminAnalyticsTab,
 } from "@/components/admin/admin-analytics-tab";
 import { AdminUsersTab } from "@/components/admin/admin-users-tab";
+import { AdminApiKeysTab } from "@/components/admin/admin-api-keys-tab";
+import type { ApiKey, ApiKeyUsageSummary } from "@/lib/api/account";
 import type { AdminAnalyticsSubTab, AdminUser } from "@/lib/api/admin";
 import type { UserLeaderboardList } from "@/lib/api/admin";
 import type {
@@ -31,7 +33,7 @@ import type { User } from "@/lib/api/client";
 import { canManageUsers } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 
-export type AdminTab = "users" | "analytics";
+export type AdminTab = "users" | "analytics" | "api-keys";
 
 type AdminDashboardProps = {
   user: User;
@@ -54,11 +56,14 @@ type AdminDashboardProps = {
   initialTab: AdminTab;
   range: AnalyticsRange;
   analyticsTab: AdminAnalyticsSubTab;
+  apiKeys: ApiKey[];
+  apiKeyUsage: Record<string, ApiKeyUsageSummary>;
 };
 
 const TAB_OPTIONS: { key: AdminTab; label: string; icon: LucideIcon }[] = [
   { key: "users", label: "Users", icon: UsersRound },
   { key: "analytics", label: "Analytics", icon: ChartColumn },
+  { key: "api-keys", label: "API keys", icon: KeyRound },
 ];
 
 export function AdminDashboard({
@@ -82,6 +87,8 @@ export function AdminDashboard({
   initialTab,
   range,
   analyticsTab,
+  apiKeys,
+  apiKeyUsage,
 }: AdminDashboardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -155,6 +162,7 @@ export function AdminDashboard({
           analyticsTab={analyticsTab}
         />
       ) : null}
+      {activeTab === "api-keys" ? <AdminApiKeysTab keys={apiKeys} usageByKey={apiKeyUsage} /> : null}
     </div>
   );
 }

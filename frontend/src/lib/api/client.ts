@@ -14,7 +14,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-export type UserRole = "admin" | "view_admin" | "user";
+export type UserRole = "admin" | "view_admin" | "developer" | "user";
 
 export type UserPreferences = {
   appearance: "system" | "light" | "dark";

@@ -3,8 +3,10 @@ import { Suspense } from "react";
 import { AccountDashboard, type AccountTab } from "@/components/account/account-dashboard";
 import type { User } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
+import type { ApiKeyList } from "@/lib/api/account";
+import { canUseDeveloperApi } from "@/lib/auth/roles";
 
-const VALID_TABS = new Set<AccountTab>(["profile", "preferences", "security"]);
+const VALID_TABS = new Set<AccountTab>(["profile", "preferences", "security", "api-keys"]);
 
 type AccountPageProps = {
   searchParams: Promise<{ tab?: string }>;
@@ -19,11 +21,14 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       : "profile";
 
   const { data: user } = await authenticatedApiFetch<User>("/api/v1/auth/me");
+  const apiKeys = canUseDeveloperApi(user)
+    ? (await authenticatedApiFetch<ApiKeyList>("/api/v1/account/api-keys")).data.items
+    : [];
 
   return (
     <main className="mx-auto w-full max-w-[980px] flex-1 px-6 py-11 md:px-12">
       <Suspense>
-        <AccountDashboard user={user} initialTab={initialTab} />
+        <AccountDashboard user={user} initialTab={initialTab} apiKeys={apiKeys} />
       </Suspense>
     </main>
   );

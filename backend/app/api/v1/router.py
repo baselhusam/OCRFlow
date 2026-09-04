@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     account,
+    api_keys,
     admin,
     analytics,
     auth,
@@ -13,14 +14,17 @@ from app.api.v1 import (
     project_assets,
     project_runs,
     projects,
+    developer,
 )
 from app.api.v1.admin import ocr_engines
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(account.router, prefix="/account", tags=["account"])
+api_router.include_router(api_keys.router, prefix="/account/api-keys", tags=["api-keys"])
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 api_router.include_router(ocr_engines.router, prefix="/admin", tags=["admin-engines"])
+api_router.include_router(developer.router, prefix="/developer", tags=["developer-api"])
 api_router.include_router(members.router, prefix="/members", tags=["members"])
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
 api_router.include_router(pipelines.router, prefix="/pipelines", tags=["pipelines"])
