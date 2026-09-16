@@ -80,6 +80,19 @@ async def me(current_user: User = Depends(get_current_user)) -> UserRead:
     return UserRead.from_user(current_user)
 
 
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh(current_user: User = Depends(get_current_user)) -> TokenResponse:
+    """Issue a fresh access token for a still-valid session.
+
+    Lets the frontend keep an active user signed in past the access token
+    lifetime without asking for the password again. An expired, invalid, or
+    deactivated-user token is rejected by ``get_current_user`` first, so this
+    never extends a session that has already lapsed.
+    """
+    access_token = create_access_token(str(current_user.id))
+    return TokenResponse(access_token=access_token, user=UserRead.from_user(current_user))
+
+
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout() -> None:
     return None

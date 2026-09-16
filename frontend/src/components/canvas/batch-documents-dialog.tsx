@@ -98,7 +98,7 @@ export function BatchDocumentsDialog({
             }}
           >
             <Files className="size-3.5" />
-            <span className="hidden sm:inline">Batch</span>
+            <span className="hidden xl:inline">Batch</span>
           </Button>
         }
       />

@@ -91,6 +91,7 @@ type SortColumn =
 type SortDirection = "asc" | "desc";
 
 const ROLE_OPTIONS: UserRole[] = ["admin", "view_admin", "developer", "user"];
+const ROLE_ITEMS = ROLE_OPTIONS.map((role) => ({ value: role, label: getRoleLabel(role) }));
 
 const ROLE_SORT_ORDER: Record<UserRole, number> = {
   admin: 0,
@@ -375,6 +376,7 @@ export function AdminUsersTab({
                     <TableCell className="px-5 py-4 align-middle">
                       {canManage && !isYou ? (
                         <Select
+                          items={ROLE_ITEMS}
                           value={member.role}
                           disabled={pendingUserId === member.id}
                           onValueChange={(value) =>
@@ -841,7 +843,7 @@ function CreateUserDialog() {
           </div>
           <div>
             <Label>Role</Label>
-            <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
+            <Select value={role} items={ROLE_ITEMS} onValueChange={(value) => setRole(value as UserRole)}>
               <SelectTrigger className="mt-2">
                 <SelectValue />
               </SelectTrigger>

@@ -14,6 +14,7 @@ OpenAPI is served by FastAPI at `/docs` on the gateway.
 | POST | `/auth/register` | Signup (auto-login) |
 | POST | `/auth/login` | Login |
 | GET | `/auth/me` | Current user |
+| POST | `/auth/refresh` | Re-issue the access token for a still-valid session |
 | PATCH | `/account/profile` | Name / profile |
 | PATCH | `/account/preferences` | UI preferences |
 

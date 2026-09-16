@@ -9,11 +9,12 @@ import {
   SelectionMode,
   useReactFlow,
   type Node,
+  type OnConnectEnd,
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { CanvasBottomLeftControls } from "@/components/canvas/canvas-bottom-left-controls";
-import { CanvasToastProvider } from "@/components/canvas/canvas-toast-context";
+import { CanvasToastProvider, useCanvasToast } from "@/components/canvas/canvas-toast-context";
 import { PipelineGraphProvider } from "@/components/canvas/pipeline-graph-context";
 import { CustomPipelineNode } from "@/components/canvas/nodes/custom-pipeline-node";
 import { PipelineDefinitionHeader } from "@/components/pipelines/pipeline-definition-header";
@@ -57,6 +58,27 @@ import {
 } from "@/lib/keyboard-shortcuts";
 
 import "@xyflow/react/dist/style.css";
+
+/** Gap kept between an existing node and one added from the palette. */
+const PALETTE_ADD_GAP = 80;
+const PALETTE_ADD_FALLBACK_WIDTH = 280;
+
+/**
+ * Where a palette click should drop a new node: to the right of the
+ * rightmost node so the graph grows left-to-right instead of piling up on the
+ * viewport centre.
+ */
+function nextPaletteAddPosition(
+  nodes: { position: { x: number; y: number }; measured?: { width?: number } }[],
+  center: { x: number; y: number },
+) {
+  if (nodes.length === 0) return center;
+  const rightmost = nodes.reduce((best, node) => {
+    const right = node.position.x + (node.measured?.width ?? PALETTE_ADD_FALLBACK_WIDTH);
+    return right > best.right ? { right, y: node.position.y } : best;
+  }, { right: -Infinity, y: center.y });
+  return { x: rightmost.right + PALETTE_ADD_GAP, y: rightmost.y };
+}
 
 const nodeTypes = {
   [PIPELINE_NODE_TYPE]: PipelineNode,
@@ -208,7 +230,7 @@ function PipelineCanvasInner({
     autoLayoutFromGraph();
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        void fitView({ padding: 0.2 });
+        void fitView({ padding: 0.2, maxZoom: 1 });
       });
     });
   }, [autoLayoutFromGraph, fitView]);
@@ -342,14 +364,10 @@ function PipelineCanvasInner({
             y: bounds.top + bounds.height / 2,
           })
         : { x: 200, y: 200 };
-      const offset = nodes.length * 24;
-      addModelNode(modelId, {
-        x: center.x + offset,
-        y: center.y + offset,
-      });
+      addModelNode(modelId, nextPaletteAddPosition(nodes, center));
     });
     return () => registerPaletteAddHandler(null);
-  }, [addModelNode, screenToFlowPosition, nodes.length]);
+  }, [addModelNode, screenToFlowPosition, nodes]);
 
   useEffect(() => {
     registerPaletteAddPipelineHandler((pipelineId) => {
@@ -362,17 +380,13 @@ function PipelineCanvasInner({
             y: bounds.top + bounds.height / 2,
           })
         : { x: 200, y: 200 };
-      const offset = nodes.length * 24;
-      addCustomPipelineNode(pipeline, {
-        x: center.x + offset,
-        y: center.y + offset,
-      });
+      addCustomPipelineNode(pipeline, nextPaletteAddPosition(nodes, center));
     });
     return () => registerPaletteAddPipelineHandler(null);
   }, [
     addCustomPipelineNode,
     screenToFlowPosition,
-    nodes.length,
+    nodes,
     userPipelines,
   ]);
 
@@ -383,10 +397,53 @@ function PipelineCanvasInner({
     // empty-looking canvas when a stale/default viewport is off-screen.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        void fitView({ padding: 0.2 });
+        void fitView({ padding: 0.2, maxZoom: 1 });
       });
     });
   }, [nodes.length, fitView]);
+
+  const { showCanvasToast } = useCanvasToast();
+
+  // React Flow drops an invalid connection silently; say why so the wire
+  // types are discoverable without reading the docs.
+  const onConnectEnd = useCallback<OnConnectEnd>(
+    (event, state) => {
+      if (!state.fromNode || state.isValid === true) return;
+      // Dropping on a node body (or a node without an input handle) leaves
+      // `toNode` empty, so fall back to the element under the pointer.
+      const droppedOn =
+        state.toNode ??
+        (() => {
+          // The pointer is captured by the source handle during a drag, so
+          // event.target is useless here; hit-test the pointer position.
+          // The in-progress connection line sits on top, so walk the whole
+          // stack under the pointer rather than taking the topmost element.
+          const point = "changedTouches" in event ? event.changedTouches[0] : event;
+          if (!point) return null;
+          for (const element of document.elementsFromPoint(point.clientX, point.clientY)) {
+            const id = element.closest<HTMLElement>(".react-flow__node")?.dataset.id;
+            if (id) return nodes.find((node) => node.id === id) ?? null;
+          }
+          return null;
+        })();
+      if (!droppedOn) return;
+      const from = state.fromNode.data as PipelineNodeData;
+      const to = droppedOn.data as PipelineNodeData;
+      if (state.fromNode.id === droppedOn.id) {
+        showCanvasToast({ variant: "error", message: "A node can't feed itself." });
+        return;
+      }
+      const targetIsSource = to.modelId.startsWith("loader/");
+      showCanvasToast({
+        variant: "error",
+        title: "Connection not allowed",
+        message: targetIsSource
+          ? `${to.label} is a source node — it reads a file and can't take a wire.`
+          : `${from.label} emits ${from.outputType}, but ${to.label} expects ${to.inputType}.`,
+      });
+    },
+    [nodes, showCanvasToast],
+  );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -562,7 +619,6 @@ function PipelineCanvasInner({
   }, [autoLayout, readOnly, runFullPipeline, saveNow]);
 
   return (
-    <CanvasToastProvider>
       <PipelineGraphProvider state={graphState} actions={graphActions}>
       <div className="flex h-full min-h-0 min-w-0 flex-col">
         {entity.kind === "pipeline" ? (
@@ -600,6 +656,7 @@ function PipelineCanvasInner({
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onConnectEnd={readOnly ? undefined : onConnectEnd}
             isValidConnection={isValidConnection}
             onNodeDragStart={readOnly ? undefined : onNodeDragStart}
             onNodeDragStop={readOnly ? undefined : onNodeDragStop}
@@ -661,7 +718,6 @@ function PipelineCanvasInner({
         </div>
       </div>
       </PipelineGraphProvider>
-    </CanvasToastProvider>
   );
 }
 
@@ -679,7 +735,9 @@ type PipelineCanvasProps = {
 export function PipelineCanvas(props: PipelineCanvasProps) {
   return (
     <ReactFlowProvider>
-      <PipelineCanvasInner {...props} />
+      <CanvasToastProvider>
+        <PipelineCanvasInner {...props} />
+      </CanvasToastProvider>
     </ReactFlowProvider>
   );
 }

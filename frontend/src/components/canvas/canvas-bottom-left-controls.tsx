@@ -26,7 +26,7 @@ export function CanvasBottomLeftControls({
   const maxZoomReached = useStore((state) => state.transform[2] >= state.maxZoom);
 
   const handleFitView = useCallback(() => {
-    void fitView({ padding: 0.2 });
+    void fitView({ padding: 0.2, maxZoom: 1 });
   }, [fitView]);
 
   return (

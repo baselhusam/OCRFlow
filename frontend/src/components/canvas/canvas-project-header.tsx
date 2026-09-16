@@ -253,18 +253,20 @@ export function CanvasProjectHeader({
             aria-label="Breadcrumb"
             className="flex min-w-0 items-center gap-2.5 overflow-hidden"
           >
+            {/* The toolbar takes most of the bar below xl; drop the root crumb
+                rather than letting overflow-hidden clip it mid-word. */}
             <Link
               href="/app/projects"
-              className="shrink-0 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="hidden shrink-0 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground xl:inline"
             >
               Projects
             </Link>
             <ChevronRight
-              className="size-3.5 shrink-0 text-muted-foreground/50"
+              className="hidden size-3.5 shrink-0 text-muted-foreground/50 xl:block"
               aria-hidden
             />
             <span
-              className="min-w-0 truncate text-sm font-semibold text-foreground/80"
+              className="min-w-[4rem] truncate text-sm font-semibold text-foreground/80"
               title={projectName}
             >
               {projectName}
@@ -379,7 +381,7 @@ export function CanvasProjectHeader({
               }
             >
               <LayoutGrid className="size-3.5" />
-              <span className="hidden text-[13px] font-semibold lg:inline">
+              <span className="hidden text-[13px] font-semibold xl:inline">
                 Layout
               </span>
             </TooltipTrigger>
@@ -463,7 +465,7 @@ export function CanvasProjectHeader({
                 }
               >
                 <RotateCcw className="size-3.5" />
-                <span className="hidden sm:inline">Clear all</span>
+                <span className="hidden xl:inline">Clear all</span>
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 Un-run all nodes and clear all cached outputs
@@ -488,7 +490,7 @@ export function CanvasProjectHeader({
                   }
                 >
                   <GitBranch className="size-3.5" />
-                  <span className="hidden sm:inline">Create pipeline</span>
+                  <span className="hidden xl:inline">Create pipeline</span>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
                   {nodes.some((node) => node.selected)

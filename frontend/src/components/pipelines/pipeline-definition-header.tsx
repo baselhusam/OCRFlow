@@ -158,16 +158,16 @@ export function PipelineDefinitionHeader({
           >
             <Link
               href="/app/pipelines"
-              className="shrink-0 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="hidden shrink-0 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground xl:inline"
             >
               Pipelines
             </Link>
             <ChevronRight
-              className="size-3.5 shrink-0 text-muted-foreground/50"
+              className="hidden size-3.5 shrink-0 text-muted-foreground/50 xl:block"
               aria-hidden
             />
             <span
-              className="min-w-0 truncate text-sm font-semibold text-foreground/80"
+              className="min-w-[4rem] truncate text-sm font-semibold text-foreground/80"
               title={pipelineName}
             >
               {pipelineName}

@@ -98,7 +98,7 @@ export function TemplatesGallery({ templates }: TemplatesGalleryProps) {
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           className="mt-9 overflow-hidden rounded-xl border border-[var(--landing-node-border)] bg-[var(--landing-node-bg)] shadow-[0_18px_40px_-38px_rgba(20,18,37,0.65)]"
         >
-          <div className="grid lg:grid-cols-[0.88fr_1.12fr]">
+          <div className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
             <div className="p-7 sm:p-8">
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="inline-flex size-10 items-center justify-center rounded-[10px] bg-primary/10 text-primary">

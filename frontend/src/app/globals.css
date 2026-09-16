@@ -135,6 +135,9 @@
 
 .dark {
   --accent-tint: rgba(91, 46, 239, 0.2);
+  /* Pulse Violet as *text* on the dark background is only 2.7:1, so text
+     utilities use this lighter tint (6.7:1) while surfaces keep --primary. */
+  --primary-text: #a78bfa;
 
   --background: #15131f;
   --foreground: #ffffff;
@@ -1113,4 +1116,13 @@
     border-radius: 0;
     font-weight: 400;
   }
+}
+
+/* Dark-mode text contrast: remap the primary text utilities (see --primary-text).
+   Kept outside @layer so it beats Tailwind's layered utilities. */
+.dark .text-primary,
+.dark .hover\:text-primary:hover,
+.dark .group-hover\:text-primary:is(:where(.group):hover *),
+.dark .data-\[state\=active\]\:text-primary[data-state="active"] {
+  color: var(--primary-text);
 }

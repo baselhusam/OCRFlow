@@ -54,6 +54,17 @@ export function classifyRunError(
   ) {
     return "no_input";
   }
+  // A document the loader can't decode is an input problem, not a missing
+  // model — check before the generic "failed to load" rule below.
+  if (
+    lower.includes("failed to open pdf") ||
+    lower.includes("data format error") ||
+    lower.includes("requires document.format") ||
+    lower.includes("cannot identify image") ||
+    lower.includes("unsupported document format")
+  ) {
+    return "bad_input";
+  }
   if (lower.includes("validation")) return "model_validation";
   if (lower.includes("not ready to run") || lower.includes("payload")) {
     return "payload_build";
@@ -191,6 +202,14 @@ export function getErrorDiagnosticMeta(
           "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
         suggestion:
           "This node needs input before it can run. Upload a document, connect an upstream node, or run upstream nodes first.",
+      };
+    case "bad_input":
+      return {
+        label: "Unreadable document",
+        badgeClassName:
+          "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
+        suggestion:
+          "The file could not be decoded by this loader. Check that PDFs go through a PDF Loader and images through an Image Loader, and that the file isn't corrupted.",
       };
     case "payload_build":
       return {

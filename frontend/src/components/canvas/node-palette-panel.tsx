@@ -123,6 +123,15 @@ export function NodePalettePanel({
     [filtered, categories],
   );
 
+  // Offline models that would match the query if they were shown, so an
+  // empty search result can explain itself instead of looking like a miss.
+  const hiddenOfflineMatches = useMemo(() => {
+    if (showOffline || !query.trim()) return 0;
+    return filterModels(paletteModels, categories, query).filter(
+      (model) => getModelStatus(model).offline,
+    ).length;
+  }, [showOffline, query, paletteModels, categories, getModelStatus]);
+
   const readyPipelines = useMemo(
     () => userPipelines.filter((pipeline) => isPipelineReady(pipeline)),
     [userPipelines],
@@ -397,13 +406,25 @@ export function NodePalettePanel({
                 <PipelinePaletteSection pipelines={readyPipelines} />
               ) : null}
               {flatItems.length === 0 ? (
-                <p className="px-2 py-6 text-center text-xs text-muted-foreground">
-                  {isSearching
-                    ? `No models match “${query.trim()}”`
-                    : offlineModelCount > 0 && !showOffline
-                      ? "No online OCR models yet. Start a service or show offline models."
-                      : "No models available"}
-                </p>
+                <div className="px-2 py-6 text-center text-xs text-muted-foreground">
+                  <p>
+                    {isSearching
+                      ? `No online models match “${query.trim()}”`
+                      : offlineModelCount > 0 && !showOffline
+                        ? "No online OCR models yet. Start a service or show offline models."
+                        : "No models available"}
+                  </p>
+                  {isSearching && hiddenOfflineMatches > 0 ? (
+                    <button
+                      type="button"
+                      className="mt-2 font-mono text-[10px] tracking-[0.12em] text-primary uppercase hover:underline"
+                      onClick={() => setShowOffline(true)}
+                    >
+                      Show {hiddenOfflineMatches} offline{" "}
+                      {hiddenOfflineMatches === 1 ? "match" : "matches"}
+                    </button>
+                  ) : null}
+                </div>
               ) : isSearching ? (
                 <ul className="flex flex-col gap-1.5">
                   {flatItems.map(({ model }) => (

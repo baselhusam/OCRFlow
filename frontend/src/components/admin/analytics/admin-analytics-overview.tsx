@@ -143,7 +143,7 @@ export function AdminAnalyticsOverview({
       </section>
 
       {/* ── Model + outcomes + run kinds bento ── */}
-      <div className="grid gap-5 xl:grid-cols-[1.3fr_1fr_1fr]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <ModelUsageChart models={models} />
         <RunOutcomesChart outcomes={outcomes} />
         <RunKindChart runKinds={runKinds} />

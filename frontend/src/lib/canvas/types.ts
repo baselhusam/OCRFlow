@@ -67,6 +67,7 @@ export type NodeRunErrorCode =
   | "model_inference"
   | "model_validation"
   | "no_input"
+  | "bad_input"
   | "payload_build"
   | "readiness"
   | "provider_offline"

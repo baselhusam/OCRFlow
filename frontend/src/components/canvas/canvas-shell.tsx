@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { SessionKeepAlive } from "@/components/app/session-keep-alive";
 import { NodePalettePanel } from "@/components/canvas/node-palette-panel";
 import { PipelineCanvas } from "@/components/canvas/pipeline-canvas";
 import { RuntimeAvailabilityProvider } from "@/components/canvas/runtime-availability-context";
@@ -74,6 +75,7 @@ export function CanvasShell({
   return (
     <TooltipProvider delay={400}>
       <RuntimeAvailabilityProvider runtime={runtime}>
+        <SessionKeepAlive />
         <div className="flex h-full min-h-0 flex-col">
           <div className="relative flex min-h-0 flex-1">
             {!readOnly ? (

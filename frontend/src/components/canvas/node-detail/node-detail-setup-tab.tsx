@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { FileText, Loader2, Upload, X } from "lucide-react";
+import { FileText, Link2, Loader2, Upload, X } from "lucide-react";
 
 import { DetailSection } from "@/components/canvas/node-detail/detail-section";
 import { ParamField } from "@/components/canvas/node-detail/param-field";
@@ -10,6 +10,7 @@ import { PageIndexPicker } from "@/components/canvas/page-index-picker";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
 import { uploadPipelineAsset, uploadProjectAsset } from "@/lib/api/assets";
 import { SOURCE_NODE_MODELS } from "@/lib/canvas/category-meta";
+import { getLoaderAccept } from "@/lib/canvas/loader-accept";
 import { getParamSchema, resolveParamValue } from "@/lib/canvas/node-param-schema";
 import {
   getUpstreamPagesForNode,
@@ -34,10 +35,8 @@ type NodeDetailSetupTabProps = {
   data: PipelineNodeData;
 };
 
-const ACCEPT = "application/pdf,image/png,image/jpeg,image/webp";
-
 export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
-  const { projectId, entity, updateNodeConfig, updateNodeData, getUpstream, runNode } =
+  const { projectId, entity, nodes, updateNodeConfig, updateNodeData, getUpstream, runNode } =
     usePipelineGraphActions();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -53,6 +52,13 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
   const upstream = getUpstream(nodeId);
   const upstreamPages = getUpstreamPagesForNode(data, upstream);
   const assetFilename = data.params.assetFilename as string | undefined;
+  // A wired input always wins over a test document at run time, so the
+  // dropzone is only useful while the node is unconnected.
+  const upstreamNode = upstream.nodeId
+    ? nodes.find((entry) => entry.id === upstream.nodeId)
+    : undefined;
+  const hasWiredInput = !isSourceLoader && Boolean(upstream.nodeId);
+  const showDocumentSection = isSourceLoader || (needsDocument && !hasWiredInput);
 
   const isPageSelector = isPageSelectorNode(data.modelId);
   const isLayoutSelector = isLayoutSelectorNode(data.modelId, data.category);
@@ -67,8 +73,16 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
       key !== PARENT_LAYOUT_NODE_PARAM,
   );
 
+  // Source loaders only open their own format; everything else takes any document.
+  const loaderAccept = getLoaderAccept(isSourceLoader ? data.modelId : undefined);
+
   const handleFile = useCallback(
     async (file: File) => {
+      const rejection = loaderAccept.reject(file);
+      if (rejection) {
+        setUploadError(rejection);
+        return;
+      }
       setUploading(true);
       setUploadError(null);
       try {
@@ -112,6 +126,7 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
     },
     [
       isSourceLoader,
+      loaderAccept,
       needsDocument,
       entity,
       nodeId,
@@ -139,7 +154,24 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
 
   return (
     <div className="px-4 py-3">
-      {(isSourceLoader || needsDocument) && (
+      {needsDocument && hasWiredInput && (
+        <DetailSection title="Input" className="border-b-0 px-0 py-0">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 px-3 py-2">
+            <Link2 className="size-4 shrink-0 text-muted-foreground" />
+            <p className="min-w-0 flex-1 text-xs text-muted-foreground">
+              Wired from{" "}
+              <span className="font-medium text-foreground">
+                {upstreamNode?.data.label ?? "upstream node"}
+              </span>
+              {upstreamPages.length > 0
+                ? ` · ${upstreamPages.length} page${upstreamPages.length === 1 ? "" : "s"}`
+                : ""}
+            </p>
+          </div>
+        </DetailSection>
+      )}
+
+      {showDocumentSection && (
         <DetailSection
           title={isSourceLoader ? "Document source" : "Test document"}
           className="border-b-0 px-0 py-0"
@@ -191,16 +223,16 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
                 <Upload className="size-4 text-muted-foreground" />
               )}
               <p className="text-[11px] text-muted-foreground">
-                {assetFilename ? "Replace file" : "Drop PDF or image"}
+                {assetFilename ? "Replace file" : loaderAccept.prompt}
               </p>
               <p className="font-mono text-[9px] tracking-[0.08em] text-muted-foreground uppercase">
-                PDF, PNG, JPEG, WebP
+                {loaderAccept.label}
               </p>
             </div>
             <input
               ref={inputRef}
               type="file"
-              accept={ACCEPT}
+              accept={loaderAccept.accept}
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -231,7 +263,7 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
           defaultOpen={!isSourceLoader}
           className={cn(
             "px-0",
-            (isSourceLoader || needsDocument) && "mt-4 border-t border-border pt-4",
+            (showDocumentSection || hasWiredInput) && "mt-4 border-t border-border pt-4",
           )}
         >
           <div className="space-y-3">

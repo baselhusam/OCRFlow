@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { CanvasShell } from "@/components/canvas/canvas-shell";
@@ -13,6 +14,16 @@ import { canWrite } from "@/lib/auth/roles";
 type CanvasPageProps = {
   params: Promise<{ projectId: string }>;
 };
+
+export async function generateMetadata({ params }: CanvasPageProps): Promise<Metadata> {
+  const { projectId } = await params;
+  try {
+    const { data } = await authenticatedApiFetch<Project>(`/api/v1/projects/${projectId}`);
+    return { title: `${data.name} · Canvas` };
+  } catch {
+    return { title: "Canvas" };
+  }
+}
 
 export default async function CanvasPage({ params }: CanvasPageProps) {
   const { projectId } = await params;

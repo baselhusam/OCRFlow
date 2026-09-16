@@ -134,6 +134,7 @@ export function AccountPreferencesTab({ user }: AccountPreferencesTabProps) {
           </p>
         </div>
         <Select
+          items={{ json: "JSON", csv: "CSV", markdown: "Markdown" }}
           value={prefs.default_output_format}
           onValueChange={(value) => {
             if (value) {
@@ -168,6 +169,7 @@ export function AccountPreferencesTab({ user }: AccountPreferencesTabProps) {
           </p>
         </div>
         <Select
+          items={{ "ocrflow-base v2.4": "ocrflow-base v2.4", "docling/ocr-auto": "docling/ocr-auto" }}
           value={prefs.default_ocr_model}
           onValueChange={(value) => {
             if (value) updatePref("default_ocr_model", value);

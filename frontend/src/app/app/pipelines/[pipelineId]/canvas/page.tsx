@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { CanvasShell } from "@/components/canvas/canvas-shell";
@@ -13,6 +14,16 @@ import { canWrite } from "@/lib/auth/roles";
 type PipelineCanvasPageProps = {
   params: Promise<{ pipelineId: string }>;
 };
+
+export async function generateMetadata({ params }: PipelineCanvasPageProps): Promise<Metadata> {
+  const { pipelineId } = await params;
+  try {
+    const { data } = await authenticatedApiFetch<Pipeline>(`/api/v1/pipelines/${pipelineId}`);
+    return { title: `${data.name} · Pipeline canvas` };
+  } catch {
+    return { title: "Pipeline canvas" };
+  }
+}
 
 export default async function PipelineCanvasPage({
   params,

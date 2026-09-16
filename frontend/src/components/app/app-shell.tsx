@@ -3,6 +3,7 @@
 import type { User } from "@/lib/api/client";
 import { AppHeader } from "@/components/app/app-header";
 import { AppSidebar } from "@/components/app/app-sidebar";
+import { SessionKeepAlive } from "@/components/app/session-keep-alive";
 import { WorkspaceKeyboardShortcuts } from "@/components/app/workspace-keyboard-shortcuts";
 import { UserThemeSync } from "@/components/app/user-theme-sync";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -16,6 +17,7 @@ export function AppShell({ user, children }: AppShellProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <UserThemeSync user={user} />
+      <SessionKeepAlive />
       <WorkspaceKeyboardShortcuts />
       <SidebarProvider
         className="min-h-svh flex-1"

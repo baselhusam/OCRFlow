@@ -94,6 +94,7 @@ export function ParamField({
         </Label>
         <Select
           value={String(value ?? field.options[0]?.value ?? "")}
+          items={field.options.map((opt) => ({ value: opt.value, label: opt.label }))}
           onValueChange={(val) => {
             if (val !== null) onChange(val);
           }}

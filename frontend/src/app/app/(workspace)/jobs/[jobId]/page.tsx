@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { JobTraceView } from "@/components/jobs/job-trace-view";
@@ -9,6 +10,16 @@ import { canWrite } from "@/lib/auth/roles";
 type JobDetailPageProps = {
   params: Promise<{ jobId: string }>;
 };
+
+export async function generateMetadata({ params }: JobDetailPageProps): Promise<Metadata> {
+  const { jobId } = await params;
+  try {
+    const { data } = await authenticatedApiFetch<PipelineJob>(`/api/v1/jobs/${jobId}`);
+    return { title: `${data.pipeline_name ?? "Job"} · Job` };
+  } catch {
+    return { title: "Job" };
+  }
+}
 
 export default async function JobDetailPage({ params }: JobDetailPageProps) {
   const { jobId } = await params;

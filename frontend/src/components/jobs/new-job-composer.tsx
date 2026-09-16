@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { GitBranch, Play, Upload } from "lucide-react";
+import { GitBranch, Play, Upload, X } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { isPipelineReady } from "@/lib/api/pipelines";
@@ -21,6 +21,12 @@ type NewJobComposerProps = {
 };
 
 const ACCEPT = "application/pdf,image/png,image/jpeg,image/webp";
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export function NewJobComposer({
   pipelines,
@@ -178,13 +184,45 @@ export function NewJobComposer({
           </p>
         </button>
         {files.length > 0 ? (
-          <ul className="mt-3 max-h-48 space-y-1 overflow-auto rounded-xl border border-border/70 bg-muted/30 px-3 py-2 text-sm">
-            {files.map((file) => (
-              <li key={`${file.name}-${file.size}`} className="truncate">
-                {file.name}
-              </li>
-            ))}
-          </ul>
+          <div className="mt-3 rounded-xl border border-border/70 bg-muted/30">
+            <div className="flex items-center justify-between border-b border-border/60 px-3 py-1.5">
+              <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground uppercase">
+                {files.length} {files.length === 1 ? "document" : "documents"}
+              </span>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => setFiles([])}
+                className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground uppercase hover:text-foreground"
+              >
+                Clear
+              </button>
+            </div>
+            <ul className="max-h-48 overflow-auto px-3 py-1.5 text-sm">
+              {files.map((file, index) => (
+                <li
+                  key={`${file.name}-${file.size}-${index}`}
+                  className="flex items-center gap-2 py-1"
+                >
+                  <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                  <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
+                    {formatFileSize(file.size)}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    aria-label={`Remove ${file.name}`}
+                    onClick={() =>
+                      setFiles((current) => current.filter((_, i) => i !== index))
+                    }
+                    className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    <X className="size-3.5" aria-hidden />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
         {error ? (
           <p className="mt-4 text-sm text-destructive">{error}</p>

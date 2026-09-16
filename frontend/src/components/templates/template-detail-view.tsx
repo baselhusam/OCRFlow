@@ -43,8 +43,8 @@ export function TemplateDetailView({
         All templates
       </Link>
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-        <div>
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-start">
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex size-11 items-center justify-center rounded-[11px] bg-primary/10 text-primary">
               <TemplateGlyph template={template} />

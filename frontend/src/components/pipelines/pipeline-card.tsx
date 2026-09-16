@@ -71,7 +71,8 @@ export function PipelineCard({ pipeline, canWrite = true }: PipelineCardProps) {
           <PipelineLogo pipeline={pipeline} />
         </Link>
 
-        <div className="flex items-start gap-1.5">
+        {/* Wrap on narrow two-column layouts (tablet) instead of pushing the card wider. */}
+        <div className="flex min-w-0 flex-wrap items-start justify-end gap-1.5">
           <span
             className={cn(
               "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",

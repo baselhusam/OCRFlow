@@ -161,7 +161,11 @@ export function ProjectsView({ projects, canWrite = true }: ProjectsViewProps) {
           })}
         </div>
 
-        <Select value={sort} onValueChange={(value) => setSort(value as ProjectsSort)}>
+        <Select
+          value={sort}
+          items={SORT_OPTIONS.map((option) => ({ value: option.key, label: option.label }))}
+          onValueChange={(value) => setSort(value as ProjectsSort)}
+        >
           <SelectTrigger className="ml-auto h-10 min-w-[120px] bg-card">
             <SelectValue />
           </SelectTrigger>

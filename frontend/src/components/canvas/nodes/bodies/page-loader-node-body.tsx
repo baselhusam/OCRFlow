@@ -14,6 +14,7 @@ import { useSourceLoaderLoad } from "@/hooks/use-source-loader-load";
 import { getUpstreamPagesForNode } from "@/lib/canvas/node-readiness";
 import { isPageAtAnchor } from "@/lib/canvas/page-branch-meta";
 import { SOURCE_NODE_MODELS } from "@/lib/canvas/category-meta";
+import { getLoaderAccept } from "@/lib/canvas/loader-accept";
 import type { PipelineNodeData } from "@/lib/canvas/types";
 import { cn } from "@/lib/utils";
 
@@ -21,8 +22,6 @@ type PageLoaderNodeBodyProps = {
   nodeId: string;
   data: PipelineNodeData;
 };
-
-const ACCEPT = "application/pdf,image/png,image/jpeg,image/webp";
 
 export function PageLoaderNodeBody({ nodeId, data }: PageLoaderNodeBodyProps) {
   const { projectId, updateNodeConfig, updateNodeData, getUpstream, runNode } =
@@ -52,8 +51,15 @@ export function PageLoaderNodeBody({ nodeId, data }: PageLoaderNodeBodyProps) {
     canLoadDocument,
   } = useSourceLoaderLoad(nodeId, data);
 
+  const loaderAccept = getLoaderAccept(data.modelId);
+
   const handleFile = useCallback(
     async (file: File) => {
+      const rejection = loaderAccept.reject(file);
+      if (rejection) {
+        setUploadError(rejection);
+        return;
+      }
       setUploading(true);
       setUploadError(null);
       try {
@@ -90,7 +96,7 @@ export function PageLoaderNodeBody({ nodeId, data }: PageLoaderNodeBodyProps) {
         setUploading(false);
       }
     },
-    [nodeId, projectId, runNode, updateNodeConfig, updateNodeData],
+    [loaderAccept, nodeId, projectId, runNode, updateNodeConfig, updateNodeData],
   );
 
   return (
@@ -131,14 +137,14 @@ export function PageLoaderNodeBody({ nodeId, data }: PageLoaderNodeBodyProps) {
                   <span className="block text-[9px] opacity-70">Click to replace</span>
                 </>
               ) : (
-                "Drop PDF or image"
+                loaderAccept.prompt
               )}
             </p>
           </div>
           <input
             ref={inputRef}
             type="file"
-            accept={ACCEPT}
+            accept={loaderAccept.accept}
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
