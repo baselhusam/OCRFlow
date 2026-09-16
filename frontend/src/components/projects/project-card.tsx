@@ -5,17 +5,13 @@ import { GitBranch } from "lucide-react";
 
 import { projectCardClassName } from "@/components/dashboard/dashboard-styles";
 import { ProjectCardMenu } from "@/components/projects/project-card-menu";
+import { ProjectStatusPill } from "@/components/projects/project-status-pill";
 import { RelativeTime } from "@/components/relative-time";
 import type { Project } from "@/lib/api/client";
 import {
   getProjectColorTint,
   getProjectIconComponent,
 } from "@/lib/projects/appearance";
-import {
-  getArchivedStatusStyles,
-  getProjectDisplayStatus,
-  getProjectStatusStyles,
-} from "@/lib/projects/status";
 import { formatProjectMeta, getProjectStats } from "@/lib/projects/stats";
 import { cn } from "@/lib/utils";
 
@@ -23,32 +19,6 @@ type ProjectCardProps = {
   project: Project;
   canWrite?: boolean;
 };
-
-function ProjectStatusPill({ project }: { project: Project }) {
-  const styles = project.is_archived
-    ? getArchivedStatusStyles()
-    : getProjectStatusStyles(
-        getProjectDisplayStatus(project),
-        project.color,
-      );
-
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
-      style={{
-        backgroundColor: styles.pillBg,
-        color: styles.pillColor,
-      }}
-    >
-      <span
-        className="size-1.5 rounded-full"
-        style={{ backgroundColor: styles.dotColor }}
-        aria-hidden
-      />
-      {styles.label}
-    </span>
-  );
-}
 
 export function ProjectCard({ project, canWrite = true }: ProjectCardProps) {
   const stats = getProjectStats(project);

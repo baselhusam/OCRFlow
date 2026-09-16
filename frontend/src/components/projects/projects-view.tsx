@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useMemo, useState, useSyncExternalStore } from "react";
+import { LayoutGrid, List, Search } from "lucide-react";
 
 import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
 import { ProjectCard } from "@/components/projects/project-card";
+import { ProjectTable } from "@/components/projects/project-table";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,6 +16,13 @@ import {
 } from "@/components/ui/select";
 import type { Project } from "@/lib/api/client";
 import { isActiveProject } from "@/lib/projects/status";
+import {
+  getProjectsViewModeServerSnapshot,
+  readProjectsViewMode,
+  subscribeProjectsViewMode,
+  writeProjectsViewMode,
+  type ProjectsViewMode,
+} from "@/lib/projects/view-prefs";
 import { cn } from "@/lib/utils";
 
 type ProjectsViewProps = {
@@ -35,6 +43,15 @@ const SORT_OPTIONS: { key: ProjectsSort; label: string }[] = [
   { key: "recent", label: "Recent" },
   { key: "name-asc", label: "Name A–Z" },
   { key: "name-desc", label: "Name Z–A" },
+];
+
+const VIEW_OPTIONS: {
+  key: ProjectsViewMode;
+  label: string;
+  icon: typeof LayoutGrid;
+}[] = [
+  { key: "cards", label: "Card view", icon: LayoutGrid },
+  { key: "table", label: "Table view", icon: List },
 ];
 
 function filterProjects(
@@ -80,6 +97,12 @@ export function ProjectsView({ projects, canWrite = true }: ProjectsViewProps) {
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<ProjectsTab>("all");
   const [sort, setSort] = useState<ProjectsSort>("recent");
+  // Persisted in localStorage; the server snapshot keeps SSR and hydration in sync.
+  const view = useSyncExternalStore(
+    subscribeProjectsViewMode,
+    readProjectsViewMode,
+    getProjectsViewModeServerSnapshot,
+  );
 
   const visibleProjects = useMemo(
     () => sortProjects(filterProjects(projects, tab, query), sort),
@@ -150,6 +173,36 @@ export function ProjectsView({ projects, canWrite = true }: ProjectsViewProps) {
             ))}
           </SelectContent>
         </Select>
+
+        <div
+          role="radiogroup"
+          aria-label="Layout"
+          className="inline-flex rounded-lg bg-secondary/80 p-0.5"
+        >
+          {VIEW_OPTIONS.map((option) => {
+            const active = view === option.key;
+            const Icon = option.icon;
+            return (
+              <button
+                key={option.key}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                aria-label={option.label}
+                title={option.label}
+                onClick={() => writeProjectsViewMode(option.key)}
+                className={cn(
+                  "inline-flex size-9 items-center justify-center rounded-md transition-colors",
+                  active
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Icon className="size-4" aria-hidden />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <p className="mt-7 mb-4 font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
@@ -167,6 +220,8 @@ export function ProjectsView({ projects, canWrite = true }: ProjectsViewProps) {
             Try a different search, or switch tabs.
           </p>
         </div>
+      ) : view === "table" ? (
+        <ProjectTable projects={visibleProjects} canWrite={canWrite} />
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {visibleProjects.map((project) => (
