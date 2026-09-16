@@ -30,6 +30,12 @@ const MODEL_PAGE_META = {
     logoClassName: "w-[56px]",
     markClassName: "border-[#b9c1ff] bg-[#f1f3ff] dark:border-[#5b6ee5]/60 dark:bg-[#dce1ff]",
   },
+  liquid: {
+    provider: "liquid",
+    label: "Vision-language provider",
+    logoClassName: "size-[40px]",
+    markClassName: "border-neutral-300 bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-900",
+  },
 } as const;
 
 type DocsPageProps = {

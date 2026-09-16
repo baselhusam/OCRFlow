@@ -6,11 +6,17 @@ import { useState } from "react";
 import { SegmentMark } from "@/components/brand/segment-mark";
 import { cn } from "@/lib/utils";
 
-const PROVIDER_LOGOS: Record<string, string | undefined> = {
+/** A logo that ships a dedicated asset per theme (black ink vs. white ink). */
+type ThemedLogo = { light: string; dark: string };
+
+const PROVIDER_LOGOS: Record<string, string | ThemedLogo | undefined> = {
   docling: "/models_logos/docling.png",
   surya: "/models_logos/surya_ocr_svg.svg",
   paddle: "/models_logos/paddle_ocr_logo.png",
-  liquid: "/models_logos/liquid-ai.svg",
+  liquid: {
+    light: "/models_logos/liquid-ai-mark-black.svg",
+    dark: "/models_logos/liquid-ai-mark-white.svg",
+  },
   openai: "/models_logos/openai.svg",
   "openai-compatible": "/models_logos/openai.svg",
   anthropic: "/models_logos/claude.png",
@@ -40,6 +46,10 @@ const PROVIDER_MONOGRAMS: Record<string, string> = {
   transform: "TR",
   llm: "LLM",
 };
+
+function isThemedLogo(src: string | ThemedLogo): src is ThemedLogo {
+  return typeof src !== "string";
+}
 
 function isOcrflowPlatformProvider(provider: string): boolean {
   return OCRFLOW_PLATFORM_PROVIDERS.has(provider);
@@ -109,6 +119,34 @@ export function ProviderLogo({
         >
           {monogram}
         </span>
+      );
+    }
+
+    if (isThemedLogo(src)) {
+      // Swap assets by theme instead of inverting, so brand ink stays exact.
+      return (
+        <>
+          <Image
+            src={src.light}
+            alt=""
+            width={renderedWidth}
+            height={size}
+            className={cn("shrink-0 object-contain dark:hidden", className)}
+            style={{ width: renderedWidth, height: size }}
+            onError={() => setFailed(true)}
+            aria-hidden
+          />
+          <Image
+            src={src.dark}
+            alt=""
+            width={renderedWidth}
+            height={size}
+            className={cn("hidden shrink-0 object-contain dark:block", className)}
+            style={{ width: renderedWidth, height: size }}
+            onError={() => setFailed(true)}
+            aria-hidden
+          />
+        </>
       );
     }
 
