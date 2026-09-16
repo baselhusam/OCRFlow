@@ -21,6 +21,16 @@ make ocr-up
 make be-ocr-liquid
 ```
 
+On a host (Apple Silicon), LFM2.5-VL needs Transformers 5.1+, which conflicts with Surya's `transformers<5` pin. Give Liquid its own virtualenv; `scripts/run-ocr-host.sh` picks up `backend/.venv-liquid` automatically before falling back to the shared `backend/.venv`:
+
+```bash
+cd backend
+python -m venv .venv-liquid
+.venv-liquid/bin/pip install -r requirements-liquid.txt
+```
+
+If Liquid runs from the shared venv with Transformers 4.x, model load fails with `Tokenizer class TokenizersBackend does not exist or is not currently imported`.
+
 The initial start downloads the model to the shared `ocrflow_liquid_models` volume (or `OCRFLOW_MODEL_CACHE/liquid` on a host). For an air-gapped deployment, pre-seed that cache and set `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1` on the Liquid service.
 
 ## Canvas nodes

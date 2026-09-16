@@ -39,8 +39,14 @@ device_for() {
   esac
 }
 
+# Prefer a provider-specific venv (backend/.venv-<provider>) so providers with
+# conflicting dependency pins can coexist: Surya needs transformers<5 while
+# Liquid LFM2.5-VL needs transformers>=5.1.
 find_uvicorn() {
-  if [ -x "$BACKEND/.venv/bin/uvicorn" ]; then
+  local provider="$1"
+  if [ -x "$BACKEND/.venv-$provider/bin/uvicorn" ]; then
+    echo "$BACKEND/.venv-$provider/bin/uvicorn"
+  elif [ -x "$BACKEND/.venv/bin/uvicorn" ]; then
     echo "$BACKEND/.venv/bin/uvicorn"
   elif [ -x "$ROOT/.venv/bin/uvicorn" ]; then
     echo "$ROOT/.venv/bin/uvicorn"
@@ -75,14 +81,20 @@ Stop it, or run: make ocr-down
 Then retry: make ocr-${provider}"
   fi
 
-  uvicorn="$(find_uvicorn)" || die \
+  uvicorn="$(find_uvicorn "$provider")" || die \
     "uvicorn not found. On Apple Silicon, OCR runs on the host so Metal/MPS can be used.
 Create a venv in backend/ and install the provider extras, then retry:
-  cd backend && python -m venv .venv && source .venv/bin/activate
-  pip install -r requirements.txt -r requirements-${provider}.txt
+  cd backend && python -m venv .venv-${provider} && source .venv-${provider}/bin/activate
+  pip install -r requirements-${provider}.txt
 Or force CPU containers: make ocr-${provider} ACCELERATOR=cpu"
 
-  echo "Starting $provider on :$port (device=$device) ..."
+  if [ "$provider" = liquid ] && [ "$uvicorn" = "$BACKEND/.venv/bin/uvicorn" ]; then
+    echo "warning: liquid is using the shared backend/.venv. LFM2.5-VL needs transformers>=5.1," >&2
+    echo "         which conflicts with Surya's transformers<5 pin. If model load fails, create" >&2
+    echo "         backend/.venv-liquid: cd backend && python -m venv .venv-liquid && .venv-liquid/bin/pip install -r requirements-liquid.txt" >&2
+  fi
+
+  echo "Starting $provider on :$port (venv=$(dirname "$(dirname "$uvicorn")"), device=$device) ..."
   (
     cd "$BACKEND"
     export OCRFLOW_SERVICE_PROVIDER="$provider"
