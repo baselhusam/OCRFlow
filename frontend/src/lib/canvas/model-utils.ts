@@ -43,6 +43,8 @@ export type ModelCategoryGroup = {
 export function groupModelsByCategory(
   models: ModelCatalogEntry[],
   categories: CategoryMeta[],
+  /** The user's default OCR model — pinned to the top of its group. */
+  preferredModelId?: string | null,
 ): ModelCategoryGroup[] {
   const categoryLabels = new Map(
     categories.map((c) => [c.id, c.display_name]),
@@ -59,9 +61,13 @@ export function groupModelsByCategory(
     .map(([categoryId, categoryModels]) => ({
       categoryId,
       categoryLabel: categoryLabels.get(categoryId) ?? categoryId,
-      models: [...categoryModels].sort((a, b) =>
-        getModelLabel(a).localeCompare(getModelLabel(b)),
-      ),
+      models: [...categoryModels].sort((a, b) => {
+        if (preferredModelId) {
+          if (a.id === preferredModelId) return -1;
+          if (b.id === preferredModelId) return 1;
+        }
+        return getModelLabel(a).localeCompare(getModelLabel(b));
+      }),
     }))
     .sort((a, b) => a.categoryLabel.localeCompare(b.categoryLabel));
 }
@@ -69,8 +75,9 @@ export function groupModelsByCategory(
 export function sortPaletteModels(
   models: ModelCatalogEntry[],
   categories: CategoryMeta[],
+  preferredModelId?: string | null,
 ): Array<{ model: ModelCatalogEntry; categoryLabel: string }> {
-  return groupModelsByCategory(models, categories).flatMap((group) =>
+  return groupModelsByCategory(models, categories, preferredModelId).flatMap((group) =>
     group.models.map((model) => ({
       model,
       categoryLabel: group.categoryLabel,

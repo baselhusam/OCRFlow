@@ -59,6 +59,7 @@ export default async function PipelineCanvasPage({
       categories={categories}
       runtime={runtime}
       readOnly={!canWrite(user)}
+      preferredModelId={user.preferences?.default_ocr_model ?? null}
     />
   );
 }

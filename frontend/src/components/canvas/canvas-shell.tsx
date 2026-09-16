@@ -30,6 +30,8 @@ type CanvasShellProps = {
   runtime?: RuntimeAvailability | null;
   readOnly?: boolean;
   userPipelines?: import("@/lib/api/client").Pipeline[];
+  /** The user's default OCR model, pinned in the palette. */
+  preferredModelId?: string | null;
 };
 
 export function CanvasShell({
@@ -42,6 +44,7 @@ export function CanvasShell({
   runtime = null,
   readOnly = false,
   userPipelines = [],
+  preferredModelId = null,
 }: CanvasShellProps) {
   const doneModels = filterDoneModels(models);
   const paletteModels = useMemo(() => {
@@ -91,6 +94,7 @@ export function CanvasShell({
                   }
                   collapsed={paletteCollapsed}
                   onCollapsedChange={handlePaletteCollapsedChange}
+                  preferredModelId={preferredModelId}
                 />
               </div>
             ) : null}

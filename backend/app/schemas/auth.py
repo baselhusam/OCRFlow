@@ -28,13 +28,23 @@ class UserLogin(BaseModel):
         return value.lower().strip()
 
 
+DEFAULT_OCR_MODEL = "docling/ocr-auto"
+# Placeholder shipped before the preference pointed at a real catalog model.
+_LEGACY_OCR_MODEL_PLACEHOLDER = "ocrflow-base v2.4"
+
+
 class UserPreferencesRead(BaseModel):
     appearance: Literal["system", "light", "dark"] = "light"
     default_output_format: Literal["json", "csv", "markdown"] = "json"
-    default_ocr_model: str = "ocrflow-base v2.4"
+    default_ocr_model: str = DEFAULT_OCR_MODEL
     auto_run_on_upload: bool = True
     email_on_run_fail: bool = True
     weekly_summary: bool = False
+
+    @field_validator("default_ocr_model")
+    @classmethod
+    def replace_legacy_placeholder(cls, value: str) -> str:
+        return DEFAULT_OCR_MODEL if value == _LEGACY_OCR_MODEL_PLACEHOLDER else value
 
 
 class UserPreferencesUpdate(BaseModel):

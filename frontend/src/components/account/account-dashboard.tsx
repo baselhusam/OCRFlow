@@ -9,6 +9,7 @@ import { AccountSecurityTab } from "@/components/account/account-security-tab";
 import { AccountApiKeysTab } from "@/components/account/account-api-keys-tab";
 import type { ApiKey } from "@/lib/api/account";
 import type { User } from "@/lib/api/client";
+import type { ModelCatalogEntry } from "@/lib/canvas/types";
 import { canUseDeveloperApi } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ type AccountDashboardProps = {
   user: User;
   initialTab: AccountTab;
   apiKeys: ApiKey[];
+  ocrModels: ModelCatalogEntry[];
 };
 
 const TAB_OPTIONS: { key: AccountTab; label: string }[] = [
@@ -26,7 +28,12 @@ const TAB_OPTIONS: { key: AccountTab; label: string }[] = [
   { key: "security", label: "Security" },
 ];
 
-export function AccountDashboard({ user, initialTab, apiKeys }: AccountDashboardProps) {
+export function AccountDashboard({
+  user,
+  initialTab,
+  apiKeys,
+  ocrModels,
+}: AccountDashboardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -84,7 +91,9 @@ export function AccountDashboard({ user, initialTab, apiKeys }: AccountDashboard
       </div>
 
       {activeTab === "profile" ? <AccountProfileTab user={user} /> : null}
-      {activeTab === "preferences" ? <AccountPreferencesTab user={user} /> : null}
+      {activeTab === "preferences" ? (
+        <AccountPreferencesTab user={user} ocrModels={ocrModels} />
+      ) : null}
       {activeTab === "security" ? <AccountSecurityTab /> : null}
       {activeTab === "api-keys" && canUseDeveloperApi(user) ? <AccountApiKeysTab initialKeys={apiKeys} /> : null}
     </div>

@@ -7,6 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { usePreferredModelId } from "@/components/canvas/preferred-model-context";
 import { ProviderLogo } from "@/components/canvas/provider-logo";
 import { useRuntimeAvailability } from "@/components/canvas/runtime-availability-context";
 import { getModelWireTypes } from "@/lib/canvas/model-utils";
@@ -49,6 +50,8 @@ export function NodePaletteItem({
     event.dataTransfer.effectAllowed = "move";
   };
 
+  const isPreferred = usePreferredModelId() === model.id;
+
   const handleClick = () => {
     if (offline) return;
     requestPaletteAdd(model.id);
@@ -84,6 +87,14 @@ export function NodePaletteItem({
             <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-foreground">
               {getModelLabel(model)}
             </span>
+            {isPreferred ? (
+              <span
+                className="shrink-0 rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-[0.08em] text-primary uppercase"
+                title="Your default OCR model (Account → Preferences)"
+              >
+                default
+              </span>
+            ) : null}
             {offline ? (
               <span className="shrink-0 rounded-md border border-[var(--status-warn)]/35 bg-[var(--status-warn)]/12 px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-[0.08em] text-[var(--status-warn)] uppercase">
                 offline

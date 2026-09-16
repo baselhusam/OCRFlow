@@ -59,6 +59,7 @@ export default async function CanvasPage({ params }: CanvasPageProps) {
       categories={categories}
       runtime={runtime}
       readOnly={!canWrite(user)}
+      preferredModelId={user.preferences?.default_ocr_model ?? null}
       userPipelines={pipelines}
     />
   );

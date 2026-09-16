@@ -127,7 +127,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         display_name="Docling Layout Heron",
     ),
     _entry(
-        "docling/layout-heron-101",
+        "docling/layout-heron-101", display_name="Docling Layout Heron 101",
         category="layout_detection",
         provider="docling",
         compute=ComputeTier.gpu_low,
@@ -135,7 +135,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         notes="Higher accuracy (~77M params); slower",
     ),
     _entry(
-        "docling/layout-egret-medium",
+        "docling/layout-egret-medium", display_name="Docling Layout Egret Medium",
         category="layout_detection",
         provider="docling",
         compute=ComputeTier.gpu_low,
@@ -143,7 +143,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         notes="Efficiency tier",
     ),
     _entry(
-        "docling/layout-egret-large",
+        "docling/layout-egret-large", display_name="Docling Layout Egret Large",
         category="layout_detection",
         provider="docling",
         status=ModelStatus.deferred,
@@ -151,7 +151,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         python_extra="docling",
     ),
     _entry(
-        "docling/layout-egret-xlarge",
+        "docling/layout-egret-xlarge", display_name="Docling Layout Egret XLarge",
         category="layout_detection",
         provider="docling",
         status=ModelStatus.deferred,
@@ -169,35 +169,35 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         display_name="Docling OCR Auto",
     ),
     _entry(
-        "docling/ocr-tesseract",
+        "docling/ocr-tesseract", display_name="Docling OCR Tesseract",
         category="text_recognition",
         provider="docling",
         compute=ComputeTier.cpu,
         python_extra="docling",
     ),
     _entry(
-        "docling/ocr-easyocr",
+        "docling/ocr-easyocr", display_name="Docling OCR EasyOCR",
         category="text_recognition",
         provider="docling",
         compute=ComputeTier.gpu_low,
         python_extra="docling",
     ),
     _entry(
-        "docling/ocr-rapidocr",
+        "docling/ocr-rapidocr", display_name="Docling OCR RapidOCR",
         category="text_recognition",
         provider="docling",
         compute=ComputeTier.cpu,
         python_extra="docling",
     ),
     _entry(
-        "docling/ocr-surya",
+        "docling/ocr-surya", display_name="Docling OCR Surya",
         category="text_recognition",
         provider="docling",
         compute=ComputeTier.gpu_low,
         python_extra="docling",
     ),
     _entry(
-        "docling/ocr-macos-vision",
+        "docling/ocr-macos-vision", display_name="Docling OCR macOS Vision",
         category="text_recognition",
         provider="docling",
         status=ModelStatus.deferred,
@@ -207,7 +207,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
     ),
     # Docling — table_structure
     _entry(
-        "docling/tableformer-fast",
+        "docling/tableformer-fast", display_name="Docling TableFormer Fast",
         category="table_structure",
         provider="docling",
         compute=ComputeTier.gpu_low,
@@ -223,7 +223,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         display_name="Docling TableFormer Accurate",
     ),
     _entry(
-        "docling/tablestructure-granite-vision",
+        "docling/tablestructure-granite-vision", display_name="Docling Table Structure Granite Vision",
         category="table_structure",
         provider="docling",
         status=ModelStatus.deferred,
@@ -232,7 +232,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
     ),
     # Docling — figure_classification
     _entry(
-        "docling/picture-classifier-v2.5",
+        "docling/picture-classifier-v2.5", display_name="Docling Picture Classifier v2.5",
         category="figure_classification",
         provider="docling",
         status=ModelStatus.done,
@@ -250,7 +250,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         display_name="Granite-Docling VLM",
     ),
     _entry(
-        "docling/vlm-smoldocling",
+        "docling/vlm-smoldocling", display_name="SmolDocling VLM",
         category="vlm_convert",
         provider="docling",
         status=ModelStatus.deferred,
@@ -258,7 +258,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         python_extra="docling",
     ),
     _entry(
-        "docling/vlm-qwen2.5-vl-3b",
+        "docling/vlm-qwen2.5-vl-3b", display_name="Qwen2.5-VL 3B (Docling)",
         category="vlm_convert",
         provider="docling",
         status=ModelStatus.deferred,
@@ -266,7 +266,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         python_extra="docling",
     ),
     _entry(
-        "docling/vlm-deepseek-ocr",
+        "docling/vlm-deepseek-ocr", display_name="DeepSeek-OCR (Docling)",
         category="vlm_convert",
         provider="docling",
         status=ModelStatus.deferred,
@@ -275,7 +275,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
     ),
     # Docling — figure_captioning
     _entry(
-        "docling/picture-description-smolvlm",
+        "docling/picture-description-smolvlm", display_name="Docling Picture Description SmolVLM",
         category="figure_captioning",
         provider="docling",
         status=ModelStatus.done,
@@ -283,7 +283,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         python_extra="docling",
     ),
     _entry(
-        "docling/picture-description-granite-vision",
+        "docling/picture-description-granite-vision", display_name="Docling Picture Description Granite Vision",
         category="figure_captioning",
         provider="docling",
         status=ModelStatus.deferred,
@@ -292,7 +292,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
     ),
     # Docling — formula_recognition
     _entry(
-        "docling/code-formula-v2",
+        "docling/code-formula-v2", display_name="Docling Code & Formula v2",
         category="formula_recognition",
         provider="docling",
         status=ModelStatus.done,
@@ -311,7 +311,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
     ),
     # Surya
     _entry(
-        "surya/layout",
+        "surya/layout", display_name="Surya Layout",
         category="layout_detection",
         provider="surya",
         status=ModelStatus.done,
@@ -321,7 +321,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         notes="Model weights: Open Rail-M",
     ),
     _entry(
-        "surya/reading-order",
+        "surya/reading-order", display_name="Surya Reading Order",
         category="reading_order",
         provider="surya",
         status=ModelStatus.done,
@@ -330,7 +330,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         python_extra="surya",
     ),
     _entry(
-        "surya/text-detection",
+        "surya/text-detection", display_name="Surya Text Detection",
         category="text_detection",
         provider="surya",
         status=ModelStatus.done,
@@ -339,7 +339,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         python_extra="surya",
     ),
     _entry(
-        "surya/text-recognition",
+        "surya/text-recognition", display_name="Surya Text Recognition",
         category="text_recognition",
         provider="surya",
         status=ModelStatus.done,
@@ -348,7 +348,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         python_extra="surya",
     ),
     _entry(
-        "surya/table-recognition",
+        "surya/table-recognition", display_name="Surya Table Recognition",
         category="table_structure",
         provider="surya",
         status=ModelStatus.done,
@@ -357,7 +357,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         python_extra="surya",
     ),
     _entry(
-        "surya/latex-ocr",
+        "surya/latex-ocr", display_name="Surya LaTeX OCR",
         category="formula_recognition",
         provider="surya",
         status=ModelStatus.done,
@@ -376,7 +376,7 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         display_name="PaddleOCR PP-DocLayout-S",
     ),
     _entry(
-        "paddle/doclayout-m",
+        "paddle/doclayout-m", display_name="PaddleOCR PP-DocLayout-M",
         category="layout_detection",
         provider="paddle",
         compute=ComputeTier.gpu_low,
@@ -392,24 +392,24 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         display_name="PaddleOCR PP-OCR small",
         notes="Bound to PaddleOCR's current small/mobile det+rec pipeline (PP-OCRv5 mobile).",
     ),
-    _entry("tesseract/default", category="text_recognition", provider="tesseract", compute=ComputeTier.cpu),
-    _entry("rapidocr/default", category="text_recognition", provider="rapidocr", compute=ComputeTier.cpu),
+    _entry("tesseract/default", display_name="Tesseract OCR", category="text_recognition", provider="tesseract", compute=ComputeTier.cpu),
+    _entry("rapidocr/default", display_name="RapidOCR", category="text_recognition", provider="rapidocr", compute=ComputeTier.cpu),
     _entry(
-        "easyocr/default",
+        "easyocr/default", display_name="EasyOCR",
         category="text_recognition",
         provider="easyocr",
         status=ModelStatus.deferred,
         compute=ComputeTier.gpu_low,
     ),
     _entry(
-        "doctr/default",
+        "doctr/default", display_name="docTR",
         category="text_recognition",
         provider="doctr",
         status=ModelStatus.deferred,
         compute=ComputeTier.gpu_mid,
     ),
     _entry(
-        "trocr/base",
+        "trocr/base", display_name="TrOCR Base",
         category="text_recognition",
         provider="trocr",
         status=ModelStatus.deferred,
@@ -418,13 +418,13 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
     ),
     # Phase 3+ — tables
     _entry(
-        "microsoft/tatr-detection",
+        "microsoft/tatr-detection", display_name="Table Transformer Detection",
         category="table_detection",
         provider="microsoft",
         compute=ComputeTier.gpu_low,
     ),
     _entry(
-        "microsoft/tatr-structure",
+        "microsoft/tatr-structure", display_name="Table Transformer Structure",
         category="table_structure",
         provider="microsoft",
         compute=ComputeTier.gpu_low,
@@ -441,33 +441,33 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
     ),
     # Phase 3+ — formula
     _entry(
-        "rapidai/latex-ocr",
+        "rapidai/latex-ocr", display_name="RapidAI LaTeX OCR",
         category="formula_recognition",
         provider="rapidai",
         compute=ComputeTier.cpu,
     ),
-    _entry("texo/default", category="formula_recognition", provider="texo", compute=ComputeTier.gpu_low),
+    _entry("texo/default", display_name="Texo", category="formula_recognition", provider="texo", compute=ComputeTier.gpu_low),
     _entry(
-        "pix2text/default",
+        "pix2text/default", display_name="Pix2Text",
         category="formula_recognition",
         provider="pix2text",
         compute=ComputeTier.gpu_low,
     ),
     # Phase 3+ — figure captioning
     _entry(
-        "salesforce/blip-base",
+        "salesforce/blip-base", display_name="BLIP Base Captioning",
         category="figure_captioning",
         provider="salesforce",
         compute=ComputeTier.gpu_low,
     ),
     _entry(
-        "microsoft/florence-2-base",
+        "microsoft/florence-2-base", display_name="Florence-2 Base",
         category="figure_captioning",
         provider="microsoft",
         compute=ComputeTier.gpu_low,
     ),
     _entry(
-        "qwen/qwen2.5-vl-3b-caption",
+        "qwen/qwen2.5-vl-3b-caption", display_name="Qwen2.5-VL 3B Captioning",
         category="figure_captioning",
         provider="qwen",
         status=ModelStatus.deferred,
@@ -475,13 +475,13 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
     ),
     # Phase 3+ — VLM convert
     _entry(
-        "ibm/granite-docling-258m",
+        "ibm/granite-docling-258m", display_name="Granite-Docling 258M",
         category="vlm_convert",
         provider="ibm",
         compute=ComputeTier.gpu_mid,
     ),
     _entry(
-        "paddle/paddleocr-vl-0.9b",
+        "paddle/paddleocr-vl-0.9b", display_name="PaddleOCR-VL 0.9B",
         category="vlm_convert",
         provider="paddle",
         status=ModelStatus.deferred,
@@ -552,23 +552,23 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
     # offered in the palette because they cannot communicate provider choice.
     *_connected_provider_entries(),
     _entry(
-        "vlm/qa",
+        "vlm/qa", display_name="Visual Q&A",
         category="figure_captioning",
         provider="vlm",
         compute=ComputeTier.api,
         license="varies",
     ),
     # Transforms (non-ML)
-    _entry("transform/deskew", category="preprocess", provider="transform", compute=ComputeTier.cpu),
-    _entry("transform/binarize", category="preprocess", provider="transform", compute=ComputeTier.cpu),
+    _entry("transform/deskew", display_name="Deskew", category="preprocess", provider="transform", compute=ComputeTier.cpu),
+    _entry("transform/binarize", display_name="Binarize", category="preprocess", provider="transform", compute=ComputeTier.cpu),
     _entry("loader/pdf", category="page_loader", provider="loader", compute=ComputeTier.cpu, status=ModelStatus.done, display_name="PDF Loader"),
     _entry("loader/image", category="page_loader", provider="loader", compute=ComputeTier.cpu, status=ModelStatus.done, display_name="Image Loader"),
     _entry("loader/page-at", category="page_loader", provider="loader", compute=ComputeTier.cpu, status=ModelStatus.done, display_name="Select Page"),
     _entry("loader/page-branch", category="page_loader", provider="loader", compute=ComputeTier.cpu, status=ModelStatus.done, display_name="Page Branch"),
     _entry("layout/region-branch", category="layout_detection", provider="layout", compute=ComputeTier.cpu, status=ModelStatus.done, display_name="Region Branch"),
-    _entry("assembler/document", category="assembler", provider="assembler", compute=ComputeTier.cpu),
-    _entry("export/markdown", category="export", provider="export", compute=ComputeTier.cpu),
-    _entry("export/json", category="export", provider="export", compute=ComputeTier.cpu),
+    _entry("assembler/document", display_name="Document Assembler", category="assembler", provider="assembler", compute=ComputeTier.cpu),
+    _entry("export/markdown", display_name="Markdown Export", category="export", provider="export", compute=ComputeTier.cpu),
+    _entry("export/json", display_name="JSON Export", category="export", provider="export", compute=ComputeTier.cpu),
 ]
 
 REGISTRY: dict[str, ModelRegistryEntry] = {entry.id: entry for entry in _REGISTRY_ENTRIES}

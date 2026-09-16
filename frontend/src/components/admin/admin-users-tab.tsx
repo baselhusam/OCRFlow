@@ -140,7 +140,7 @@ function toDisplayUser(member: AdminUser): User {
     preferences: {
       appearance: "light",
       default_output_format: "json",
-      default_ocr_model: "ocrflow-base v2.4",
+      default_ocr_model: "docling/ocr-auto",
       auto_run_on_upload: true,
       email_on_run_fail: true,
       weekly_summary: false,

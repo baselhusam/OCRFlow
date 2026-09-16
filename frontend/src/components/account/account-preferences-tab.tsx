@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AppToast } from "@/components/app-toast";
@@ -11,7 +11,6 @@ import {
   type ThemeSetting,
 } from "@/components/providers/theme-provider";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -22,10 +21,13 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { updatePreferences } from "@/lib/api/account";
 import type { User, UserPreferences } from "@/lib/api/client";
+import { getModelLabel } from "@/lib/canvas/model-utils";
+import type { ModelCatalogEntry } from "@/lib/canvas/types";
 import { cn } from "@/lib/utils";
 
 type AccountPreferencesTabProps = {
   user: User;
+  ocrModels: ModelCatalogEntry[];
 };
 
 const THEME_OPTIONS: { key: ThemeSetting; label: string }[] = [
@@ -34,8 +36,20 @@ const THEME_OPTIONS: { key: ThemeSetting; label: string }[] = [
   { key: "dark", label: "Dark" },
 ];
 
-export function AccountPreferencesTab({ user }: AccountPreferencesTabProps) {
+export function AccountPreferencesTab({ user, ocrModels }: AccountPreferencesTabProps) {
   const router = useRouter();
+  // Keep whatever is stored selectable even if that model is currently
+  // unavailable, so the trigger never shows a bare id.
+  const ocrModelItems = useMemo(() => {
+    const items = ocrModels.map((model) => ({ value: model.id, label: getModelLabel(model) }));
+    if (!items.some((item) => item.value === user.preferences.default_ocr_model)) {
+      items.unshift({
+        value: user.preferences.default_ocr_model,
+        label: user.preferences.default_ocr_model,
+      });
+    }
+    return items;
+  }, [ocrModels, user.preferences.default_ocr_model]);
   const { setTheme } = useTheme();
   const [prefs, setPrefs] = useState<UserPreferences>(user.preferences);
   const [isSaving, setIsSaving] = useState(false);
@@ -165,22 +179,25 @@ export function AccountPreferencesTab({ user }: AccountPreferencesTabProps) {
         <div>
           <p className="text-[15px] font-semibold text-foreground">Default OCR model</p>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Used by new Recognize Text nodes.
+            Pinned to the top of the Text Recognition group in the canvas palette.
           </p>
         </div>
         <Select
-          items={{ "ocrflow-base v2.4": "ocrflow-base v2.4", "docling/ocr-auto": "docling/ocr-auto" }}
+          items={ocrModelItems}
           value={prefs.default_ocr_model}
           onValueChange={(value) => {
             if (value) updatePref("default_ocr_model", value);
           }}
         >
-          <SelectTrigger className="min-w-[160px] font-mono text-[13px]">
+          <SelectTrigger className="min-w-[200px] text-[13px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ocrflow-base v2.4">ocrflow-base v2.4</SelectItem>
-            <SelectItem value="docling/ocr-auto">docling/ocr-auto</SelectItem>
+            {ocrModelItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

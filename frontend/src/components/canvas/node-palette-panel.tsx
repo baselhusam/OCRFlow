@@ -9,6 +9,7 @@ import {
   PipelinePaletteSection,
 } from "@/components/canvas/pipeline-palette-section";
 import { NodePaletteSection } from "@/components/canvas/node-palette-section";
+import { PreferredModelProvider } from "@/components/canvas/preferred-model-context";
 import { ProviderLogo } from "@/components/canvas/provider-logo";
 import { useRuntimeAvailability } from "@/components/canvas/runtime-availability-context";
 import { LogoHomeLink } from "@/components/brand/logo-home-link";
@@ -62,6 +63,8 @@ type NodePalettePanelProps = {
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
   collapsible?: boolean;
+  /** The user's default OCR model; pinned first in its group and tagged. */
+  preferredModelId?: string | null;
 };
 
 export function NodePalettePanel({
@@ -75,6 +78,7 @@ export function NodePalettePanel({
   collapsed = false,
   onCollapsedChange,
   collapsible = true,
+  preferredModelId = null,
 }: NodePalettePanelProps) {
   const [query, setQuery] = useState("");
   const [showOffline, setShowOffline] = useState(false);
@@ -114,13 +118,13 @@ export function NodePalettePanel({
   );
 
   const groups = useMemo(
-    () => groupModelsByCategory(filtered, categories),
-    [filtered, categories],
+    () => groupModelsByCategory(filtered, categories, preferredModelId),
+    [filtered, categories, preferredModelId],
   );
 
   const flatItems = useMemo(
-    () => sortPaletteModels(filtered, categories),
-    [filtered, categories],
+    () => sortPaletteModels(filtered, categories, preferredModelId),
+    [filtered, categories, preferredModelId],
   );
 
   // Offline models that would match the query if they were shown, so an
@@ -175,6 +179,7 @@ export function NodePalettePanel({
   }, [collapsed]);
 
   return (
+    <PreferredModelProvider value={preferredModelId}>
     <aside
       className={cn(
         "ocrflow-palette flex h-full shrink-0 flex-col overflow-hidden border-r border-border bg-card transition-[width] duration-200 ease-in-out",
@@ -455,5 +460,6 @@ export function NodePalettePanel({
         </>
       ) : null}
     </aside>
+    </PreferredModelProvider>
   );
 }
