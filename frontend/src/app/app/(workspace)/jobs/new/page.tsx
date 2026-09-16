@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { NewJobComposer } from "@/components/jobs/new-job-composer";
 import type { PipelineList as PipelineListResponse } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
+
+export const metadata: Metadata = {
+  title: "Apply pipeline",
+};
 
 type NewJobPageProps = {
   searchParams: Promise<{ pipeline?: string }>;

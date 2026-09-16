@@ -21,7 +21,10 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OCRFlow — Composable OCR pipelines",
+  title: {
+    default: "OCRFlow — Composable OCR pipelines",
+    template: "%s — OCRFlow",
+  },
   description:
     "Build custom document-understanding pipelines on a visual, node-based canvas. Fully under your control.",
   icons: {

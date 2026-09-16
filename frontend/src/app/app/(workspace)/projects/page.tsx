@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
 import { ProjectsView } from "@/components/projects/projects-view";
 import type { ProjectList as ProjectListResponse, User } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
 import { canWrite } from "@/lib/auth/roles";
+
+export const metadata: Metadata = {
+  title: "Projects",
+};
 
 export default async function ProjectsPage() {
   const [{ data }, { data: user }] = await Promise.all([

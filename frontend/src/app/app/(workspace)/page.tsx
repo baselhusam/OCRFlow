@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import type { ProjectList, User } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { getUserFirstName } from "@/lib/auth/display-name";
 import { getWorkspaceStats } from "@/lib/projects/stats";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+};
 
 function getGreeting(): string {
   const hour = new Date().getHours();

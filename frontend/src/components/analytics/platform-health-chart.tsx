@@ -25,11 +25,9 @@ function formatAxisLabel(value: string, range: AnalyticsRange): string {
   if (range === "7d") {
     return date.toLocaleDateString(undefined, { weekday: "short" });
   }
-  if (range === "90d") {
-    return date.toLocaleDateString(undefined, { month: "short" });
-  }
-  const week = Math.ceil(date.getDate() / 7);
-  return `Wk ${week}`;
+  // Buckets are daily; a week-of-month label repeats across month boundaries,
+  // so label the sampled ticks by date and let Recharts thin them out.
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 export function PlatformHealthChart({ series, range }: PlatformHealthChartProps) {

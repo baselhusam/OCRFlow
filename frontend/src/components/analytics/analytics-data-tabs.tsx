@@ -30,7 +30,7 @@ export function AnalyticsDataTabs({
   return (
     <div className={cn(dashboardCardClassName, "p-8 transition-all duration-300 hover:shadow-lg")}>
       <Tabs defaultValue="projects" className="w-full">
-        <div className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-8 flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <h2 className="text-[20px] font-extrabold tracking-[-0.03em] text-foreground">
               Data breakdown
@@ -43,7 +43,7 @@ export function AnalyticsDataTabs({
             </div>
           </div>
           
-          <TabsList className="h-auto w-fit rounded-xl bg-secondary/50 p-1.5 ring-1 ring-border/50">
+          <TabsList className="h-auto w-fit max-w-full flex-wrap rounded-xl bg-secondary/50 p-1.5 ring-1 ring-border/50">
             <TabsTrigger
               value="projects"
               className="rounded-lg px-5 py-2 font-mono text-[11px] font-bold tracking-[0.1em] uppercase transition-all data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-border/50"

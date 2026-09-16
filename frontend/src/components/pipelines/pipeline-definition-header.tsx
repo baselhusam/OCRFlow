@@ -295,7 +295,7 @@ export function PipelineDefinitionHeader({
             </Button>
           ) : null}
 
-          <ThemeToggle />
+          <ThemeToggle persistToAccount />
         </div>
       </header>
     </>

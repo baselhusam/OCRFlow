@@ -25,7 +25,7 @@ export function AppHeader() {
         <CommandPalette responsive />
       </div>
       <div className="flex items-center gap-[18px]">
-        <ThemeToggle />
+        <ThemeToggle persistToAccount />
         <Button
           variant="outline"
           size="sm"

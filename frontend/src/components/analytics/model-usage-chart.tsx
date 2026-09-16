@@ -16,6 +16,19 @@ type ModelUsageChartProps = {
   models: ModelUsageList;
 };
 
+const ROW_HEIGHT = 30;
+const MIN_CHART_HEIGHT = 260;
+const MAX_LABEL_LENGTH = 19;
+
+// Non-breaking spaces keep Recharts from wrapping a label onto a second row.
+function truncateLabel(value: string): string {
+  const label =
+    value.length > MAX_LABEL_LENGTH
+      ? `${value.slice(0, MAX_LABEL_LENGTH - 1)}…`
+      : value;
+  return label.replace(/ /g, "\u00a0");
+}
+
 export function ModelUsageChart({ models }: ModelUsageChartProps) {
   const data = models.items.map((item) => ({
     name: item.display_name ?? item.model_id.split("/").pop() ?? item.model_id,
@@ -50,12 +63,14 @@ export function ModelUsageChart({ models }: ModelUsageChartProps) {
 
       <ChartContainer
         config={modelUsageChartConfig}
-        className="mt-8 aspect-auto h-[260px] w-full"
+        className="mt-8 aspect-auto w-full"
+        // One row per model so long lists never squeeze labels into each other.
+        style={{ height: Math.max(MIN_CHART_HEIGHT, data.length * ROW_HEIGHT + 40) }}
       >
         <BarChart
           data={data}
           layout="vertical"
-          margin={{ left: -20, right: 16, top: 0, bottom: 0 }}
+          margin={{ left: 0, right: 16, top: 0, bottom: 0 }}
         >
           <CartesianGrid horizontal={false} stroke="var(--border)" strokeDasharray="4 4" />
           <XAxis
@@ -69,7 +84,9 @@ export function ModelUsageChart({ models }: ModelUsageChartProps) {
             dataKey="name"
             tickLine={false}
             axisLine={false}
-            width={140}
+            width={160}
+            interval={0}
+            tickFormatter={truncateLabel}
             tick={{ fill: "var(--foreground)", fontSize: 12, fontWeight: 600 }}
           />
           <ChartTooltip content={<ChartTooltipContent nameKey="model_id" />} />

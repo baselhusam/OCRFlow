@@ -130,7 +130,7 @@ export function AccountProfileTab({ user }: AccountProfileTabProps) {
           <Label className="text-[13px] font-semibold">Role</Label>
           <div className="mt-2 flex h-11 items-center justify-between rounded-lg border border-border bg-secondary/40 px-3 text-sm text-muted-foreground">
             <span>{getRoleLabel(user.role)}</span>
-            <span className="font-mono text-[11px]">set by workspace owner</span>
+            <span className="hidden shrink-0 whitespace-nowrap font-mono text-[11px] lg:inline">set by workspace owner</span>
           </div>
         </div>
         <div className="sm:col-span-2">

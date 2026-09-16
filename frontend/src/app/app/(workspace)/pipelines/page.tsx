@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 
@@ -7,6 +8,10 @@ import { PipelinesView } from "@/components/pipelines/pipelines-view";
 import type { PipelineList as PipelineListResponse, User } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
 import { canWrite } from "@/lib/auth/roles";
+
+export const metadata: Metadata = {
+  title: "Pipelines",
+};
 
 export default async function PipelinesPage() {
   const [{ data }, { data: user }] = await Promise.all([

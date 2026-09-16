@@ -629,7 +629,7 @@ export function CanvasProjectHeader({
             </Popover>
           ) : null}
 
-          <ThemeToggle />
+          <ThemeToggle persistToAccount />
 
           {!readOnly ? <Sheet>
             <SheetTrigger

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { AccountDashboard, type AccountTab } from "@/components/account/account-dashboard";
@@ -5,6 +6,10 @@ import type { User } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
 import type { ApiKeyList } from "@/lib/api/account";
 import { canUseDeveloperApi } from "@/lib/auth/roles";
+
+export const metadata: Metadata = {
+  title: "Account & settings",
+};
 
 const VALID_TABS = new Set<AccountTab>(["profile", "preferences", "security", "api-keys"]);
 

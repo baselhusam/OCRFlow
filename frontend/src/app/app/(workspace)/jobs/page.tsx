@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Play } from "lucide-react";
 
@@ -12,6 +13,10 @@ import {
 import { canWrite } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Jobs",
+};
 
 export default async function JobsPage() {
   let user: User;

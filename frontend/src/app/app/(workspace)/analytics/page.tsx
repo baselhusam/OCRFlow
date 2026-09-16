@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
@@ -22,6 +23,10 @@ import {
 } from "@/lib/api/analytics";
 import type { ProjectList } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
+
+export const metadata: Metadata = {
+  title: "Analytics",
+};
 
 type AnalyticsPageProps = {
   searchParams: Promise<{ project?: string; range?: string }>;

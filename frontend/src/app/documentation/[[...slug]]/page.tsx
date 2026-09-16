@@ -58,10 +58,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const page = loadDocsPage(slugFromParams(slug));
   if (!page) {
-    return { title: "Documentation — OCRFlow" };
+    return { title: { absolute: "Documentation — OCRFlow" } };
   }
   return {
-    title: `${page.title} — OCRFlow Docs`,
+    title: { absolute: `${page.title} — OCRFlow Docs` },
     description: page.description,
   };
 }

@@ -265,6 +265,16 @@
     --xy-selection-background-color: color-mix(in srgb, var(--pulse) 10%, transparent);
     --xy-selection-border: 1px solid color-mix(in srgb, var(--pulse) 42%, transparent);
     --xy-node-boxshadow-selected: none;
+
+    /* Zoom controls — React Flow's own stylesheet is unlayered and wins over
+       the `.react-flow__controls-button` rules below, so theme it through its
+       CSS variables (they follow --card / --foreground in both themes). */
+    --xy-controls-button-background-color: transparent;
+    --xy-controls-button-background-color-hover: color-mix(in srgb, var(--foreground) 5%, transparent);
+    --xy-controls-button-color: color-mix(in srgb, var(--foreground) 65%, transparent);
+    --xy-controls-button-color-hover: var(--foreground);
+    --xy-controls-button-border-color: transparent;
+    --xy-controls-box-shadow: none;
   }
 
   .ocrflow-canvas .react-flow__node.selectable.selected,

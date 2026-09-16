@@ -7,8 +7,8 @@ export function AccountSecurityTab() {
       <div className={cn(dashboardStatCardClassName, "p-6")}>
         <h2 className="text-base font-bold text-foreground">Security settings</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Password updates, two-factor authentication, API keys, and active sessions
-          are coming soon.
+          Password updates, two-factor authentication, and active sessions are
+          coming soon. Developer API keys are managed from the API keys tab.
         </p>
       </div>
     </div>

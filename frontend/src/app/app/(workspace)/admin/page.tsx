@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -26,6 +27,10 @@ import type { User } from "@/lib/api/client";
 import { authenticatedApiFetch } from "@/lib/api/server";
 import { canAccessAdminPanel } from "@/lib/auth/roles";
 import type { ApiKeyList, ApiKeyUsageSummary } from "@/lib/api/account";
+
+export const metadata: Metadata = {
+  title: "Admin panel",
+};
 
 const VALID_TABS = new Set<AdminTab>(["users", "analytics", "api-keys"]);
 
