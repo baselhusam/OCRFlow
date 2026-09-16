@@ -83,6 +83,15 @@ describe("getModelRuntimeStatus", () => {
     expect(status.message).toContain("Docling");
   });
 
+  it("keeps native platform providers online regardless of runtime", () => {
+    for (const provider of ["loader", "transform", "export", "assembler", "layout"]) {
+      expect(getModelRuntimeStatus(model(provider), null).offline).toBe(false);
+      expect(
+        getModelRuntimeStatus(model(provider), runtime([{ provider: "docling", running: false }])).offline,
+      ).toBe(false);
+    }
+  });
+
   it("leaves online providers available", () => {
     const availability = runtime([{ provider: "paddle", running: true }]);
     const status = getModelRuntimeStatus(model("paddle"), availability);

@@ -93,6 +93,11 @@ export function getModelRuntimeStatus(
   runtime: RuntimeAvailability | null | undefined,
 ): ProviderRuntimeStatus {
   const configuredProtocol = getConnectedProtocol(model.id);
+  // Native platform providers (loaders, transforms, export, ...) run in-process
+  // and are never reported by the runtime probe, so they are always available.
+  if (!configuredProtocol && !REMOTE_PROVIDERS.has(model.provider)) {
+    return AVAILABLE;
+  }
   if (!runtime) {
     return {
       offline: true,
