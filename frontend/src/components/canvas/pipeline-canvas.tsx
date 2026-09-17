@@ -14,6 +14,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { CanvasBottomLeftControls } from "@/components/canvas/canvas-bottom-left-controls";
+import { CanvasEmptyState } from "@/components/canvas/canvas-empty-state";
 import { CanvasToastProvider, useCanvasToast } from "@/components/canvas/canvas-toast-context";
 import { PipelineGraphProvider } from "@/components/canvas/pipeline-graph-context";
 import { CustomPipelineNode } from "@/components/canvas/nodes/custom-pipeline-node";
@@ -127,7 +128,14 @@ function PipelineCanvasInner({
     startPositions: Map<string, { x: number; y: number }>;
     duplicateOnStop: boolean;
   } | null>(null);
-  const { screenToFlowPosition, fitView, setCenter, getViewport } = useReactFlow();
+  const {
+    screenToFlowPosition,
+    fitView,
+    setCenter,
+    getViewport,
+    setViewport,
+    getInternalNode,
+  } = useReactFlow();
   const initialFitDone = useRef(false);
   const [focusPulseNodeId, setFocusPulseNodeId] = useState<string | null>(null);
   const interactionMode = useSyncExternalStore(
@@ -192,6 +200,8 @@ function PipelineCanvasInner({
     toggleOutputPanel,
     getUpstream,
     runNode,
+    runNodeAllPages,
+    cancelMapRun,
     runFullPipeline,
     clearNodeRunState,
     clearAllRunState,
@@ -234,6 +244,35 @@ function PipelineCanvasInner({
       });
     });
   }, [autoLayoutFromGraph, fitView]);
+
+  // Selecting a node opens the inspector, which narrows the canvas — pan just
+  // enough that the selected node is never hidden under the panel (or off any
+  // edge). Runs a frame later so the wrapper has its post-panel size.
+  useEffect(() => {
+    if (!selectedNodeId) return;
+    const frame = window.requestAnimationFrame(() => {
+      const node = getInternalNode(selectedNodeId);
+      const wrapper = reactFlowWrapper.current;
+      if (!node || !wrapper) return;
+      const { x: vx, y: vy, zoom } = getViewport();
+      const { width, height } = wrapper.getBoundingClientRect();
+      const w = (node.measured.width ?? 260) * zoom;
+      const h = (node.measured.height ?? 140) * zoom;
+      const sx = node.internals.positionAbsolute.x * zoom + vx;
+      const sy = node.internals.positionAbsolute.y * zoom + vy;
+      const margin = 28;
+      let dx = 0;
+      let dy = 0;
+      if (sx + w > width - margin) dx = width - margin - (sx + w);
+      if (sx < margin) dx = margin - sx;
+      if (sy + h > height - margin) dy = height - margin - (sy + h);
+      if (sy < margin) dy = margin - sy;
+      if (dx !== 0 || dy !== 0) {
+        void setViewport({ x: vx + dx, y: vy + dy, zoom }, { duration: 260 });
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [selectedNodeId, getInternalNode, getViewport, setViewport]);
 
   const focusNode = useCallback(
     (nodeId: string) => {
@@ -308,6 +347,8 @@ function PipelineCanvasInner({
       toggleOutputPanel,
       getUpstream,
       runNode,
+      runNodeAllPages,
+      cancelMapRun,
       runFullPipeline,
       clearNodeRunState,
       clearAllRunState,
@@ -334,6 +375,8 @@ function PipelineCanvasInner({
       toggleOutputPanel,
       getUpstream,
       runNode,
+      runNodeAllPages,
+      cancelMapRun,
       runFullPipeline,
       clearNodeRunState,
       clearAllRunState,
@@ -698,18 +741,7 @@ function PipelineCanvasInner({
           onModeChange={handleInteractionModeChange}
         />
         {nodes.length === 0 && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="max-w-sm rounded-sm border border-dashed border-border bg-card/80 px-6 py-5 text-center backdrop-blur-sm">
-              <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground uppercase">
-                {entity.kind === "pipeline" ? "Pipeline canvas" : "Empty canvas"}
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {entity.kind === "pipeline"
-                  ? "Add models from the palette, connect them into one flow, then save when the pipeline has a single input and output."
-                  : "Drag a model from the palette, click to add, or drop it here to start building your pipeline."}
-              </p>
-            </div>
-          </div>
+          <CanvasEmptyState entity={entity} readOnly={readOnly} />
         )}
           </ReactFlow>
           </div>

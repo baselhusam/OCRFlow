@@ -43,7 +43,7 @@ describe("local Ollama node contracts", () => {
       "textarea",
     );
     expect(fields.find((field) => field.key === "json_schema")?.type).toBe(
-      "textarea",
+      "json-schema",
     );
   });
 

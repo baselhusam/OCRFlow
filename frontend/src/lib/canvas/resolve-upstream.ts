@@ -108,7 +108,7 @@ function fileLoaderPagesOutput(
   return null;
 }
 
-function buildPagesOutput(pages: PageArtifactWire[]): NodeCachedOutput {
+export function buildPagesOutput(pages: PageArtifactWire[]): NodeCachedOutput {
   const first = pages[0]?.page;
   return {
     kind: "pages",
@@ -172,6 +172,24 @@ export function resolveNodeEffectiveOutput(
     const parentOutput = parent?.data.cachedOutput ?? null;
     if (!parentOutput) return cachedOutput ?? null;
     return sliceOutputByHandle(parentOutput, handle);
+  }
+
+  // A node applied to all pages answers page handles with that page's result.
+  if (cachedOutput?.mapped?.length) {
+    const parsed = parseSourceHandle(handle);
+    if (parsed.scope !== "all" && parsed.itemKind === "page") {
+      const wanted = parsed.scope === "item" ? [parsed.itemId] : parsed.itemIds;
+      const hits = wanted
+        .map((id) => cachedOutput.mapped!.find((entry) => entry.page_index === Number(id)))
+        .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry && !entry.error));
+      if (hits.length === 1) return hits[0].output;
+      if (hits.length > 1) {
+        // Several pages of a mapped output: hand over the page results as a
+        // mapped output whose current page is the first requested one.
+        return { ...hits[0].output, mapped: hits };
+      }
+      return null;
+    }
   }
 
   return cachedOutput ?? null;
@@ -369,6 +387,63 @@ export function findUpstreamPageImage(
     if (fromChain) return fromChain;
   }
 
+  return null;
+}
+
+/**
+ * Pixel page an output's geometry refers to. Outputs persist without their
+ * image blobs, so after a reload the regions of "page 4" need the loader's
+ * page 4 — not the first page the chain happens to find.
+ */
+export function resolveOutputPageImage(
+  nodeId: string,
+  output: NodeCachedOutput | null,
+  nodes: Node<PipelineNodeData>[],
+  edges: Edge[],
+): PageArtifactWire["page"] | null {
+  const own = extractPageImage(output);
+  if (own?.image_base64 || own?.image_url) return own;
+
+  const pageIndex =
+    (output?.raw as { page_index?: number } | null)?.page_index ??
+    own?.page_index ??
+    output?.preview?.pageImage?.page_index;
+
+  const visited = new Set<string>();
+  const queue = [nodeId];
+  while (queue.length) {
+    const current = queue.shift()!;
+    if (visited.has(current)) continue;
+    visited.add(current);
+    for (const edge of edges) {
+      if (edge.target !== current) continue;
+      const source = nodes.find((node) => node.id === edge.source);
+      if (!source) continue;
+      const pages = extractPages(source.data.cachedOutput ?? null);
+      if (pages.length) {
+        const match =
+          pageIndex !== undefined
+            ? pages.find((page) => page.page_index === pageIndex)
+            : undefined;
+        const page = (match ?? pages[0]).page;
+        if (page?.image_base64 || page?.image_url) return page;
+      }
+      const single = extractPageImage(source.data.cachedOutput ?? null);
+      if (single?.image_base64 || single?.image_url) {
+        if (pageIndex === undefined || single.page_index === pageIndex) return single;
+      }
+      queue.push(source.id);
+    }
+  }
+
+  // Broken chain (stale branch ids, deleted node): fall back to any loader
+  // in the graph that has the page — better than showing nothing.
+  for (const node of nodes) {
+    if (!SOURCE_NODE_MODELS.has(node.data.modelId)) continue;
+    const pages = extractPages(node.data.cachedOutput ?? null);
+    const page = (pages.find((entry) => entry.page_index === pageIndex) ?? pages[0])?.page;
+    if (page?.image_base64 || page?.image_url) return page;
+  }
   return null;
 }
 

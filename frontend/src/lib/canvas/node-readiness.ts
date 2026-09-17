@@ -119,7 +119,7 @@ export function validateNodeParams(
           typeof schema.properties !== "object" ||
           schema.properties === null
         ) {
-          issues.push("JSON Schema must define an object with properties");
+          issues.push("Add at least one field to extract");
         }
       } catch {
         issues.push("JSON Schema must be valid JSON");
@@ -152,7 +152,7 @@ export function validateNodeParams(
           typeof schema.properties !== "object" ||
           schema.properties === null
         ) {
-          issues.push("JSON Schema must define an object with properties");
+          issues.push("Add at least one field to extract");
         }
       } catch {
         issues.push("JSON Schema must be valid JSON");
@@ -167,7 +167,7 @@ export function validateNodeParams(
     if (temperature < 0 || temperature > 2) issues.push("temperature must be between 0 and 2");
     if (Number(params.max_tokens ?? 1024) < 1 || Number(params.max_tokens ?? 1024) > 32768) issues.push("max_tokens must be between 1 and 32768");
     if (modelId.includes("structured-extract")) {
-      try { const schema = JSON.parse(String(params.json_schema ?? "")); if (!schema || schema.type !== "object" || !schema.properties) issues.push("JSON Schema must define an object with properties"); } catch { issues.push("JSON Schema must be valid JSON"); }
+      try { const schema = JSON.parse(String(params.json_schema ?? "")); if (!schema || schema.type !== "object" || !schema.properties) issues.push("Add at least one field to extract"); } catch { issues.push("JSON Schema must be valid JSON"); }
     }
   }
 

@@ -112,6 +112,28 @@ export function JsonTree({
   );
 }
 
+/** Expanded tree with no toggle — for places that already have their own header. */
+export function JsonTreeInline({
+  data,
+  maxDepth = 4,
+  className,
+}: {
+  data: unknown;
+  maxDepth?: number;
+  className?: string;
+}) {
+  return (
+    <pre
+      className={cn(
+        "font-mono text-[10.5px] leading-relaxed whitespace-pre-wrap text-foreground/85 select-text",
+        className,
+      )}
+    >
+      <JsonValue value={data} depth={0} maxDepth={maxDepth} />
+    </pre>
+  );
+}
+
 export function JsonTreeFull({ data, className }: { data: unknown; className?: string }) {
   return (
     <pre

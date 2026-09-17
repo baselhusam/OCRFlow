@@ -43,14 +43,16 @@ Full task lists live in [Model catalog](/documentation/models). Offline provider
 
 ## Branch satellites
 
-These nodes are **not** in the palette. They spawn beside an anchor after a run:
+These nodes are **not** in the palette. They spawn beside an anchor after a run, from **Expand to node** in the anchor's preview card:
 
 | Satellite | Anchor | Purpose |
 | --- | --- | --- |
-| `loader/page-branch` | Select Page | One handle per page |
-| `layout/region-branch` | Layout models | One handle per region (`p.N`, label) |
+| `loader/page-branch` | Select Page | **Items** node: one handle per page, group handle for a selection |
+| `layout/region-branch` | Layout models | **Items** node: one handle per region, filter by label, group handle |
 | `figure/caption-branch` | SmolVLM captioning | Per-caption outputs |
 | `docling/document-branch` | Convert / Granite VLM | Per-page document output |
+
+Item handles are `item:<kind>:<id>`, group handles `items:<kind>:<id>,<id>`, and items of a node applied to all pages carry their page (`item:region:r2@3`). The backend honours all three in project runs, and the satellites themselves run as pass-through, so a graph that wires "region 3 → OCR" behaves the same on the canvas and in a run.
 
 They are project-canvas UX. Reusable pipelines block most of them (`BLOCKED_PIPELINE_MODELS`) so a job's graph stays a single bounded flow.
 

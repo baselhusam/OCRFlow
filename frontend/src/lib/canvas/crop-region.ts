@@ -1,7 +1,25 @@
 export type NormalizedBBox = [number, number, number, number];
 
+/** Data URL or http(s) URL for a page image, whichever the artifact carries. */
+export function pageImageSrc(
+  page: { image_base64?: string | null; image_url?: string | null } | null | undefined,
+): string | null {
+  if (!page) return null;
+  if (page.image_base64) return `data:image/png;base64,${page.image_base64}`;
+  return page.image_url || null;
+}
+
 export function cropBboxFromBase64(
   imageBase64: string,
+  bbox: NormalizedBBox,
+  maxWidth = 160,
+): Promise<string | null> {
+  return cropImageRegion(`data:image/png;base64,${imageBase64}`, bbox, maxWidth);
+}
+
+/** Crop a normalized bbox out of any loadable image source; returns base64 PNG. */
+export function cropImageRegion(
+  src: string,
   bbox: NormalizedBBox,
   maxWidth = 160,
 ): Promise<string | null> {
@@ -27,6 +45,7 @@ export function cropBboxFromBase64(
       resolve(dataUrl.split(",")[1] ?? null);
     };
     img.onerror = () => resolve(null);
-    img.src = `data:image/png;base64,${imageBase64}`;
+    if (!src.startsWith("data:")) img.crossOrigin = "anonymous";
+    img.src = src;
   });
 }

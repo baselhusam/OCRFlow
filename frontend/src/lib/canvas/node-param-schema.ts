@@ -6,7 +6,8 @@ export type ParamFieldType =
   | "textarea"
   | "boolean"
   | "select"
-  | "multi-select";
+  | "multi-select"
+  | "json-schema";
 
 export type ParamFieldDef = {
   key: string;
@@ -289,7 +290,7 @@ const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
     },
     { key: "text", label: "Input text (optional)", type: "textarea", rows: 6 },
     ...OLLAMA_BASE_FIELDS,
-    { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 },
+    { key: "json_schema", label: "Fields to extract", type: "json-schema" },
   ],
   "ollama/vision-prompt": [
     {
@@ -308,7 +309,7 @@ const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
       options: [{ value: "qwen3.5:0.8b", label: "Qwen 3.5 · 0.8B Vision" }],
     },
     ...OLLAMA_BASE_FIELDS,
-    { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 },
+    { key: "json_schema", label: "Fields to extract", type: "json-schema" },
   ],
   "liquid/vision-prompt": [
     { key: "model", label: "Liquid model", type: "text", readOnly: true },
@@ -317,19 +318,19 @@ const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
   "liquid/vision-structured-extract": [
     { key: "model", label: "Liquid model", type: "text", readOnly: true },
     ...LIQUID_BASE_FIELDS,
-    { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 },
+    { key: "json_schema", label: "Fields to extract", type: "json-schema" },
   ],
   "llm/text-prompt": [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS],
-  "llm/structured-extract": [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 }],
+  "llm/structured-extract": [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "Fields to extract", type: "json-schema" }],
   "vlm/vision-prompt": CONNECTED_BASE_FIELDS,
-  "vlm/vision-structured-extract": [...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 }],
+  "vlm/vision-structured-extract": [...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "Fields to extract", type: "json-schema" }],
 };
 
 for (const protocol of CONNECTED_PROTOCOLS) {
   MODEL_PARAM_SCHEMA[`${protocol}/text-prompt`] = [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS];
-  MODEL_PARAM_SCHEMA[`${protocol}/structured-extract`] = [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 }];
+  MODEL_PARAM_SCHEMA[`${protocol}/structured-extract`] = [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "Fields to extract", type: "json-schema" }];
   MODEL_PARAM_SCHEMA[`${protocol}/vision-prompt`] = CONNECTED_BASE_FIELDS;
-  MODEL_PARAM_SCHEMA[`${protocol}/vision-structured-extract`] = [...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "JSON Schema", type: "textarea", rows: 12 }];
+  MODEL_PARAM_SCHEMA[`${protocol}/vision-structured-extract`] = [...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "Fields to extract", type: "json-schema" }];
 }
 
 const CATEGORY_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {

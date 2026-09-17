@@ -43,6 +43,9 @@ export type PipelineGraphActions = {
   ) => void;
   toggleOutputPanel: (nodeId: string) => void;
   runNode: (nodeId: string) => Promise<boolean>;
+  /** Apply the node (and unmapped page models upstream) to every page. */
+  runNodeAllPages: (nodeId: string) => Promise<boolean>;
+  cancelMapRun: (nodeId: string) => void;
   runFullPipeline: () => Promise<void>;
   clearNodeRunState: (nodeId: string) => void;
   clearAllRunState: () => void;

@@ -15,7 +15,12 @@ from app.core.config import get_settings
 from app.db.models.pipeline import Pipeline
 from app.models.runner_factory import get_cached_runner
 from app.services.pipeline_execution.readiness import get_pipeline_readiness
-from app.services.pipeline_execution.registry import build_model_input, extract_model_output
+from app.services.pipeline_execution.registry import (
+    PASS_THROUGH_MODELS,
+    build_model_input,
+    extract_model_output,
+    pass_through_output,
+)
 from app.services.pipeline_execution.schemas import (
     NodeCachedOutput,
     NodeRunResult,
@@ -200,6 +205,8 @@ class PipelineExecutor:
     ) -> NodeCachedOutput:
         if node.modelId.startswith("custom-pipeline/"):
             return await self._execute_custom_pipeline_node(node, upstream)
+        if node.modelId in PASS_THROUGH_MODELS:
+            return pass_through_output(node, upstream)
 
         model_input = build_model_input(
             project_id=str(self.project_id),

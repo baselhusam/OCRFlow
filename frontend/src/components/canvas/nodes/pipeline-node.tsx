@@ -1,19 +1,21 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
-import { memo, useMemo } from "react";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { AlertCircle, Cable, X } from "lucide-react";
+import { memo, useMemo, useState, type CSSProperties } from "react";
+import { Handle, NodeToolbar, Position, type NodeProps } from "@xyflow/react";
 
+import { AssetPreviewDialog } from "@/components/canvas/asset-preview-dialog";
 import { PageLoaderNodeBody } from "@/components/canvas/nodes/bodies/page-loader-node-body";
-import { PageBranchPipelineNode } from "@/components/canvas/nodes/page-branch-pipeline-node";
-import { RegionBranchPipelineNode } from "@/components/canvas/nodes/region-branch-pipeline-node";
+import { NodePreviewCard } from "@/components/canvas/nodes/preview/node-preview-card";
+import { PipelineNodeFooter } from "@/components/canvas/nodes/pipeline-node-footer";
+import { PipelineNodeSummary } from "@/components/canvas/nodes/pipeline-node-summary";
+import { CollectionItemsNode } from "@/components/canvas/nodes/collection-items-node";
 import { CaptionBranchPipelineNode } from "@/components/canvas/nodes/caption-branch-pipeline-node";
 import { DocumentBranchPipelineNode } from "@/components/canvas/nodes/document-branch-pipeline-node";
 import { CaptionExpandPanel } from "@/components/canvas/nodes/output/caption-expand-panel";
 import { ClassificationResultsPanel } from "@/components/canvas/nodes/output/classification-results-panel";
 import { DocumentExpandPanel } from "@/components/canvas/nodes/output/document-expand-panel";
-import { NodeInlinePreview } from "@/components/canvas/nodes/node-inline-preview";
 import {
   hasOutputData,
   OutputPanel,
@@ -22,12 +24,22 @@ import { LayoutExpandPanel } from "@/components/canvas/nodes/output/layout-expan
 import { PageAtLaunchPanel } from "@/components/canvas/nodes/output/page-at-launch-panel";
 import type { RegionWire } from "@/components/canvas/nodes/output/region-thumbnail-panel";
 import { PipelineNodeHeader } from "@/components/canvas/nodes/pipeline-node-header";
-import { PipelineNodeParams } from "@/components/canvas/nodes/pipeline-node-params";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
 import { useRefreshNodeHandles } from "@/hooks/use-refresh-node-handles";
-import { getUpstreamPagesForNode, getNodeReadiness } from "@/lib/canvas/node-readiness";
-import { getOutgoingEdgeCount, upstreamSatisfiesInput } from "@/lib/canvas/resolve-upstream";
-import { SOURCE_NODE_CATEGORIES, SOURCE_NODE_MODELS } from "@/lib/canvas/category-meta";
+import { useSourceLoaderLoad } from "@/hooks/use-source-loader-load";
+import { collectMapPages } from "@/lib/canvas/map-execution";
+import {
+  getUpstreamPagesForNode,
+  getNodeReadiness,
+} from "@/lib/canvas/node-readiness";
+import {
+  getOutgoingEdgeCount,
+  upstreamSatisfiesInput,
+} from "@/lib/canvas/resolve-upstream";
+import {
+  SOURCE_NODE_CATEGORIES,
+  SOURCE_NODE_MODELS,
+} from "@/lib/canvas/category-meta";
 import {
   getParentCaptionNodeId,
   isCaptionBranchNode,
@@ -80,7 +92,11 @@ function pipelineNodeShellClassName(
   );
 }
 
-function PortStatusDot({ status }: { status: "ok" | "warn" | "error" | "none" }) {
+function PortStatusDot({
+  status,
+}: {
+  status: "ok" | "warn" | "error" | "none";
+}) {
   if (status === "none") return null;
   return (
     <span
@@ -96,11 +112,8 @@ function PortStatusDot({ status }: { status: "ok" | "warn" | "error" | "none" })
 
 function PipelineNodeComponent(props: NodeProps) {
   const nodeData = props.data as PipelineNodeData;
-  if (isPageBranchNode(nodeData.modelId)) {
-    return <PageBranchPipelineNode {...props} />;
-  }
-  if (isRegionBranchNode(nodeData.modelId)) {
-    return <RegionBranchPipelineNode {...props} />;
+  if (isPageBranchNode(nodeData.modelId) || isRegionBranchNode(nodeData.modelId)) {
+    return <CollectionItemsNode {...props} />;
   }
   if (isCaptionBranchNode(nodeData.modelId)) {
     return <CaptionBranchPipelineNode {...props} />;
@@ -139,10 +152,14 @@ function DefaultPipelineNode(props: NodeProps) {
     edges,
     focusPulseNodeId,
     selectedNodeId,
+    selectNode,
   } = usePipelineGraphActions();
 
   const isSelected = selected || selectedNodeId === id;
-  const visualState = getPipelineNodeVisualState(nodeData.runStatus, isSelected);
+  const visualState = getPipelineNodeVisualState(
+    nodeData.runStatus,
+    isSelected,
+  );
 
   const isSourceLoader = SOURCE_NODE_MODELS.has(nodeData.modelId);
 
@@ -193,7 +210,12 @@ function DefaultPipelineNode(props: NodeProps) {
     } else if (!upstreamSatisfiesInput(requiredInput, upstream.output)) {
       inputStatus = "error";
     } else {
-      const readiness = getNodeReadiness(nodeData.modelId, nodeData, upstream, projectId);
+      const readiness = getNodeReadiness(
+        nodeData.modelId,
+        nodeData,
+        upstream,
+        projectId,
+      );
       inputStatus = readiness.ready ? "ok" : "warn";
     }
   }
@@ -234,16 +256,21 @@ function DefaultPipelineNode(props: NodeProps) {
     if (nodeData.cachedOutput?.kind !== "regions") return [] as RegionWire[];
     return (
       (nodeData.cachedOutput.raw as { regions?: RegionWire[] }).regions ?? []
-    ).filter(
-      (region): region is RegionWire =>
-        Boolean(region?.id && Array.isArray(region.bbox) && region.bbox.length === 4),
+    ).filter((region): region is RegionWire =>
+      Boolean(
+        region?.id && Array.isArray(region.bbox) && region.bbox.length === 4,
+      ),
     );
   }, [nodeData.cachedOutput]);
   const captionLines = useMemo(() => {
-    if (nodeData.cachedOutput?.kind !== "lines") return [] as Array<{ id: string; text?: string | null }>;
+    if (nodeData.cachedOutput?.kind !== "lines")
+      return [] as Array<{ id: string; text?: string | null }>;
     return (
-      (nodeData.cachedOutput.raw as { lines?: Array<{ id: string; text?: string | null }> })
-        .lines ?? []
+      (
+        nodeData.cachedOutput.raw as {
+          lines?: Array<{ id: string; text?: string | null }>;
+        }
+      ).lines ?? []
     );
   }, [nodeData.cachedOutput]);
   const classifiedFigures = useMemo(() => {
@@ -260,35 +287,93 @@ function DefaultPipelineNode(props: NodeProps) {
           }>;
         }
       ).figures ?? []
-    ).filter((figure): figure is {
-      id: string;
-      category?: string | null;
-      caption?: string | null;
-      description?: string | null;
-      bbox?: number[];
-    } => Boolean(figure?.id));
+    ).filter(
+      (
+        figure,
+      ): figure is {
+        id: string;
+        category?: string | null;
+        caption?: string | null;
+        description?: string | null;
+        bbox?: number[];
+      } => Boolean(figure?.id),
+    );
   }, [nodeData.cachedOutput]);
   const showOutput =
-    ((isPageAt &&
+    (isPageAt &&
       !linkedPageBranchExists &&
       !isSourceLoader &&
       hasOutputData(nodeData, pages)) ||
-      (isLayoutNode &&
-        !linkedRegionBranchExists &&
-        !isSourceLoader &&
-        hasOutputData(nodeData, pages)) ||
-      (isCaptionTextNode &&
-        !linkedCaptionBranchExists &&
-        !isSourceLoader &&
-        captionLines.length > 0) ||
-      (isDocumentConverter &&
-        !linkedDocumentBranchExists &&
-        !isSourceLoader &&
-        hasOutputData(nodeData, pages)) ||
-      (isFigureClassifier &&
-        !isSourceLoader &&
-        classifiedFigures.length > 0));
-  const outputOpen = nodeData.outputPanelOpen === true;
+    (isLayoutNode &&
+      !linkedRegionBranchExists &&
+      !isSourceLoader &&
+      hasOutputData(nodeData, pages)) ||
+    (isCaptionTextNode &&
+      !linkedCaptionBranchExists &&
+      !isSourceLoader &&
+      captionLines.length > 0) ||
+    (isDocumentConverter &&
+      !linkedDocumentBranchExists &&
+      !isSourceLoader &&
+      hasOutputData(nodeData, pages)) ||
+    (isFigureClassifier && !isSourceLoader && classifiedFigures.length > 0);
+  // Every node previews through the same screen-scale card. Anchor nodes
+  // (page selector, layout, caption, converter, classifier) additionally own
+  // an in-node "item ports" panel so single pages/regions/lines can be wired
+  // downstream; that panel is what `outputPanelOpen` persists.
+  const isAnchorNode =
+    isPageAt ||
+    isLayoutNode ||
+    isCaptionTextNode ||
+    isDocumentConverter ||
+    isFigureClassifier;
+  const hasLinkedBranch =
+    linkedPageBranchExists ||
+    linkedRegionBranchExists ||
+    linkedCaptionBranchExists ||
+    linkedDocumentBranchExists;
+  const assetId = nodeData.params.assetId as string | undefined;
+  const previewAvailable = isSourceLoader
+    ? Boolean(nodeData.cachedOutput || assetId)
+    : Boolean(
+        nodeData.cachedOutput ||
+        nodeData.runResult?.previewBase64 ||
+        upstream.output ||
+        pages.length,
+      );
+  // Loaders with an uploaded-but-not-loaded file preview the raw asset in a
+  // dialog instead of the canvas card (there are no pages to render yet).
+  const previewsAsset =
+    isSourceLoader && !nodeData.cachedOutput && Boolean(assetId);
+  const [assetPreviewOpen, setAssetPreviewOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const cardOpen = previewOpen && previewAvailable && !previewsAsset;
+  const portsOpen =
+    isAnchorNode && showOutput && nodeData.outputPanelOpen === true;
+  const sourceLoad = useSourceLoaderLoad(id, nodeData);
+  // "Apply to all pages" is offered when the node's document has >1 page.
+  const mapPageCount = useMemo(
+    () =>
+      // Loaders, Select Page and whole-document converters are not per-page.
+      isSourceLoader || isPageAt || isDocumentConverter
+        ? 0
+        : collectMapPages(id, nodes, edges).length,
+    [edges, id, isDocumentConverter, isPageAt, isSourceLoader, nodes],
+  );
+  const footerRun = isSourceLoader
+    ? {
+        label: sourceLoad.isLoaded ? "Loaded" : "Load",
+        onClick: sourceLoad.handleLoadClick,
+        disabled: !sourceLoad.canLoadDocument,
+        tooltip: assetId
+          ? sourceLoad.isLoaded
+            ? "Document loaded — upload another file to replace it"
+            : "Render the document into pages"
+          : "Upload a document first",
+      }
+    : isPageAt
+      ? (false as const)
+      : undefined;
 
   const outputItemCount = isPageAt
     ? pages.length
@@ -302,14 +387,14 @@ function DefaultPipelineNode(props: NodeProps) {
             0)
           : isFigureClassifier
             ? classifiedFigures.length
-          : (nodeData.cachedOutput?.preview?.itemCount ??
-            nodeData.cachedOutput?.preview?.pageCount ??
-            pages.length ??
-            0);
+            : (nodeData.cachedOutput?.preview?.itemCount ??
+              nodeData.cachedOutput?.preview?.pageCount ??
+              pages.length ??
+              0);
 
   useRefreshNodeHandles(
     showOutput,
-    outputOpen,
+    portsOpen,
     outputItemCount,
     nodeData.cachedOutput?.kind,
     nodeData.runStatus,
@@ -331,69 +416,92 @@ function DefaultPipelineNode(props: NodeProps) {
         <PipelineNodeHeader
           data={nodeData}
           visualState={visualState}
-          showOutputToggle={showOutput}
-          outputToggleVariant={isFigureClassifier ? "preview" : "panel"}
-          outputOpen={outputOpen}
-          outputItemCount={outputItemCount}
-          onToggleOutput={() => toggleOutputPanel(id)}
           actions={clearAction}
         />
 
-        <div className="p-3 flex flex-col gap-3">
+        <div className="flex flex-col gap-2 p-3">
           {!isSourceLoader && (
-            <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground">
+            <div className="flex items-center gap-1.5 font-mono text-[9px] text-muted-foreground">
               {!hideInput && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] tracking-[0.12em] text-muted-foreground uppercase">
-                    IN
-                  </span>
+                <>
                   <span
-                    className="max-w-[80px] truncate rounded-md border border-border/60 bg-secondary/60 px-1.5 py-0.5 text-foreground"
-                    title={nodeData.inputType}
+                    className="max-w-[96px] truncate rounded-md border border-border/60 bg-secondary/50 px-1.5 py-0.5 text-foreground/85"
+                    title={`Input: ${nodeData.inputType}`}
                   >
                     {formatWireLabel(nodeData.inputType)}
                   </span>
-                </div>
-              )}
-              <div className="flex items-center gap-1.5">
-                <span className="text-[9px] tracking-[0.12em] text-muted-foreground uppercase">
-                  OUT
-                </span>
-                <span
-                  className="max-w-[80px] truncate rounded-md border border-border/60 bg-secondary/60 px-1.5 py-0.5 text-foreground"
-                  title={nodeData.outputType}
-                >
-                  {formatWireLabel(nodeData.outputType)}
-                </span>
-                {outgoingCount > 0 && (
-                  <span className="rounded-md bg-secondary px-1 text-foreground">
-                    {outgoingCount}
+                  <span aria-hidden className="text-muted-foreground/60">
+                    →
                   </span>
-                )}
-              </div>
+                </>
+              )}
+              <span
+                className="max-w-[96px] truncate rounded-md border border-border/60 bg-secondary/50 px-1.5 py-0.5 text-foreground/85"
+                title={`Output: ${nodeData.outputType}`}
+              >
+                {formatWireLabel(nodeData.outputType)}
+              </span>
+              {outgoingCount > 0 && (
+                <span
+                  className="ml-auto rounded-md bg-secondary px-1 py-0.5 text-foreground/80"
+                  title={`${outgoingCount} downstream connection${outgoingCount === 1 ? "" : "s"}`}
+                >
+                  ×{outgoingCount}
+                </span>
+              )}
             </div>
           )}
 
           {isPageLoader ? (
             <PageLoaderNodeBody nodeId={id} data={nodeData} />
           ) : (
-            <PipelineNodeParams nodeId={id} data={nodeData} />
-          )}
-
-          {!isSourceLoader &&
-            !isPageAt &&
-            !isLayoutNode &&
-            !isCaptionTextNode &&
-            !isDocumentConverter &&
-            !isFigureClassifier && (
-            <NodeInlinePreview
-              nodeId={id}
+            <PipelineNodeSummary
               data={nodeData}
-              upstream={upstream}
-              pages={pages}
+              missingInput={inputStatus === "warn" && !upstream.output}
+              incompatibleInput={inputStatus === "error"}
             />
           )}
+
+          {nodeData.runStatus === "error" && nodeData.runResult?.error && (
+            <button
+              type="button"
+              className="nodrag nopan flex w-full items-start gap-1.5 rounded-md border border-destructive/30 bg-destructive/6 px-2 py-1.5 text-left text-[10px] leading-snug text-destructive transition-colors hover:bg-destructive/10"
+              title="Open details"
+              onClick={(event) => {
+                event.stopPropagation();
+                selectNode(id);
+              }}
+            >
+              <AlertCircle className="mt-px size-3 shrink-0" />
+              <span className="line-clamp-2">{nodeData.runResult.error}</span>
+            </button>
+          )}
         </div>
+
+        <PipelineNodeFooter
+          nodeId={id}
+          data={nodeData}
+          run={footerRun}
+          mapPageCount={mapPageCount}
+          previewOpen={cardOpen || assetPreviewOpen}
+          previewCount={outputItemCount}
+          previewAvailable={previewAvailable}
+          onTogglePreview={() => {
+            if (previewsAsset) setAssetPreviewOpen((open) => !open);
+            else setPreviewOpen((open) => !open);
+          }}
+        />
+
+        {previewsAsset && assetId && (
+          <AssetPreviewDialog
+            open={assetPreviewOpen}
+            onOpenChange={setAssetPreviewOpen}
+            projectId={projectId}
+            assetId={assetId}
+            format={nodeData.params.format as string | undefined}
+            filename={nodeData.params.assetFilename as string | undefined}
+          />
+        )}
 
         {nodeData.runStatus === "running" && (
           <div
@@ -415,13 +523,13 @@ function DefaultPipelineNode(props: NodeProps) {
             isConnectable
             isConnectableEnd
             className="!w-3 !h-3 !border-2 !bg-card !relative !transform-none !top-0 !left-0"
-            style={{ borderColor: 'var(--node-accent)' }}
+            style={{ borderColor: "var(--node-accent)" }}
             aria-label={`Input: ${formatWireLabel(nodeData.inputType)}`}
           />
           <PortStatusDot status={inputStatus} />
         </div>
       )}
-      
+
       <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 z-10">
         <Handle
           type="source"
@@ -431,9 +539,9 @@ function DefaultPipelineNode(props: NodeProps) {
           isConnectableStart
           className={cn(
             "!w-3 !h-3 !border-2 !bg-card !relative !transform-none !top-0 !right-0",
-            (isPageAt &&
+            isPageAt &&
               pages.length > 0 &&
-              "ocrflow-node-output-handle-page-at"),
+              "ocrflow-node-output-handle-page-at",
           )}
           style={{ borderColor: "var(--node-accent)" }}
           title={
@@ -458,7 +566,7 @@ function DefaultPipelineNode(props: NodeProps) {
       </div>
 
       <AnimatePresence>
-        {showOutput && outputOpen && (
+        {portsOpen && (
           <motion.div
             key="output-panel"
             initial={{ opacity: 0, x: -12, scale: 0.96, y: "-50%" }}
@@ -479,6 +587,22 @@ function DefaultPipelineNode(props: NodeProps) {
                 isFigureClassifier && "ocrflow-classification-output-card",
               )}
             >
+              <div className="flex items-center justify-between gap-2 border-b border-border/40 px-2 py-1.5">
+                <span className="font-mono text-[9px] tracking-[0.14em] text-muted-foreground uppercase">
+                  Item ports · {outputItemCount}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Hide item ports"
+                  className="nodrag nopan flex size-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    toggleOutputPanel(id);
+                  }}
+                >
+                  <X className="size-3" />
+                </button>
+              </div>
               {isFigureClassifier ? (
                 <ClassificationResultsPanel
                   figures={classifiedFigures}
@@ -489,7 +613,9 @@ function DefaultPipelineNode(props: NodeProps) {
                   nodeId={id}
                   data={nodeData}
                   pages={pages}
-                  onSelectPage={(index) => updateNodeConfig(id, { page_index: index })}
+                  onSelectPage={(index) =>
+                    updateNodeConfig(id, { page_index: index })
+                  }
                   compactLayoutMode={isLayoutNode}
                 />
               )}
@@ -532,6 +658,83 @@ function DefaultPipelineNode(props: NodeProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Preview card: portal-rendered at screen scale so it stays readable at
+          any canvas zoom. The anchor "item ports" panel above must stay inside
+          the node DOM because React Flow measures handles there. */}
+      <NodeToolbar
+        isVisible={cardOpen}
+        position={Position.Right}
+        align="start"
+        offset={14}
+        className="ocrflow-node-preview-toolbar"
+        // The toolbar portals outside the node, so re-establish its accent.
+        style={{ "--node-accent": nodeData.categoryColor } as CSSProperties}
+      >
+        <motion.div
+          initial={{ opacity: 0, x: -10, scale: 0.97 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <NodePreviewCard
+            nodeId={id}
+            data={nodeData}
+            upstream={upstream}
+            pages={pages}
+            onClose={() => setPreviewOpen(false)}
+            footer={
+              isAnchorNode && (showOutput || hasLinkedBranch) ? (
+                <div className="flex flex-col gap-1.5">
+                  {isPageAt && (
+                    <PageAtLaunchPanel
+                      nodeId={id}
+                      pages={pages}
+                      branchNodeId={nodeData.pageBranchNodeId}
+                    />
+                  )}
+                  {isLayoutNode && (
+                    <LayoutExpandPanel
+                      nodeId={id}
+                      regions={layoutRegions}
+                      branchNodeId={nodeData.regionBranchNodeId}
+                    />
+                  )}
+                  {isCaptionTextNode && (
+                    <CaptionExpandPanel
+                      nodeId={id}
+                      lineCount={captionLines.length}
+                      branchNodeId={nodeData.captionBranchNodeId}
+                    />
+                  )}
+                  {isDocumentConverter && (
+                    <DocumentExpandPanel
+                      nodeId={id}
+                      hasOutput={hasOutputData(nodeData, pages)}
+                      branchNodeId={nodeData.documentBranchNodeId}
+                    />
+                  )}
+                  {showOutput && (
+                    <button
+                      type="button"
+                      aria-pressed={portsOpen}
+                      className={cn(
+                        "nodrag nopan flex h-7 w-full items-center justify-center gap-1.5 rounded-md border text-[10.5px] font-medium transition-colors",
+                        portsOpen
+                          ? "border-[var(--node-accent)]/40 bg-[var(--node-accent)]/10 text-[var(--node-accent)]"
+                          : "border-border/60 bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+                      )}
+                      onClick={() => toggleOutputPanel(id)}
+                    >
+                      <Cable className="size-3" />
+                      {portsOpen ? "Hide item ports" : "Show item ports on node"}
+                    </button>
+                  )}
+                </div>
+              ) : undefined
+            }
+          />
+        </motion.div>
+      </NodeToolbar>
     </div>
   );
 }

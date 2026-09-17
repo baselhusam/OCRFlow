@@ -14,6 +14,13 @@ export type OutputPreview = {
   jsonPreview?: unknown;
 };
 
+/** One page's result when a node was applied to a whole document. */
+export type MappedPageOutput = {
+  page_index: number;
+  output: NodeCachedOutput;
+  error?: string;
+};
+
 export type NodeCachedOutput = {
   kind:
     | "pages"
@@ -29,6 +36,11 @@ export type NodeCachedOutput = {
     | "json";
   raw: unknown;
   preview?: OutputPreview;
+  /**
+   * Per-page results from "Apply to all pages". `kind`/`raw`/`preview` keep
+   * describing the current page so existing consumers are unaffected.
+   */
+  mapped?: MappedPageOutput[];
 };
 
 export type ModelCatalogEntry = {
@@ -156,6 +168,8 @@ export type PipelineNodeData = {
   runStatus?: "idle" | "running" | "success" | "error";
   runResult?: NodeRunResult;
   lastRunAt?: string;
+  /** Live progress while applying the node to every page (not persisted). */
+  mapProgress?: { completed: number; total: number; failed: number };
   /** Linked Page Branch satellite for Select Page anchors. */
   pageBranchNodeId?: string;
   /** Linked Region Branch satellite for layout detection anchors. */

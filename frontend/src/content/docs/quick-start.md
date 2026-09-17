@@ -67,7 +67,7 @@ Online providers show `running: true`. On the project canvas, their nodes leave 
 1. Create a **project**.
 2. Drop **PDF Loader** or **Image Loader** onto the canvas and upload a document.
 3. Wire a layout node (for example `docling/layout-heron` or `surya/layout`).
-4. Click the node **test run**, then inspect regions in the output panel.
+4. Click **Run** in the node's footer, then **Preview** to inspect the detected regions.
 5. Select the useful subgraph and **Create pipeline from canvas**.
 6. Open **Jobs**, pick that pipeline, upload documents, and watch the trace.
 

@@ -227,3 +227,80 @@ async def test_pipeline_executor_runs_paddle_layout_to_ocr(monkeypatch):
     assert result.graph.nodes[1].runtime is not None
     assert result.graph.nodes[1].runtime.cachedOutput is not None
     assert result.graph.nodes[1].runtime.cachedOutput.preview["pageImage"]["page_index"] == 0
+
+
+def test_upstream_slices_item_and_group_handles() -> None:
+    from app.services.pipeline_execution.schemas import NodeCachedOutput
+    from app.services.pipeline_execution.upstream import slice_output_by_handle
+
+    regions = NodeCachedOutput(
+        kind="regions",
+        raw={"page_index": 0, "regions": [{"id": "r1"}, {"id": "r2"}, {"id": "r3"}]},
+        preview={"itemCount": 3},
+    )
+    one = slice_output_by_handle(regions, "item:region:r2")
+    assert one is not None and [r["id"] for r in one.raw["regions"]] == ["r2"]
+    group = slice_output_by_handle(regions, "items:region:r1,r3")
+    assert group is not None and [r["id"] for r in group.raw["regions"]] == ["r1", "r3"]
+    assert group.preview["itemCount"] == 2
+    assert slice_output_by_handle(regions, "output") is regions
+
+    pages = NodeCachedOutput(
+        kind="pages",
+        raw={"pages": [{"page_index": i, "page": {"page_index": i, "width": 1, "height": 1}} for i in range(3)]},
+    )
+    page = slice_output_by_handle(pages, "item:page:1")
+    assert page is not None and page.kind == "page" and page.raw["page"]["page_index"] == 1
+    subset = slice_output_by_handle(pages, "items:page:0,2")
+    assert subset is not None and subset.kind == "pages"
+    assert [p["page_index"] for p in subset.raw["pages"]] == [0, 2]
+
+
+def test_branch_nodes_are_pass_through_and_ready() -> None:
+    from app.services.pipeline_execution.readiness import get_pipeline_readiness
+    from app.services.pipeline_execution.registry import pass_through_output
+    from app.services.pipeline_execution.schemas import NodeCachedOutput, parse_pipeline_graph
+    from app.services.pipeline_execution.upstream import UpstreamContext
+
+    graph = parse_pipeline_graph(
+        {
+            "nodes": [
+                {"id": "layout", "modelId": "surya/layout", "config": {}},
+                {"id": "branch", "modelId": "layout/region-branch", "config": {}},
+                {"id": "ocr", "modelId": "surya/text-detection", "config": {}},
+            ],
+            "edges": [
+                {"id": "e1", "source": "layout", "target": "branch"},
+                {"id": "e2", "source": "branch", "target": "ocr", "sourceHandle": "item:region:r2"},
+            ],
+        }
+    )
+    readiness = get_pipeline_readiness(graph)
+    assert readiness.ready, readiness.issues
+    assert readiness.ordered_node_ids == ["layout", "branch", "ocr"]
+
+    branch = next(node for node in graph.nodes if node.id == "branch")
+    regions = NodeCachedOutput(kind="regions", raw={"regions": [{"id": "r2"}]})
+    forwarded = pass_through_output(
+        branch, UpstreamContext(node_id="layout", output=regions, source_handle="output", edge=None)
+    )
+    assert forwarded is regions
+
+
+def test_upstream_slices_page_qualified_items_from_mapped_output() -> None:
+    from app.services.pipeline_execution.schemas import NodeCachedOutput
+    from app.services.pipeline_execution.upstream import slice_output_by_handle
+
+    mapped = NodeCachedOutput(
+        kind="regions",
+        raw={"page_index": 0, "regions": [{"id": "r1", "p": 0}]},
+        mapped=[
+            {"page_index": 0, "output": {"kind": "regions", "raw": {"regions": [{"id": "r1", "p": 0}]}}},
+            {"page_index": 3, "output": {"kind": "regions", "raw": {"regions": [{"id": "r1", "p": 3}, {"id": "r2", "p": 3}]}}},
+        ],
+    )
+    sliced = slice_output_by_handle(mapped, "item:region:r1@3")
+    assert sliced is not None and sliced.raw["regions"] == [{"id": "r1", "p": 3}]
+    group = slice_output_by_handle(mapped, "items:region:r1,r2@3")
+    assert group is not None and [r["id"] for r in group.raw["regions"]] == ["r1", "r2"]
+    assert slice_output_by_handle(mapped, "item:region:r1@9") is None

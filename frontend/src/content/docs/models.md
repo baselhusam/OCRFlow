@@ -79,8 +79,11 @@ Details: [Liquid AI](/documentation/liquid).
 
 The model selector is deliberately restricted to weights at or below 1B
 parameters. Start Ollama, pull `qwen3:0.6b` and `qwen3.5:0.8b`, then configure
-the instruction and optional system prompt in Setup. Structured nodes require a
-top-level object JSON Schema; malformed schemas are blocked before a run.
+the instruction and optional system prompt in Setup. Structured nodes describe
+what to extract as a list of **fields** (name, type, required, optional hint)
+— start from a preset such as Invoice or Receipt, nest groups and tables, and
+switch to **JSON** to paste or edit the JSON Schema directly. The node stores a
+top-level object schema either way; malformed schemas are blocked before a run.
 
 ## Connected LLM and VLM providers
 

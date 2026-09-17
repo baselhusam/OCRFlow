@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from app.models.runner_factory import RUNNER_FACTORIES
-from app.services.pipeline_execution.registry import MODEL_EXECUTION_SPECS
+from app.services.pipeline_execution.registry import MODEL_EXECUTION_SPECS, PASS_THROUGH_MODELS
 from app.services.pipeline_execution.schemas import PipelineGraph
 
 
@@ -57,6 +57,8 @@ def get_pipeline_readiness(graph: PipelineGraph) -> PipelineReadiness:
 
     for node in graph.nodes:
         if node.modelId.startswith("custom-pipeline/"):
+            continue
+        if node.modelId in PASS_THROUGH_MODELS:
             continue
         if node.modelId not in RUNNER_FACTORIES:
             issues.append(f"Node {node.id} uses unsupported model {node.modelId}")

@@ -1,6 +1,7 @@
 "use client";
 
 import { ParamMultiSelect } from "@/components/canvas/node-detail/param-multi-select";
+import { SchemaBuilderField } from "@/components/canvas/node-detail/schema-builder-field";
 import { ParamSlider } from "@/components/canvas/param-slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +58,18 @@ export function ParamField({
     }
     onChange(val);
   };
+
+  if (field.type === "json-schema") {
+    return (
+      <SchemaBuilderField
+        id={inputId}
+        label={field.label}
+        value={String(value ?? "")}
+        onChange={(schema) => onChange(schema)}
+        className={className}
+      />
+    );
+  }
 
   if (field.type === "boolean") {
     return (

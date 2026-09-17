@@ -1,19 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Eye, GitBranch, SlidersHorizontal } from "lucide-react";
+import { useEffect } from "react";
 
-import { NodeDetailConnectionsTab } from "@/components/canvas/node-detail/node-detail-connections-tab";
+import { NodeDetailConnectionsStrip } from "@/components/canvas/node-detail/node-detail-connections-strip";
 import { NodeDetailHeader } from "@/components/canvas/node-detail/node-detail-header";
-import { NodeDetailPreviewTab } from "@/components/canvas/node-detail/node-detail-preview-tab";
+import { NodeDetailPreviewSection } from "@/components/canvas/node-detail/node-detail-preview-section";
 import { NodeDetailRunFooter } from "@/components/canvas/node-detail/node-detail-run-footer";
 import { NodeDetailSetupTab } from "@/components/canvas/node-detail/node-detail-setup-tab";
 import { NodeDetailStatusBar } from "@/components/canvas/node-detail/node-detail-status-bar";
-import {
-  getNodeDetailTabBadges,
-  getPreviewSubTab,
-  type NodeDetailTab,
-} from "@/components/canvas/node-detail/node-detail-tabs";
 import { PlannedNodeNotice } from "@/components/canvas/node-detail/planned-node-notice";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
 import {
@@ -22,58 +16,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-is-mobile";
-import {
-  CANVAS_INSPECTOR_WIDTH,
-  canvasInspectorTabTriggerClassName,
-  canvasInspectorTabsListClassName,
-  canvasInspectorTabsShellClassName,
-} from "@/lib/canvas/canvas-chrome";
+import { CANVAS_INSPECTOR_WIDTH } from "@/lib/canvas/canvas-chrome";
 import { SOURCE_NODE_MODELS } from "@/lib/canvas/category-meta";
-import type { PipelineNodeData } from "@/lib/canvas/types";
+import { isPageBranchNode } from "@/lib/canvas/page-branch-meta";
+import { isRegionBranchNode } from "@/lib/canvas/region-branch-meta";
 import { CustomPipelineDetailOverview } from "@/components/canvas/node-detail/custom-pipeline-detail-overview";
 import { isCustomPipelineNodeData } from "@/lib/canvas/custom-pipeline-node-data";
 import { getNodeWireKinds } from "@/lib/canvas/wire-types";
-
-function TabBadge({
-  count,
-  variant = "count",
-}: {
-  count?: number;
-  variant?: "count" | "warning" | "success" | "error";
-}) {
-  if (variant === "count" && (!count || count <= 0)) return null;
-
-  if (variant === "warning") {
-    return (
-      <span className="size-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden />
-    );
-  }
-
-  if (variant === "success") {
-    return (
-      <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
-    );
-  }
-
-  if (variant === "error") {
-    return (
-      <span className="size-1.5 shrink-0 rounded-full bg-destructive" aria-hidden />
-    );
-  }
-
-  return (
-    <span className="rounded-sm bg-amber-500/15 px-1 font-mono text-[8px] text-amber-700 dark:text-amber-400">
-      {count}
-    </span>
-  );
-}
 
 function NodeDetailBody({
   nodeId,
@@ -82,40 +32,13 @@ function NodeDetailBody({
   nodeId: string;
   onClose: () => void;
 }) {
-  const { nodes, projectId, getUpstream, modelCatalog } =
-    usePipelineGraphActions();
+  const { nodes, getUpstream, modelCatalog } = usePipelineGraphActions();
   const node = nodes.find((n) => n.id === nodeId);
-  const [activeTab, setActiveTab] = useState<NodeDetailTab>("setup");
-  const prevRunStatusRef = useRef<PipelineNodeData["runStatus"]>("idle");
 
   const data = node?.data;
   const requiredInput = data ? getNodeWireKinds(data).input : null;
   const upstream =
     data && requiredInput ? getUpstream(nodeId, requiredInput) : null;
-
-  useEffect(() => {
-    setActiveTab("setup");
-    prevRunStatusRef.current =
-      nodes.find((n) => n.id === nodeId)?.data.runStatus ?? "idle";
-    // Reset tab only when a different node is selected.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodeId]);
-
-  useEffect(() => {
-    if (!node || !data) return;
-
-    const prevRunStatus = prevRunStatusRef.current;
-    prevRunStatusRef.current = data.runStatus;
-
-    if (
-      SOURCE_NODE_MODELS.has(data.modelId) &&
-      prevRunStatus === "running" &&
-      data.runStatus === "success" &&
-      data.cachedOutput
-    ) {
-      setActiveTab("preview");
-    }
-  }, [node, data, data?.runStatus, data?.cachedOutput, data?.modelId]);
 
   if (!node || !data) return null;
 
@@ -133,41 +56,17 @@ function NodeDetailBody({
     return (
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <NodeDetailHeader data={data} onClose={onClose} />
-        <Tabs defaultValue="overview" className="flex min-h-0 flex-1 flex-col gap-0">
-          <div className={canvasInspectorTabsShellClassName}>
-            <TabsList className={canvasInspectorTabsListClassName}>
-              <TabsTrigger value="overview" className={canvasInspectorTabTriggerClassName}>
-                Overview
-              </TabsTrigger>
-              <TabsTrigger
-                value="connections"
-                className={canvasInspectorTabTriggerClassName}
-              >
-                <GitBranch className="size-3.5 shrink-0 opacity-70" aria-hidden />
-                Connections
-              </TabsTrigger>
-            </TabsList>
-          </div>
-          <TabsContent
-            value="overview"
-            className="ocrflow-inspector-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
-          >
-            <CustomPipelineDetailOverview
-              data={data}
-              modelCatalog={modelCatalog}
-            />
-          </TabsContent>
-          <TabsContent
-            value="connections"
-            className="ocrflow-inspector-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
-          >
-            <NodeDetailConnectionsTab
-              nodeId={nodeId}
-              data={data}
-              upstream={upstreamContext}
-            />
-          </TabsContent>
-        </Tabs>
+        <div className="ocrflow-inspector-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <NodeDetailConnectionsStrip
+            nodeId={nodeId}
+            data={data}
+            upstream={upstreamContext}
+          />
+          <CustomPipelineDetailOverview
+            data={data}
+            modelCatalog={modelCatalog}
+          />
+        </div>
         <NodeDetailRunFooter nodeId={nodeId} data={data} />
       </div>
     );
@@ -175,8 +74,31 @@ function NodeDetailBody({
 
   if (!upstream) return null;
 
-  const badges = getNodeDetailTabBadges(data, upstream, projectId);
-  const previewSubTab = getPreviewSubTab(data);
+  // Items nodes run nothing: they fan an upstream collection out into wires.
+  if (isPageBranchNode(data.modelId) || isRegionBranchNode(data.modelId)) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <NodeDetailHeader data={{ ...data, label: "Items" }} onClose={onClose} />
+        <div className="ocrflow-inspector-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <NodeDetailConnectionsStrip nodeId={nodeId} data={data} upstream={upstream} />
+          <div className="border-b border-border/60 px-[18px] py-4">
+            <p className="text-[12px] leading-relaxed text-muted-foreground">
+              Every item of the upstream collection gets its own output port on
+              the canvas. Drag from a port to send that one item downstream, or
+              tick several items and wire the group port. Use the filter and
+              page switcher on the node to find items.
+            </p>
+          </div>
+          <NodeDetailPreviewSection
+            key={nodeId}
+            nodeId={nodeId}
+            data={data}
+            upstream={upstream}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -186,68 +108,20 @@ function NodeDetailBody({
       )}
       <PlannedNodeNotice data={data} />
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(v) => setActiveTab(v as NodeDetailTab)}
-        className="flex min-h-0 flex-1 flex-col gap-0"
-      >
-        <div className={canvasInspectorTabsShellClassName}>
-          <TabsList className={canvasInspectorTabsListClassName}>
-            <TabsTrigger
-              value="setup"
-              className={canvasInspectorTabTriggerClassName}
-            >
-              <SlidersHorizontal className="size-3.5 shrink-0 opacity-70" aria-hidden />
-              Setup
-              <TabBadge count={badges.setupIssues} />
-            </TabsTrigger>
-            <TabsTrigger
-              value="connections"
-              className={canvasInspectorTabTriggerClassName}
-            >
-              <GitBranch className="size-3.5 shrink-0 opacity-70" aria-hidden />
-              Connections
-              {badges.connectionsWarning && <TabBadge variant="warning" />}
-            </TabsTrigger>
-            <TabsTrigger
-              value="preview"
-              className={canvasInspectorTabTriggerClassName}
-            >
-              <Eye className="size-3.5 shrink-0 opacity-70" aria-hidden />
-              Preview
-              {badges.previewDot === "success" && <TabBadge variant="success" />}
-              {badges.previewDot === "error" && <TabBadge variant="error" />}
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent
-          value="setup"
-          className="ocrflow-inspector-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
-        >
-          <NodeDetailSetupTab nodeId={nodeId} data={data} />
-        </TabsContent>
-
-        <TabsContent
-          value="connections"
-          className="ocrflow-inspector-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain"
-        >
-          <NodeDetailConnectionsTab
-            nodeId={nodeId}
-            data={data}
-            upstream={upstream}
-          />
-        </TabsContent>
-
-        <TabsContent value="preview" className="flex min-h-0 flex-1 flex-col">
-          <NodeDetailPreviewTab
-            nodeId={nodeId}
-            data={data}
-            upstream={upstream}
-            defaultSubTab={previewSubTab}
-          />
-        </TabsContent>
-      </Tabs>
+      {/* One scroll: where it's wired, how it's configured, what it produces. */}
+      <div className="ocrflow-inspector-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <NodeDetailConnectionsStrip
+          nodeId={nodeId}
+          data={data}
+          upstream={upstream}
+        />
+        <NodeDetailSetupTab nodeId={nodeId} data={data} />
+        <NodeDetailPreviewSection
+          nodeId={nodeId}
+          data={data}
+          upstream={upstream}
+        />
+      </div>
 
       <NodeDetailRunFooter nodeId={nodeId} data={data} />
     </div>

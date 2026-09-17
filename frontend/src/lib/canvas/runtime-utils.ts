@@ -25,6 +25,13 @@ export function stripRuntimeForPersist(
     ? ({
         ...runtime.cachedOutput,
         preview: stripPreviewBinary(runtime.cachedOutput.preview),
+        mapped: runtime.cachedOutput.mapped?.map((entry) => ({
+          ...entry,
+          output: {
+            ...entry.output,
+            preview: stripPreviewBinary(entry.output.preview),
+          },
+        })),
       } as NodeCachedOutput)
     : runtime.cachedOutput;
 

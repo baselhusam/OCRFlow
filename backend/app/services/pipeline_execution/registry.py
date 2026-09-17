@@ -580,6 +580,38 @@ def _extract_json(result: BaseModel) -> NodeCachedOutput:
     )
 
 
+# Canvas-only satellites that fan a collection out into per-item wires. They
+# run no model: the executor forwards the upstream output (already sliced by
+# the edge's item handle), so a graph that wires "region 3 → OCR" through a
+# branch behaves the same on the backend as on the canvas.
+PASS_THROUGH_MODELS = frozenset({
+    "loader/page-branch",
+    "layout/region-branch",
+    "figure/caption-branch",
+    "docling/document-branch",
+    "collection/items",
+})
+
+
+def pass_through_output(node: PipelineNodeRecord, upstream: UpstreamContext) -> NodeCachedOutput:
+    output = upstream.output
+    if output is None:
+        raise ValueError(f"Node {node.id} has no upstream output to forward")
+    # A page branch wired by its main handle behaves like Select Page.
+    if node.modelId == "loader/page-branch" and output.kind == "pages":
+        pages = extract_pages(output)
+        index = int(node.config.get("page_index", 0))
+        if 0 <= index < len(pages):
+            page = pages[index]
+            image = page.get("page") if isinstance(page.get("page"), dict) else None
+            return NodeCachedOutput(
+                kind="page",
+                raw={"page": page},
+                preview={"pageCount": 1, "pageImage": image},
+            )
+    return output
+
+
 MODEL_EXECUTION_SPECS: dict[str, tuple[type[BaseModel], PayloadBuilder, OutputExtractor]] = {
     "loader/pdf": (PdfLoaderInput, lambda project_id, node, ctx: _document_payload(project_id, node, ctx, default_format="pdf", option_keys=["dpi", "max_pages"]), _extract_pages),
     "loader/image": (ImageLoaderInput, lambda project_id, node, ctx: _document_payload(project_id, node, ctx, default_format="image"), _extract_pages),

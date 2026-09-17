@@ -3,12 +3,14 @@
 import { Handle, Position } from "@xyflow/react";
 
 import { regionLabelKind, type RegionWire } from "@/lib/canvas/artifact-adapters";
-import { buildItemHandle } from "@/lib/canvas/output-slice";
+import { buildItemHandle, type ItemKind } from "@/lib/canvas/output-slice";
 import { cn } from "@/lib/utils";
 
 type ItemOutputHandleProps = {
-  itemKind: "region" | "figure" | "line" | "table" | "page";
+  itemKind: ItemKind;
   itemId: string;
+  /** Full handle id when it carries more than kind+id (page-qualified items). */
+  handleId?: string;
   region?: RegionWire;
   className?: string;
   variant?: "default" | "page-row" | "node-border";
@@ -28,16 +30,18 @@ const ITEM_KIND_DOT: Record<ItemOutputHandleProps["itemKind"], string> = {
   figure: "bg-[var(--node-figure-classification)]",
   line: "bg-muted-foreground/60",
   table: "bg-[var(--node-table-structure)]",
+  formula: "bg-[var(--node-formula-recognition)]",
 };
 
 export function ItemOutputHandle({
   itemKind,
   itemId,
+  handleId: explicitHandleId,
   region,
   className,
   variant = "default",
 }: ItemOutputHandleProps) {
-  const handleId = buildItemHandle(itemKind, itemId);
+  const handleId = explicitHandleId ?? buildItemHandle(itemKind, itemId);
   const isPageRow = itemKind === "page" && variant === "page-row";
   const isNodeBorder = variant === "node-border";
   const dotClass =

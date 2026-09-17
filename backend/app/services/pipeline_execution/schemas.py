@@ -33,6 +33,8 @@ class NodeCachedOutput(BaseModel):
     kind: str
     raw: Any
     preview: dict[str, Any] | None = None
+    # Per-page results from the canvas "Apply to all pages" action.
+    mapped: list[dict[str, Any]] | None = None
 
 
 class PipelineNodeRuntime(BaseModel):

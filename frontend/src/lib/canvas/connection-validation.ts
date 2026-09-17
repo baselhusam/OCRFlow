@@ -253,6 +253,16 @@ export function edgeLabelForHandle(
   const parsed = parseSourceHandle(sourceHandle);
   if (parsed.scope === "all") return undefined;
 
+  if (parsed.scope === "group") {
+    if (parsed.itemKind === "page") {
+      const nums = parsed.itemIds.map((id) => Number(id) + 1).filter((n) => !Number.isNaN(n));
+      return nums.length <= 4
+        ? `p.${nums.join(", ")}`
+        : `${nums.length} pages`;
+    }
+    return `${parsed.itemIds.length} ${parsed.itemKind}s`;
+  }
+
   if (parsed.scope === "item" && parsed.itemKind === "page") {
     const pageNum = Number(parsed.itemId);
     if (!Number.isNaN(pageNum)) {
@@ -264,12 +274,13 @@ export function edgeLabelForHandle(
     return parsed.scope === "item" ? parsed.itemId : undefined;
   }
 
+  const pageTag = parsed.pageIndex !== undefined ? ` · p.${parsed.pageIndex + 1}` : "";
   const items = listOutputItems(sourceOutput);
   const match = items.find((item) => item.handle === sourceHandle);
   if (match) {
-    return `${match.id} · ${match.label}`;
+    return `${match.id} · ${match.label}${pageTag}`;
   }
-  return parsed.scope === "item" ? parsed.itemId : undefined;
+  return parsed.scope === "item" ? `${parsed.itemId}${pageTag}` : undefined;
 }
 
 export function suggestedConnectionForInsertedNode(

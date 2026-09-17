@@ -91,7 +91,24 @@ import {
   REGION_BRANCH_PANEL_DEFAULT,
   REGION_BRANCH_SPAWN_OFFSET,
 } from "@/lib/canvas/region-branch-meta";
-import { getUpstreamContext, extractPages, findUpstreamPageImage, collectUpstreamChain, resolveNodeEffectiveOutput } from "@/lib/canvas/resolve-upstream";
+import {
+  getUpstreamContext,
+  extractPages,
+  findUpstreamPageImage,
+  collectUpstreamChain,
+  resolveNodeEffectiveOutput,
+  type PageArtifactWire,
+  type UpstreamContext,
+} from "@/lib/canvas/resolve-upstream";
+import {
+  buildMappedOutput,
+  canMapNode,
+  collectMapPages,
+  currentPageIndex,
+  isMappedOutput,
+  runMapOverPages,
+  upstreamForPage,
+} from "@/lib/canvas/map-execution";
 import { getModelWireKinds, type WireKind } from "@/lib/canvas/wire-types";
 import { derivePipelineBoundaryIO } from "@/lib/canvas/pipeline-boundary";
 import {
@@ -1035,6 +1052,50 @@ export function usePipelineGraph({
     [evaluateConnection, decorateEdge, scheduleGraphSave],
   );
 
+  /**
+   * One model call for a node given a resolved upstream. Shared by single
+   * runs and "Apply to all pages", which calls it once per page.
+   */
+  const inferNodeOutput = useCallback(
+    async (
+      node: Node<PipelineNodeData>,
+      upstream: UpstreamContext,
+      upstreamPages: PageArtifactWire[],
+      runKind: "test_run" | "pipeline_run",
+    ): Promise<NodeCachedOutput> => {
+      const upstreamNode = upstream.nodeId
+        ? nodesRef.current.find((entry) => entry.id === upstream.nodeId)
+        : null;
+      const payload = buildInferencePayload(node.data.modelId, {
+        projectId: assetProjectId,
+        data: node.data,
+        upstreamPages,
+        upstreamOutput: upstream.output,
+        upstreamData: upstreamNode?.data ?? null,
+        upstreamAssetId: upstream.assetId,
+      });
+      if (!payload) {
+        throw Object.assign(new Error("Node is not ready to run"), {
+          explicitCode: "payload_build" as const,
+        });
+      }
+      const response = await runModelInference(node.data.modelId, payload, {
+        projectId: isProjectCanvas ? contextId : undefined,
+        nodeId: node.id,
+        runKind,
+      });
+      let cachedOutput = extractInferenceOutput(node.data.modelId, response);
+      const pageImg =
+        upstreamPages[0]?.page ??
+        (upstream.output?.preview?.pageImage as (typeof upstreamPages)[0]["page"]);
+      if (pageImg && !cachedOutput.preview?.thumbnailBase64) {
+        cachedOutput = enrichOutputPreview(cachedOutput, pageImg);
+      }
+      return cachedOutput;
+    },
+    [assetProjectId, contextId, isProjectCanvas],
+  );
+
   const executeNodeRun = useCallback(
     async (
       nodeId: string,
@@ -1230,41 +1291,12 @@ export function usePipelineGraph({
           }
         }
 
-        const upstreamNode = upstream.nodeId
-          ? nodesRef.current.find((entry) => entry.id === upstream.nodeId)
-          : null;
-        const payload = buildInferencePayload(node.data.modelId, {
-          projectId: assetProjectId,
-          data: node.data,
+        const cachedOutput = await inferNodeOutput(
+          node,
+          upstream,
           upstreamPages,
-          upstreamOutput: upstream.output,
-          upstreamData: upstreamNode?.data ?? null,
-          upstreamAssetId: upstream.assetId,
-        });
-
-        if (!payload) {
-          throw Object.assign(new Error("Node is not ready to run"), {
-            explicitCode: "payload_build" as const,
-          });
-        }
-
-        const response = await runModelInference(node.data.modelId, payload, {
-          projectId: isProjectCanvas ? contextId : undefined,
-          nodeId,
           runKind,
-        });
-        let cachedOutput = extractInferenceOutput(
-          node.data.modelId,
-          response,
         );
-
-        const pageImg =
-          upstreamPages[0]?.page ??
-          (upstream.output?.preview?.pageImage as typeof upstreamPages[0]["page"]);
-
-        if (pageImg && !cachedOutput.preview?.thumbnailBase64) {
-          cachedOutput = enrichOutputPreview(cachedOutput, pageImg);
-        }
 
         const previewBase64 = cachedOutput.preview?.thumbnailBase64;
         const pageCount =
@@ -1411,6 +1443,148 @@ export function usePipelineGraph({
     },
     [contextId, executeNodeRun, readOnly, updateNodeData],
   );
+
+  const mapCancelRef = useRef(new Set<string>());
+  // Recursion through the upstream chain needs a stable self-reference.
+  const runNodeAllPagesRef = useRef<(nodeId: string) => Promise<boolean>>(
+    async () => false,
+  );
+
+  const cancelMapRun = useCallback((nodeId: string) => {
+    mapCancelRef.current.add(nodeId);
+  }, []);
+
+  /**
+   * "Apply to all pages": run the node once per page of its document and
+   * keep every result. Upstream page models that have not been mapped yet
+   * are mapped first, so a chain (layout → OCR) applies end to end.
+   */
+  const runNodeAllPages = useCallback(
+    async (nodeId: string): Promise<boolean> => {
+      if (readOnly) return false;
+      const node = nodesRef.current.find((entry) => entry.id === nodeId);
+      if (!node) return false;
+      if (!getModelInferenceDef(node.data.modelId)) return runNode(nodeId);
+
+      const pages = collectMapPages(nodeId, nodesRef.current, edgesRef.current);
+      if (pages.length < 2) return runNode(nodeId);
+
+      // Loaders / selectors / branches upstream must have run; page models
+      // upstream must be mapped so every page has an input.
+      const chain = collectUpstreamChain(nodeId, nodesRef.current, edgesRef.current);
+      for (const upstreamId of chain) {
+        const upstreamNode = nodesRef.current.find((entry) => entry.id === upstreamId);
+        if (!upstreamNode) continue;
+        const runnable =
+          getModelInferenceDef(upstreamNode.data.modelId) ||
+          isCustomPipelineNodeData(upstreamNode.data);
+        if (!runnable) continue;
+        if (canMapNode(upstreamNode, nodesRef.current, edgesRef.current)) {
+          if (isMappedOutput(upstreamNode.data.cachedOutput)) continue;
+          const ok = await runNodeAllPagesRef.current(upstreamId);
+          if (!ok) return false;
+        } else if (!upstreamNode.data.cachedOutput) {
+          const ok = await executeNodeRun(upstreamId, "test_run");
+          if (!ok) return false;
+        }
+      }
+
+      const requiredInput = getModelWireKinds(
+        node.data.modelId,
+        node.data.inputType,
+        node.data.outputType,
+      ).input;
+
+      mapCancelRef.current.delete(nodeId);
+      updateNodeData(nodeId, {
+        runStatus: "running",
+        runResult: undefined,
+        mapProgress: { completed: 0, total: pages.length, failed: 0 },
+      });
+
+      const latest = () => nodesRef.current.find((entry) => entry.id === nodeId) ?? node;
+      const mapped = await runMapOverPages({
+        pages,
+        existing: node.data.cachedOutput?.mapped ?? [],
+        shouldCancel: () => mapCancelRef.current.has(nodeId) || !isMountedRef.current,
+        onProgress: (progress) => updateNodeData(nodeId, { mapProgress: progress }),
+        runPage: async (page) => {
+          const upstream = upstreamForPage(
+            nodeId,
+            page.page_index,
+            page,
+            nodesRef.current,
+            edgesRef.current,
+            requiredInput,
+          );
+          if (!upstream.output && !page.page) {
+            throw new Error(`No input available for page ${page.page_index + 1}`);
+          }
+          return inferNodeOutput(latest(), upstream, [page], "test_run");
+        },
+      });
+
+      const cancelled = mapCancelRef.current.delete(nodeId);
+      const upstreamNow = getUpstreamContext(
+        nodeId,
+        nodesRef.current,
+        edgesRef.current,
+        requiredInput,
+      );
+      const merged = buildMappedOutput(
+        mapped,
+        currentPageIndex(latest(), upstreamNow),
+        latest().data.cachedOutput ?? null,
+      );
+      const failed = mapped.filter((entry) => entry.error).length;
+      const ok = mapped.length - failed;
+
+      setNodes((current) => {
+        const updated = current.map((entry) =>
+          entry.id !== nodeId
+            ? entry
+            : {
+                ...entry,
+                data: {
+                  ...entry.data,
+                  cachedOutput: merged,
+                  runStatus: ok > 0 ? ("success" as const) : ("error" as const),
+                  lastRunAt: new Date().toISOString(),
+                  mapProgress: undefined,
+                  runResult: {
+                    pageCount: ok,
+                    error:
+                      ok === 0
+                        ? (mapped.find((entry) => entry.error)?.error ?? "All pages failed")
+                        : failed > 0
+                          ? `${failed} of ${pages.length} pages failed`
+                          : cancelled
+                            ? `Stopped after ${ok} of ${pages.length} pages`
+                            : undefined,
+                  },
+                },
+              },
+        );
+        setEdges(revalidateEdges(updated, edgesRef.current));
+        return updated;
+      });
+      scheduleGraphSave();
+      return ok > 0;
+    },
+    [
+      executeNodeRun,
+      inferNodeOutput,
+      readOnly,
+      revalidateEdges,
+      runNode,
+      scheduleGraphSave,
+      updateNodeData,
+    ],
+  );
+
+  useEffect(() => {
+    runNodeAllPagesRef.current = runNodeAllPages;
+  }, [runNodeAllPages]);
 
   const runFullPipeline = useCallback(async () => {
     if (readOnly) return;
@@ -2345,6 +2519,8 @@ export function usePipelineGraph({
     toggleOutputPanel,
     getUpstream,
     runNode,
+    runNodeAllPages,
+    cancelMapRun,
     runFullPipeline,
     clearNodeRunState,
     clearAllRunState,
