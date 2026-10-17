@@ -26,9 +26,13 @@ When `OCRFLOW_RUNNER_MODE=remote`, the gateway needs URLs for each engine you st
 - Docling `http://127.0.0.1:8102`
 - Paddle `http://127.0.0.1:8103`
 - Liquid AI `http://127.0.0.1:8104`
-- Unlimited-OCR `http://127.0.0.1:8105` (`OCRFLOW_UNLIMITED_SERVICE_URL`; host-only, so Compose defaults it to `http://host.docker.internal:8105`)
+- Unlimited-OCR `http://127.0.0.1:8105` (`OCRFLOW_UNLIMITED_SERVICE_URL`; Compose defaults it to `http://unlimited:8000`, and the Makefile switches it to `http://host.docker.internal:8105` on Apple Silicon, where the service runs on the host)
 
-The Unlimited-OCR service loads `OCRFLOW_UNLIMITED_MODEL` (default `mlx-community/Unlimited-OCR-8bit`).
+The Unlimited-OCR service reads:
+
+- `OCRFLOW_UNLIMITED_ENGINE`: `auto` (default), `mlx`, `transformers`, or `vllm`. `auto` picks MLX on Apple Silicon, vLLM when `OCRFLOW_UNLIMITED_VLLM_URL` is set, and Transformers on CUDA otherwise.
+- `OCRFLOW_UNLIMITED_MODEL`: the checkpoint. Empty uses the engine default: `mlx-community/Unlimited-OCR-8bit` on MLX, `baidu/Unlimited-OCR` elsewhere.
+- `OCRFLOW_UNLIMITED_VLLM_URL`: an OpenAI-compatible vLLM server running `vllm/vllm-openai:unlimited-ocr`, for example `http://unlimited-vllm:8000`.
 
 Compose sets service DNS instead of localhost. See `backend/.env.example` and `backend/.env.remote.example` for the exact names.
 

@@ -7,6 +7,8 @@
 #   docling  — internal service image with Docling deps.
 #   surya    — internal service image with Surya deps.
 #   liquid   — internal service image with Liquid LFM2.5-VL deps.
+#   unlimited — internal service image for Baidu Unlimited-OCR (transformers
+#              engine; needs an NVIDIA GPU at inference time).
 #
 # The provider stages install ONLY their own provider's requirements on top of
 # base, keeping their mutually-incompatible dependency stacks isolated in
@@ -96,5 +98,24 @@ COPY requirements-liquid.txt docker/install-accelerator.sh ./
 RUN pip install -r requirements-liquid.txt \
     && chmod +x install-accelerator.sh \
     && ./install-accelerator.sh "${ACCELERATOR}"
+EXPOSE 8000
+CMD ["uvicorn", "app.internal_service.app:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# --------------------------------------------------------------------------- #
+FROM base AS unlimited
+
+ARG ACCELERATOR=cpu
+ENV OCRFLOW_SERVICE_PROVIDER=unlimited
+COPY requirements-unlimited.txt ./
+# requirements-unlimited.txt pins the upstream-tested torch 2.10 /
+# transformers 4.57.1. torch from PyPI is the CUDA build on Linux, which is what
+# ACCELERATOR=cuda wants. Other builds take the CPU wheel first (pip treats
+# 2.10.0+cpu as satisfying the pin) so the image stays small; inference still
+# needs CUDA because the upstream model code calls .cuda().
+RUN if [ "${ACCELERATOR}" != "cuda" ]; then \
+        pip install torch==2.10.0 torchvision==0.25.0 \
+            --index-url https://download.pytorch.org/whl/cpu; \
+    fi \
+    && pip install -r requirements-unlimited.txt
 EXPOSE 8000
 CMD ["uvicorn", "app.internal_service.app:app", "--host", "0.0.0.0", "--port", "8000"]

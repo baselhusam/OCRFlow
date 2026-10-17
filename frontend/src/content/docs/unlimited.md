@@ -1,6 +1,6 @@
 ---
 title: Unlimited-OCR
-description: Run Baidu Unlimited-OCR locally on Apple Silicon for end-to-end page and long-document parsing.
+description: Run Baidu Unlimited-OCR locally on Apple Silicon or an NVIDIA GPU for end-to-end page and long-document parsing.
 ---
 
 OCRFlow includes Baidu's **Unlimited-OCR** as an optional local provider. It is a 3B mixture-of-experts document parser (about 0.5B active parameters per token, MIT license) that reads a page image and writes the whole page in reading order: text, headings, HTML tables, LaTeX formulas, and figure captions, each with a layout box. One node replaces a layout → OCR → reading-order → table chain.
@@ -9,38 +9,83 @@ Its long-document mode reads up to 16 pages in a single generation, so context c
 
 ## Requirements
 
-Unlimited-OCR runs through [MLX](https://github.com/ml-explore/mlx) on **Apple Silicon only**. There is no Docker image: Docker Desktop has no access to the Apple GPU.
+Unlimited-OCR runs on one of two platforms. The service picks the engine from the host.
 
-| | |
+| | Apple Silicon | Linux / Windows (WSL2) + NVIDIA |
+| --- | --- | --- |
+| Engine | [MLX](https://github.com/ml-explore/mlx) through `mlx-vlm` | Official checkpoint through Transformers (`trust_remote_code`), or the official vLLM server |
+| Runs as | Host process (Docker has no access to the Apple GPU) | Docker `unlimited` service (CUDA overlay), or a host process |
+| Checkpoint | `mlx-community/Unlimited-OCR-8bit` (3.9 GB download) | `baidu/Unlimited-OCR` (BF16) |
+| Stack | `mlx-vlm>=0.7.8` | torch 2.10, Transformers 4.57.1 (the upstream-tested versions) |
+| Memory | about 6 GB for single pages, about 9 GB for a 14-page pass | at least 8 GB of VRAM |
+
+On Apple Silicon a dense page takes about 4–6 s on an M3 Max, and an 8-page pass about 36 s.
+
+The 8-bit MLX checkpoint matches the upstream model's output; 4-bit conversions drift on long pages. Set `OCRFLOW_UNLIMITED_MODEL` on the service to load a different checkpoint, such as `mlx-community/Unlimited-OCR-bf16` on a Mac.
+
+Every engine sends the same upstream recipe: `<image>document parsing.` with the *Detail* (gundam) or *Fast* (base) view for single pages, and `<image>Multi page parsing.` at 1024px with no crops for multi-page passes. Both use the sliding-window no-repeat 35-gram guard, with a window of 128 tokens for single pages and 1024 for multi-page passes.
+
+The engine is chosen like this:
+
+| `OCRFLOW_UNLIMITED_ENGINE` | Engine |
 | --- | --- |
-| Checkpoint | `mlx-community/Unlimited-OCR-8bit` (3.9 GB download) |
-| Memory | about 6 GB for single pages, about 9 GB for a 14-page pass |
-| Speed (M3 Max) | about 4–6 s per dense page; 8 pages in one pass in about 36 s |
-
-The 8-bit checkpoint matches the upstream model's output; 4-bit conversions drift on long pages. Set `OCRFLOW_UNLIMITED_MODEL` on the service to use another MLX conversion, such as `mlx-community/Unlimited-OCR-bf16`.
+| `auto` (default) | `mlx` on Apple Silicon; otherwise `vllm` when `OCRFLOW_UNLIMITED_VLLM_URL` is set, else `transformers` |
+| `mlx` | mlx-vlm (Apple Silicon only) |
+| `transformers` | Upstream `infer` / `infer_multi` on CUDA. The upstream code calls `.cuda()`, so CPU-only hosts cannot run it. |
+| `vllm` | Client of an OpenAI-compatible server started from `vllm/vllm-openai:unlimited-ocr` |
 
 ## Start the service
 
-`mlx-vlm` pulls Transformers 5.x, which conflicts with Surya's `transformers<5` pin, so Unlimited-OCR always runs from its own virtualenv. Create it once:
-
-```bash
-make ocr-unlimited-setup
-```
-
-Then start the provider:
-
-```bash
-make ocr-unlimited
-```
-
-It listens on `http://127.0.0.1:8105`. The first inference downloads the weights to `OCRFLOW_MODEL_CACHE/unlimited`; for an air-gapped host, pre-seed that cache and set `HF_HUB_OFFLINE=1` on the service. `make ocr-up` starts it too once the virtualenv exists, and `make ocr-down` stops it.
+`make ocr-unlimited` starts the service for your platform. It listens on `http://127.0.0.1:8105`.
 
 ```bash
 curl -s http://127.0.0.1:8105/internal/health
-# {"status":"ok","provider":"unlimited","device":"mlx",...}
+# {"status":"ok","provider":"unlimited","device":"mlx","runtime":"mlx",...}
 ```
 
-A Dockerized gateway reaches the host service at `http://host.docker.internal:8105` by default; override it with `OCRFLOW_UNLIMITED_SERVICE_URL`.
+The `runtime` field shows the selected engine. `make ocr-down` stops the service, and `make ocr-ps` shows its status.
+
+### Apple Silicon
+
+`mlx-vlm` pulls Transformers 5.x, which conflicts with Surya's `transformers<5` pin, so Unlimited-OCR runs from its own virtualenv. Create it once, then start the service:
+
+```bash
+make ocr-unlimited-setup
+make ocr-unlimited
+```
+
+The first inference downloads the weights to `OCRFLOW_MODEL_CACHE/unlimited`. `make ocr-up` also starts the service once the virtualenv exists. A Dockerized gateway reaches the host service at `http://host.docker.internal:8105`; the Makefile sets this for you on Apple Silicon.
+
+### NVIDIA (Docker)
+
+With the NVIDIA Container Toolkit installed, `make ocr-unlimited` builds the `unlimited` image with CUDA torch and starts it with the NVIDIA overlay:
+
+```bash
+make ocr-unlimited
+# same as:
+docker compose -f docker-compose.yml -f backend/docker/docker-compose.nvidia.yml \
+  --profile unlimited up -d --build unlimited
+```
+
+Weights download to the `ocrflow_unlimited_models` volume on first inference. On NVIDIA hosts, `make ocr-up`, `make nvidia-up` and `make up-all` include the service. The Compose gateway reaches it at `http://unlimited:8000`. Override that with `OCRFLOW_UNLIMITED_SERVICE_URL`.
+
+To serve the model with vLLM instead, run:
+
+```bash
+make ocr-unlimited-vllm
+```
+
+This starts the official `vllm/vllm-openai:unlimited-ocr` image (`unlimited-vllm` service, profile `unlimited-vllm`) with upstream's `NGramPerReqLogitsProcessor`. It points the `unlimited` service at that server with `OCRFLOW_UNLIMITED_VLLM_URL=http://unlimited-vllm:8000`. On Hopper GPUs with CUDA 12.9, set `UNLIMITED_VLLM_TAG=unlimited-ocr-cu129`. vLLM's first start downloads the weights and can take several minutes. The *Fast* page view asks the vLLM server for the base (no-crop) view.
+
+### NVIDIA (host)
+
+On a Linux host without Docker, `make ocr-unlimited-setup` installs the CUDA stack into `backend/.venv-unlimited`. Then start the service with:
+
+```bash
+OCR_SERVE=host make ocr-unlimited
+```
+
+For an air-gapped host, pre-seed the model cache (`OCRFLOW_MODEL_CACHE/unlimited`, or the `ocrflow_unlimited_models` volume) and set `HF_HUB_OFFLINE=1` on the service.
 
 ## Canvas nodes
 

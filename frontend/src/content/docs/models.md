@@ -68,11 +68,12 @@ prompted extraction rather than a bounding-box OCR engine.
 
 Details: [Liquid AI](/documentation/liquid).
 
-## Unlimited-OCR (`:8105`, Apple Silicon)
+## Unlimited-OCR (`:8105`, Apple Silicon or NVIDIA)
 
 Baidu's Unlimited-OCR (3B MoE, MIT) parses a whole page in one pass: reading-order
 text, headings, HTML tables, LaTeX formulas, and figure captions with layout
-boxes. It runs through MLX on Apple Silicon hosts in its own virtualenv.
+boxes. It runs through MLX on Apple Silicon hosts, and through CUDA (Transformers or vLLM)
+in Docker on NVIDIA hosts.
 
 | ID | Input → output |
 | --- | --- |

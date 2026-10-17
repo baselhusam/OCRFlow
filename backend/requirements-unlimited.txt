@@ -1,5 +1,21 @@
 -r requirements.txt
-# Baidu Unlimited-OCR through MLX (Apple Silicon only). Install into its own
-# backend/.venv-unlimited: mlx-vlm pulls transformers 5.x, which conflicts with
-# Surya's transformers<5 pin. 0.7.8 ships the model's R-SWA KV cache.
+# Baidu Unlimited-OCR. Install into its own backend/.venv-unlimited (or use the
+# Docker `unlimited` image): both stacks conflict with Surya's transformers<5.
+
+# Apple Silicon: MLX through mlx-vlm (pulls transformers 5.x). 0.7.8 ships the
+# model's R-SWA KV cache.
 mlx-vlm>=0.7.8 ; sys_platform == "darwin" and platform_machine == "arm64"
+
+# Everywhere else: the official baidu/Unlimited-OCR checkpoint and its
+# trust_remote_code model on CUDA, pinned to the upstream-tested stack.
+torch==2.10.0 ; sys_platform != "darwin"
+torchvision==0.25.0 ; sys_platform != "darwin"
+transformers==4.57.1 ; sys_platform != "darwin"
+huggingface_hub>=0.34,<1.0 ; sys_platform != "darwin"
+einops==0.8.2 ; sys_platform != "darwin"
+addict==2.4.0 ; sys_platform != "darwin"
+easydict==1.13 ; sys_platform != "darwin"
+matplotlib==3.10.8 ; sys_platform != "darwin"
+psutil==7.2.2 ; sys_platform != "darwin"
+tqdm ; sys_platform != "darwin"
+requests ; sys_platform != "darwin"

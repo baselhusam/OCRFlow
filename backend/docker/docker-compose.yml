@@ -81,7 +81,7 @@ services:
       OCRFLOW_SURYA_SERVICE_URL: http://surya:8000
       OCRFLOW_PADDLE_SERVICE_URL: http://paddle:8000
       OCRFLOW_LIQUID_SERVICE_URL: http://liquid:8000
-      OCRFLOW_UNLIMITED_SERVICE_URL: ${OCRFLOW_UNLIMITED_SERVICE_URL:-http://host.docker.internal:8105}
+      OCRFLOW_UNLIMITED_SERVICE_URL: ${OCRFLOW_UNLIMITED_SERVICE_URL:-http://unlimited:8000}
       OCRFLOW_OLLAMA_BASE_URL: http://ollama:11434
       OCRFLOW_UPLOAD_DIR: /data/uploads
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -119,7 +119,7 @@ services:
       OCRFLOW_SURYA_SERVICE_URL: http://surya:8000
       OCRFLOW_PADDLE_SERVICE_URL: http://paddle:8000
       OCRFLOW_LIQUID_SERVICE_URL: http://liquid:8000
-      OCRFLOW_UNLIMITED_SERVICE_URL: ${OCRFLOW_UNLIMITED_SERVICE_URL:-http://host.docker.internal:8105}
+      OCRFLOW_UNLIMITED_SERVICE_URL: ${OCRFLOW_UNLIMITED_SERVICE_URL:-http://unlimited:8000}
       OCRFLOW_OLLAMA_BASE_URL: http://ollama:11434
       OCRFLOW_UPLOAD_DIR: /data/uploads
     command: ["celery", "-A", "app.celery_app:celery_app", "worker", "--loglevel=info"]
@@ -206,6 +206,66 @@ services:
       - ocrflow_liquid_models:/models
       - ocrflow_uploads:/data/uploads:ro
 
+  # Baidu Unlimited-OCR on NVIDIA (transformers engine, or a client of the
+  # unlimited-vllm service below when OCRFLOW_UNLIMITED_VLLM_URL is set). Not in
+  # `all`: it needs a CUDA GPU, so start it with the NVIDIA overlay
+  # (`make ocr-unlimited`). On Apple Silicon it runs on the host through MLX and
+  # the Makefile points the gateway at host.docker.internal:8105 instead.
+  unlimited:
+    <<: *service-base
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: unlimited
+    container_name: ocrflow-unlimited
+    profiles: ["unlimited"]
+    ports:
+      - "8105:8000"
+    environment:
+      <<: *service-env
+      OCRFLOW_SERVICE_PROVIDER: unlimited
+      OCRFLOW_UNLIMITED_ENGINE: ${OCRFLOW_UNLIMITED_ENGINE:-auto}
+      OCRFLOW_UNLIMITED_MODEL: ${OCRFLOW_UNLIMITED_MODEL:-}
+      OCRFLOW_UNLIMITED_VLLM_URL: ${OCRFLOW_UNLIMITED_VLLM_URL:-}
+    volumes:
+      - ocrflow_unlimited_models:/models
+      - ocrflow_uploads:/data/uploads:ro
+
+  # Optional: the official vLLM server for Unlimited-OCR (CUDA only), started
+  # with upstream's recipe. `make ocr-unlimited-vllm` starts it with the
+  # unlimited service pointed at it.
+  unlimited-vllm:
+    image: vllm/vllm-openai:${UNLIMITED_VLLM_TAG:-unlimited-ocr}
+    container_name: ocrflow-unlimited-vllm
+    restart: unless-stopped
+    profiles: ["unlimited-vllm"]
+    ipc: host
+    command:
+      - baidu/Unlimited-OCR
+      - --trust-remote-code
+      - --logits_processors
+      - vllm.model_executor.models.unlimited_ocr:NGramPerReqLogitsProcessor
+      - --no-enable-prefix-caching
+      - --mm-processor-cache-gb
+      - "0"
+    environment:
+      HF_HOME: /models/hf
+    volumes:
+      - ocrflow_unlimited_models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: ["gpu"]
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 600s
+
   ollama:
     image: ollama/ollama:latest
     container_name: ocrflow-ollama
@@ -231,3 +291,4 @@ volumes:
   ocrflow_surya_models:
   ocrflow_ollama_models:
   ocrflow_liquid_models:
+  ocrflow_unlimited_models:

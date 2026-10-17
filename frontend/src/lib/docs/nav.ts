@@ -129,7 +129,7 @@ export const DOCS_NAV: DocsNavSection[] = [
         title: "Unlimited-OCR",
         slug: "unlimited",
         file: "unlimited.md",
-        description: "Baidu's end-to-end page and long-document parser (MLX, Apple Silicon).",
+        description: "Baidu's end-to-end page and long-document parser (Apple Silicon or NVIDIA).",
       },
       {
         title: "Loaders",

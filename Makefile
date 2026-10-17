@@ -38,6 +38,16 @@ endif
 
 COMPOSE_CMD = $(COMPOSE) $(COMPOSE_FILES)
 
+# Unlimited-OCR: host MLX service on Apple Silicon (a Dockerized gateway reaches
+# it through host.docker.internal), CUDA container on NVIDIA hosts.
+ifeq ($(SERVE_MODE),host)
+export OCRFLOW_UNLIMITED_SERVICE_URL ?= http://host.docker.internal:8105
+endif
+ifeq ($(ACCELERATOR),nvidia)
+UNLIMITED_PROFILE := --profile unlimited
+UNLIMITED_SERVICE := unlimited
+endif
+
 # Pretty, self-documenting help built from `##` / `##@` comments.
 .DEFAULT_GOAL := help
 
@@ -71,7 +81,7 @@ ifeq ($(SERVE_MODE),host)
 	$(COMPOSE) $(CORE_PROFILES) up -d --build
 	$(MAKE) ocr-up ACCELERATOR=$(ACCELERATOR)
 else
-	$(COMPOSE_CMD) $(ALL_PROFILES) up -d --build
+	$(COMPOSE_CMD) $(ALL_PROFILES) $(UNLIMITED_PROFILE) up -d --build
 endif
 
 .PHONY: up-fg
@@ -82,7 +92,7 @@ up-fg: ## Same as `up` but in the foreground (streams logs, Ctrl-C to stop)
 gpu-up: up-all ## Full stack with auto-detected GPU (NVIDIA / AMD / Apple host OCR)
 
 .PHONY: nvidia-up
-nvidia-up: ## Full stack with the NVIDIA CUDA overlay (Docling + Surya + Paddle)
+nvidia-up: ## Full stack with the NVIDIA CUDA overlay (Docling + Surya + Paddle + Liquid + Unlimited-OCR)
 	$(MAKE) up-all ACCELERATOR=nvidia
 
 .PHONY: amd-up
@@ -92,12 +102,12 @@ amd-up: ## Full stack with the AMD ROCm overlay (GPU Docling/Surya, CPU Paddle)
 .PHONY: down
 down: ## Stop and remove the stack's containers (and host OCR processes)
 	-$(HOST_OCR) stop
-	$(COMPOSE) $(ALL_PROFILES) down
+	$(COMPOSE) $(ALL_PROFILES) --profile unlimited --profile unlimited-vllm down
 
 .PHONY: down-v
 down-v: ## Stop the stack and delete its volumes (Postgres data, models, uploads)
 	-$(HOST_OCR) stop
-	$(COMPOSE) $(ALL_PROFILES) down -v
+	$(COMPOSE) $(ALL_PROFILES) --profile unlimited --profile unlimited-vllm down -v
 
 .PHONY: restart
 restart: down up ## Recreate the core stack from scratch
@@ -108,7 +118,7 @@ build: ## Build core images without starting anything
 
 .PHONY: build-ocr
 build-ocr: ## Build OCR provider images for the detected accelerator
-	$(COMPOSE_CMD) --profile surya --profile docling --profile paddle --profile liquid build surya docling paddle liquid
+	$(COMPOSE_CMD) --profile surya --profile docling --profile paddle --profile liquid $(UNLIMITED_PROFILE) build surya docling paddle liquid $(UNLIMITED_SERVICE)
 
 .PHONY: ps
 ps: ## Show the status of stack containers
@@ -163,19 +173,23 @@ else
 endif
 
 .PHONY: ocr-unlimited-setup
-ocr-unlimited-setup: ## One-time: create backend/.venv-unlimited with mlx-vlm (Apple Silicon)
+ocr-unlimited-setup: ## One-time: create backend/.venv-unlimited (mlx-vlm on Apple Silicon, CUDA torch on Linux)
 	cd $(BACKEND) && $(UNLIMITED_PYTHON) -m venv .venv-unlimited && \
 		.venv-unlimited/bin/pip install -q --upgrade pip && \
 		.venv-unlimited/bin/pip install -r requirements-unlimited.txt
 
 .PHONY: ocr-unlimited
-ocr-unlimited: ## Start the Baidu Unlimited-OCR MLX service (:8105, Apple Silicon only)
+ocr-unlimited: ## Start the Baidu Unlimited-OCR service (:8105; MLX host on Apple Silicon, CUDA Docker elsewhere)
 ifeq ($(SERVE_MODE),host)
 	$(HOST_OCR) start unlimited
 else
-	@echo "Unlimited-OCR runs through MLX on Apple Silicon hosts only (serve-mode=$(SERVE_MODE))." >&2
-	@exit 1
+	$(COMPOSE_CMD) --profile unlimited up -d --build unlimited
 endif
+
+.PHONY: ocr-unlimited-vllm
+ocr-unlimited-vllm: ## Start Unlimited-OCR backed by the official vLLM image (NVIDIA only)
+	OCRFLOW_UNLIMITED_VLLM_URL=http://unlimited-vllm:8000 \
+		$(COMPOSE_CMD) --profile unlimited --profile unlimited-vllm up -d --build unlimited unlimited-vllm
 
 .PHONY: ocr-up
 ocr-up: ## Start all OCR microservices (each or all; GPU auto-detected)
@@ -187,18 +201,18 @@ ifeq ($(SERVE_MODE),host)
 		else echo "Skipping Unlimited-OCR (run make ocr-unlimited-setup to enable it)"; fi
 	$(COMPOSE_CMD) --profile paddle up -d --build paddle
 else
-	$(COMPOSE_CMD) --profile surya --profile docling --profile paddle --profile liquid up -d --build surya docling paddle liquid
+	$(COMPOSE_CMD) --profile surya --profile docling --profile paddle --profile liquid $(UNLIMITED_PROFILE) up -d --build surya docling paddle liquid $(UNLIMITED_SERVICE)
 endif
 
 .PHONY: ocr-down
 ocr-down: ## Stop OCR microservices (leaves postgres/redis/gateway alone)
 	-$(HOST_OCR) stop
-	-$(COMPOSE) stop surya docling paddle liquid
-	-$(COMPOSE) rm -f surya docling paddle liquid
+	-$(COMPOSE) stop surya docling paddle liquid unlimited unlimited-vllm
+	-$(COMPOSE) rm -f surya docling paddle liquid unlimited unlimited-vllm
 
 .PHONY: ocr-ps
 ocr-ps: ## Show OCR microservice status (Docker + host)
-	-$(COMPOSE) ps surya docling paddle liquid
+	-$(COMPOSE) ps surya docling paddle liquid unlimited unlimited-vllm
 	@$(HOST_OCR) status
 
 .PHONY: ocr-logs
@@ -207,7 +221,7 @@ ifeq ($(SERVE_MODE),host)
 	tail -f .ocr-run/surya.log .ocr-run/docling.log .ocr-run/paddle.log .ocr-run/liquid.log .ocr-run/unlimited.log 2>/dev/null || \
 		$(COMPOSE) logs -f surya docling paddle liquid
 else
-	$(COMPOSE) --profile surya --profile docling --profile paddle --profile liquid logs -f surya docling paddle liquid
+	$(COMPOSE) --profile surya --profile docling --profile paddle --profile liquid $(UNLIMITED_PROFILE) logs -f surya docling paddle liquid $(UNLIMITED_SERVICE)
 endif
 
 ##@ Backend — host dev (activate your venv first)
@@ -253,7 +267,7 @@ be-ocr-liquid: ## Host-dev Liquid LFM2.5-VL-1.6B service on :8104 (requires requ
 		uvicorn app.internal_service.app:app --host 127.0.0.1 --port 8104 --reload
 
 .PHONY: be-ocr-unlimited
-be-ocr-unlimited: ## Host-dev Unlimited-OCR MLX service on :8105 (requires backend/.venv-unlimited)
+be-ocr-unlimited: ## Host-dev Unlimited-OCR service on :8105 (requires backend/.venv-unlimited)
 	cd $(BACKEND) && OCRFLOW_SERVICE_PROVIDER=unlimited OCRFLOW_RUNNER_MODE=local \
 		.venv-unlimited/bin/uvicorn app.internal_service.app:app --host 127.0.0.1 --port 8105 --reload
 

@@ -17,11 +17,12 @@ from app.models.loader._rasterize import (
     image_bytes_to_page_image,
     rasterize_pdf,
 )
-from app.models.unlimited._mlx_engine import (
-    UnlimitedMlxEngine,
+from app.models.unlimited._engine import (
+    UnlimitedEngine,
     acquire_engine,
     multi_page_token_budget,
     release_engine,
+    resolve_model_repo,
 )
 from app.models.unlimited._parse import (
     ParsedPage,
@@ -55,11 +56,12 @@ def _pdf_page_count(pdf_bytes: bytes, page_range: tuple[int, int] | None) -> int
 class _UnlimitedRunner(BaseRunner[object, UnlimitedParseOutput]):
     def __init__(self) -> None:
         super().__init__()
-        self._engine: UnlimitedMlxEngine | None = None
+        self._engine: UnlimitedEngine | None = None
 
     async def _load_impl(self, config: ModelConfig) -> None:
-        repo = get_settings().unlimited_model_repo
-        self._engine = await acquire_engine(repo, config.model_cache_dir / "unlimited")
+        self._engine = await acquire_engine(
+            resolve_model_repo(), config.model_cache_dir / "unlimited"
+        )
 
     async def _unload_impl(self) -> None:
         if self._engine is not None:
@@ -67,7 +69,7 @@ class _UnlimitedRunner(BaseRunner[object, UnlimitedParseOutput]):
         self._engine = None
 
     @property
-    def engine(self) -> UnlimitedMlxEngine:
+    def engine(self) -> UnlimitedEngine:
         if self._engine is None:
             raise ModelInferenceError("Unlimited-OCR model is not loaded")
         return self._engine

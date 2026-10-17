@@ -1,6 +1,7 @@
 from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -86,11 +87,22 @@ class Settings(BaseSettings):
         default="http://127.0.0.1:8105",
         validation_alias="OCRFLOW_UNLIMITED_SERVICE_URL",
     )
-    # MLX checkpoint the Unlimited-OCR service loads (8-bit matches upstream
-    # quality; 4-bit diverges on long pages).
+    # Unlimited-OCR engine: auto picks mlx on Apple Silicon, vllm when
+    # OCRFLOW_UNLIMITED_VLLM_URL is set, and transformers (CUDA) otherwise.
+    unlimited_engine: Literal["auto", "mlx", "transformers", "vllm"] = Field(
+        default="auto",
+        validation_alias="OCRFLOW_UNLIMITED_ENGINE",
+    )
+    # Checkpoint the Unlimited-OCR service loads. Empty uses the engine default:
+    # mlx-community/Unlimited-OCR-8bit on MLX, baidu/Unlimited-OCR elsewhere.
     unlimited_model_repo: str = Field(
-        default="mlx-community/Unlimited-OCR-8bit",
+        default="",
         validation_alias="OCRFLOW_UNLIMITED_MODEL",
+    )
+    # OpenAI-compatible vLLM server (vllm/vllm-openai:unlimited-ocr image).
+    unlimited_vllm_url: str = Field(
+        default="",
+        validation_alias="OCRFLOW_UNLIMITED_VLLM_URL",
     )
     ollama_base_url: str = Field(
         default="http://127.0.0.1:11434",

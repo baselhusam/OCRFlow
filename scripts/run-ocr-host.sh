@@ -9,7 +9,9 @@
 # Apple GPU is not available inside Docker Desktop's Linux VM, so Docling and
 # Surya run on the host with PyTorch MPS. Paddle has no macOS ARM GPU build;
 # prefer `make ocr-paddle` (Docker linux/amd64, CPU) on Apple Silicon.
-# Unlimited-OCR is MLX-only, so it always runs here from backend/.venv-unlimited.
+# Unlimited-OCR runs here from backend/.venv-unlimited: MLX on Apple Silicon,
+# CUDA (transformers) on a Linux host with OCR_SERVE=host. NVIDIA hosts
+# normally use the Docker `unlimited` service instead.
 
 set -euo pipefail
 
@@ -37,7 +39,7 @@ port_for() {
 device_for() {
   case "$1" in
     paddle) echo "${OCRFLOW_PADDLE_DEVICE:-cpu}" ;;
-    unlimited) echo mlx ;;
+    unlimited) if [ "$(uname -s)" = Darwin ]; then echo mlx; else echo cuda; fi ;;
     *) echo "${OCRFLOW_DEFAULT_DEVICE:-mps}" ;;
   esac
 }
@@ -50,7 +52,7 @@ find_uvicorn() {
   if [ -x "$BACKEND/.venv-$provider/bin/uvicorn" ]; then
     echo "$BACKEND/.venv-$provider/bin/uvicorn"
   elif [ "$provider" = unlimited ]; then
-    # mlx-vlm must not share backend/.venv (its transformers 5.x breaks Surya).
+    # Its transformers pin must not share backend/.venv with Surya's.
     return 1
   elif [ -x "$BACKEND/.venv/bin/uvicorn" ]; then
     echo "$BACKEND/.venv/bin/uvicorn"
@@ -88,7 +90,7 @@ Then retry: make ocr-${provider}"
   fi
 
   if [ "$provider" = unlimited ] && [ ! -x "$BACKEND/.venv-unlimited/bin/uvicorn" ]; then
-    die "Unlimited-OCR needs its own MLX venv. Create it once with:
+    die "Unlimited-OCR needs its own venv. Create it once with:
   make ocr-unlimited-setup
 Then retry: make ocr-unlimited"
   fi

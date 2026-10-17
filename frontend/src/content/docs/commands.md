@@ -39,9 +39,10 @@ make ocr-surya              # :8101
 make ocr-docling            # :8102
 make ocr-paddle             # :8103
 make ocr-liquid             # :8104, LFM2.5-VL-1.6B
-make ocr-unlimited-setup    # once: backend/.venv-unlimited with mlx-vlm
-make ocr-unlimited          # :8105, Unlimited-OCR (Apple Silicon)
-make ocr-up                 # all engines (Unlimited-OCR once its venv exists)
+make ocr-unlimited-setup    # once: backend/.venv-unlimited (mlx-vlm on Mac, CUDA torch on Linux)
+make ocr-unlimited          # :8105, Unlimited-OCR (MLX host on Mac, CUDA Docker on NVIDIA)
+make ocr-unlimited-vllm     # :8105, Unlimited-OCR backed by the official vLLM image (NVIDIA)
+make ocr-up                 # all engines (on a Mac, Unlimited-OCR once its venv exists)
 make ocr-down
 make ocr-ps
 make ocr-logs

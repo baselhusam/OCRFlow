@@ -70,7 +70,7 @@ make ocr-docling   # :8102
 make ocr-surya     # :8101
 make ocr-paddle    # :8103
 make ocr-liquid    # :8104
-make ocr-unlimited # :8105, Apple Silicon (run make ocr-unlimited-setup once)
+make ocr-unlimited # :8105, Apple Silicon (make ocr-unlimited-setup once) or NVIDIA
 ```
 
 Offline engines appear greyed out in the canvas palette and come online as soon as their service reports healthy. `make help` lists every target.
@@ -155,7 +155,7 @@ The catalog is task-level. Everything below runs today; more providers (Tesserac
 | **[Surya](frontend/src/content/docs/surya.md)** | `8101` | Layout, text detection & recognition, reading order, tables, LaTeX OCR | GPL-3.0 code · OpenRAIL-M weights ⚠️ |
 | **[Paddle](frontend/src/content/docs/paddle.md)** | `8103` | DocLayout, PP-OCR text recognition, PP-Structure | Apache-2.0 |
 | **[Liquid AI](frontend/src/content/docs/liquid.md)** | `8104` | LFM2.5-VL-1.6B: prompted vision and schema-validated extraction | LFM Open License v1.0 |
-| **[Unlimited-OCR](frontend/src/content/docs/unlimited.md)** | `8105` | Baidu end-to-end page parsing (text, tables, LaTeX, layout) and one-pass multi-page reading · Apple Silicon | MIT |
+| **[Unlimited-OCR](frontend/src/content/docs/unlimited.md)** | `8105` | Baidu end-to-end page parsing (text, tables, LaTeX, layout) and one-pass multi-page reading · Apple Silicon or NVIDIA | MIT |
 | **Ollama** | `11434` | Local Qwen3 0.6B / Qwen3.5 0.8B for text and vision prompts and structured JSON | Apache-2.0 |
 | **Connected LLM / VLM** | — | OpenAI, Anthropic, or any compatible endpoint for prompts and structured extraction | Provider terms |
 

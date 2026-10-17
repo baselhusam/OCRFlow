@@ -20,19 +20,19 @@ Typical output includes:
 
 ## Platform matrix
 
-| Host | Docling / Surya / Liquid | Paddle | GPU |
-| --- | --- | --- | --- |
-| Linux / Windows (WSL2) + NVIDIA | Docker + CUDA overlay | Docker GPU (`paddlepaddle-gpu`) | CUDA |
-| Linux + AMD ROCm | Docker + ROCm overlay | CPU (no Paddle 3.x ROCm wheel) | ROCm for Docling/Surya/Liquid |
-| macOS Apple Silicon | **Host processes** (Metal/MPS) | Docker `linux/amd64`, CPU | MPS for Docling/Surya/Liquid |
-| Anything else | Docker CPU images | Docker CPU | CPU |
+| Host | Docling / Surya / Liquid | Paddle | Unlimited-OCR | GPU |
+| --- | --- | --- | --- | --- |
+| Linux / Windows (WSL2) + NVIDIA | Docker + CUDA overlay | Docker GPU (`paddlepaddle-gpu`) | Docker + CUDA overlay (Transformers, or the official vLLM image) | CUDA |
+| Linux + AMD ROCm | Docker + ROCm overlay | CPU (no Paddle 3.x ROCm wheel) | Not supported | ROCm for Docling/Surya/Liquid |
+| macOS Apple Silicon | **Host processes** (Metal/MPS) | Docker `linux/amd64`, CPU | **Host process** (MLX) | MPS / MLX |
+| Anything else | Docker CPU images | Docker CPU | Not supported (needs CUDA or MLX) | CPU |
 
-Apple GPU is **not** available inside Docker Desktop's Linux VM. That is why MLX/Metal acceleration is host-native. [Unlimited-OCR](/documentation/unlimited) is MLX-only, so it runs on Apple Silicon hosts and has no container image.
+Apple GPU is **not** available inside Docker Desktop's Linux VM. That is why MLX/Metal acceleration is host-native. [Unlimited-OCR](/documentation/unlimited) uses MLX on Apple Silicon and CUDA on NVIDIA hosts; it has no CPU path.
 
 ## Start OCR on the detected GPU
 
 ```bash
-make ocr-up          # all four engines
+make ocr-up          # all engines (Unlimited-OCR on NVIDIA and Apple Silicon)
 make gpu-up          # core stack + OCR, same detection
 make nvidia-up       # force CUDA overlay
 make amd-up          # force ROCm overlay
@@ -46,7 +46,8 @@ make ocr-surya       # :8101
 make ocr-docling     # :8102
 make ocr-paddle      # :8103
 make ocr-liquid      # :8104
-make ocr-unlimited   # :8105, Apple Silicon only (MLX)
+make ocr-unlimited   # :8105, MLX on Apple Silicon, CUDA Docker on NVIDIA
+make ocr-unlimited-vllm  # :8105 backed by the official vLLM image (NVIDIA)
 make ocr-ps          # status
 make ocr-logs        # follow provider logs
 make ocr-down        # stop OCR only
@@ -69,4 +70,4 @@ Model configs accept an explicit `device`: `cpu`, `cuda`, `rocm`, `mps`, `mlx`, 
 
 ## First-run downloads
 
-The first inference for a model pulls weights into named volumes (`ocrflow_surya_models`, Docling/Paddle caches, Hugging Face hub). On air-gapped hosts, pre-seed those volumes — see [Air-gapped deploy](/documentation/air-gapped).
+The first inference for a model pulls weights into named volumes (`ocrflow_surya_models`, `ocrflow_unlimited_models`, Docling/Paddle caches, Hugging Face hub). On air-gapped hosts, pre-seed those volumes — see [Air-gapped deploy](/documentation/air-gapped).

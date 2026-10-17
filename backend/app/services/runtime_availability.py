@@ -27,6 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import RunnerMode, Settings
 from app.models.servable import REMOTE_PROVIDERS
 from app.models.servable import models_for_provider
+from app.models.unlimited._engine import local_runtime_modules
 from app.services.ocr_engines import get_live_engine_capabilities
 from app.services.model_connections import get_connection_runtime_statuses
 
@@ -39,7 +40,6 @@ _LOCAL_PROVIDER_MODULES: dict[str, tuple[str, ...]] = {
     "surya": ("surya",),
     "paddle": ("paddleocr",),
     "liquid": ("torch", "transformers"),
-    "unlimited": ("mlx_vlm",),
 }
 
 _HEALTH_PATH = "/internal/health"
@@ -60,7 +60,11 @@ class RuntimeAvailability(BaseModel):
 
 
 def _local_provider_runtime(provider: str) -> ProviderRuntime:
-    modules = _LOCAL_PROVIDER_MODULES.get(provider, ())
+    if provider == "unlimited":
+        # MLX on Apple Silicon, torch + transformers on CUDA, nothing for vLLM.
+        modules = local_runtime_modules()
+    else:
+        modules = _LOCAL_PROVIDER_MODULES.get(provider, ())
     missing = [name for name in modules if importlib.util.find_spec(name) is None]
     if missing:
         return ProviderRuntime(

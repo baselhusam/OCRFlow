@@ -89,7 +89,7 @@ const PROVIDERS: {
     value: "unlimited",
     label: "Unlimited-OCR",
     port: "8105",
-    detail: "Baidu end-to-end document parsing · MLX on Apple Silicon",
+    detail: "Baidu end-to-end document parsing · MLX on Apple Silicon, CUDA on NVIDIA",
   },
 ];
 

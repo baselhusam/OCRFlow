@@ -2,7 +2,7 @@
 
 How to **stop** and **start** Surya, Docling, Paddle, Liquid, Unlimited-OCR, and Ollama on this machine.
 
-On Apple Silicon, Surya, Docling, and Liquid must run **on the host** (PyTorch MPS). Paddle has no macOS ARM GPU wheel — use Docker (`make ocr-paddle`) or skip it. Do **not** `pip install` Paddle into `backend/.venv`; it fights Surya’s torch. Liquid needs `transformers>=5.1` while Surya pins `<5`, so Liquid lives in its own `backend/.venv-liquid` (the host runner prefers `backend/.venv-<provider>` when it exists). Unlimited-OCR runs through MLX (`mlx-vlm`, which also pulls transformers 5.x) and only ever from `backend/.venv-unlimited` — the host runner refuses to fall back to the shared venv.
+On Apple Silicon, Surya, Docling, and Liquid must run **on the host** (PyTorch MPS). Paddle has no macOS ARM GPU wheel — use Docker (`make ocr-paddle`) or skip it. Do **not** `pip install` Paddle into `backend/.venv`; it fights Surya’s torch. Liquid needs `transformers>=5.1` while Surya pins `<5`, so Liquid lives in its own `backend/.venv-liquid` (the host runner prefers `backend/.venv-<provider>` when it exists). On Apple Silicon, Unlimited-OCR runs through MLX (`mlx-vlm`, which also pulls transformers 5.x) and only ever from `backend/.venv-unlimited` — the host runner refuses to fall back to the shared venv. On NVIDIA hosts it runs the official `baidu/Unlimited-OCR` checkpoint (torch 2.10 / transformers 4.57.1) in the Docker `unlimited` service instead.
 
 Gateway (`:8000`), Next.js (`:3000`), Celery, Postgres, and Redis are separate. Leave them running unless you intend to stop the whole app.
 
@@ -14,7 +14,7 @@ Gateway (`:8000`), Next.js (`:3000`), Celery, Postgres, and Redis are separate. 
 | Docling | `8102` | `make ocr-docling` |
 | Paddle | `8103` | `make ocr-paddle` (Docker on Mac) |
 | Liquid | `8104` | `make ocr-liquid` |
-| Unlimited-OCR | `8105` | `make ocr-unlimited` (once: `make ocr-unlimited-setup`) |
+| Unlimited-OCR | `8105` | `make ocr-unlimited` (Mac, once: `make ocr-unlimited-setup`; Docker + CUDA on NVIDIA) |
 | Ollama | `11434` | `open -a Ollama` |
 
 Health:
@@ -24,7 +24,7 @@ curl -s http://127.0.0.1:8101/health   # {"status":"ok","provider":"surya",...}
 curl -s http://127.0.0.1:8102/health   # {"status":"ok","provider":"docling",...}
 curl -s http://127.0.0.1:8103/health   # {"status":"ok","provider":"paddle",...}
 curl -s http://127.0.0.1:8104/internal/health   # {"status":"ok","provider":"liquid",...}
-curl -s http://127.0.0.1:8105/internal/health   # {"status":"ok","provider":"unlimited","device":"mlx",...}
+curl -s http://127.0.0.1:8105/internal/health   # {"status":"ok","provider":"unlimited","device":"mlx","runtime":"mlx",...}
 curl -s http://127.0.0.1:11434/api/tags
 ```
 
@@ -139,11 +139,16 @@ OCRFLOW_SERVICE_PROVIDER=liquid OCRFLOW_RUNNER_MODE=local \
 ### Unlimited-OCR (`:8105`)
 
 ```bash
-make ocr-unlimited-setup   # once: creates backend/.venv-unlimited with mlx-vlm
+make ocr-unlimited-setup   # once: creates backend/.venv-unlimited (mlx-vlm on Mac, CUDA torch on Linux)
 make ocr-unlimited
 ```
 
-Apple Silicon only (MLX); there is no Docker image. Weights (`mlx-community/Unlimited-OCR-8bit`, 3.9 GB) download to `OCRFLOW_MODEL_CACHE/unlimited` on first inference; override the checkpoint with `OCRFLOW_UNLIMITED_MODEL`. Equivalent:
+The engine follows the host (`OCRFLOW_UNLIMITED_ENGINE=auto`; health shows it as `runtime`):
+
+- **Apple Silicon**: MLX host process. Weights (`mlx-community/Unlimited-OCR-8bit`, 3.9 GB) download to `OCRFLOW_MODEL_CACHE/unlimited` on first inference.
+- **NVIDIA**: `make ocr-unlimited` runs the Docker `unlimited` service with the CUDA overlay (Transformers engine, `baidu/Unlimited-OCR`, model cache volume `ocrflow_unlimited_models`). `make ocr-unlimited-vllm` instead serves the model from the official `vllm/vllm-openai:unlimited-ocr` image and points the service at it (`OCRFLOW_UNLIMITED_VLLM_URL`). There is no CPU path: the upstream code needs CUDA.
+
+Override the checkpoint with `OCRFLOW_UNLIMITED_MODEL`. Stop the Docker variants with `make ocr-down`. Host equivalent on a Mac:
 
 ```bash
 cd backend
@@ -154,7 +159,7 @@ OCRFLOW_SERVICE_PROVIDER=unlimited OCRFLOW_RUNNER_MODE=local OCRFLOW_DEFAULT_DEV
 ### All OCR engines
 
 ```bash
-make ocr-up     # Surya + Docling + Liquid (+ Unlimited-OCR if its venv exists) on host; Paddle via Docker on Apple Silicon
+make ocr-up     # Surya + Docling + Liquid (+ Unlimited-OCR if its venv exists) on host; Paddle via Docker on Apple Silicon. On NVIDIA: all five in Docker
 make ocr-ps     # status
 ```
 

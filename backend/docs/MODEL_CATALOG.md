@@ -840,14 +840,24 @@ APIs in remote mode. The model uses the LFM Open License v1.0.
 
 | ID | Category | Input | Output | Default | Status |
 |----|----------|-------|--------|---------|--------|
-| `unlimited/document-parse` | `vlm_convert` | page image | DocumentArtifact + markdown | `mlx-community/Unlimited-OCR-8bit` | done |
-| `unlimited/multi-page-parse` | `vlm_convert` | DocumentInput (PDF/image) | DocumentArtifact + markdown | `mlx-community/Unlimited-OCR-8bit` | done |
+| `unlimited/document-parse` | `vlm_convert` | page image | DocumentArtifact + markdown | `mlx-community/Unlimited-OCR-8bit` (MLX) / `baidu/Unlimited-OCR` (CUDA) | done |
+| `unlimited/multi-page-parse` | `vlm_convert` | DocumentInput (PDF/image) | DocumentArtifact + markdown | `mlx-community/Unlimited-OCR-8bit` (MLX) / `baidu/Unlimited-OCR` (CUDA) | done |
 
-End-to-end document parser (3B MoE, ~0.5B active, MIT). It runs through MLX
-on Apple Silicon only, from `backend/.venv-unlimited` (`make ocr-unlimited-setup`,
-then `make ocr-unlimited` on port `8105`). Both runners share one loaded
-model. The multi-page runner reads up to 16 pages per generation and uses the
-document-conversion timeout.
+End-to-end document parser (3B MoE, ~0.5B active, MIT). The service on port
+`8105` (`make ocr-unlimited`) picks its engine from the host
+(`OCRFLOW_UNLIMITED_ENGINE=auto`):
+
+- **Apple Silicon** — MLX through mlx-vlm, as a host process from
+  `backend/.venv-unlimited` (`make ocr-unlimited-setup` once).
+- **NVIDIA** — the official checkpoint through Transformers `trust_remote_code`
+  (torch 2.10 / transformers 4.57.1), in the Docker `unlimited` service with the
+  CUDA overlay. Alternatively, it acts as a client of the official
+  `vllm/vllm-openai:unlimited-ocr` server (`make ocr-unlimited-vllm`, or set
+  `OCRFLOW_UNLIMITED_VLLM_URL`).
+
+Every engine uses upstream's prompts, views and no-repeat 35-gram guard. Both
+runners share one loaded engine. The multi-page runner reads up to 16 pages
+per generation and uses the document-conversion timeout.
 
 ---
 

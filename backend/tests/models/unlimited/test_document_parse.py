@@ -17,7 +17,7 @@ from app.models.remote_runner import RemoteModelRunner
 from app.models.runner_factory import build_runner
 from app.models.servable import models_for_provider
 from app.models.timeout_policy import resolve_inference_timeout
-from app.models.unlimited._mlx_engine import GenerationResult, multi_page_token_budget
+from app.models.unlimited._engine import GenerationResult, multi_page_token_budget
 from app.schemas.models.unlimited.document_parse import (
     UnlimitedDocumentParseInput,
     UnlimitedMultiPageParseInput,

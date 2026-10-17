@@ -52,13 +52,18 @@ def create_internal_app() -> FastAPI:
         )
 
     def _health_payload() -> dict[str, str]:
-        return {
+        payload = {
             "status": "ok",
             "provider": settings.service_provider or "",
             "device": resolve_device(settings.default_device).value,
             "api_version": "1",
             "engine_version": app.version,
         }
+        if settings.service_provider == "unlimited":
+            from app.models.unlimited._engine import resolve_engine_kind
+
+            payload["runtime"] = resolve_engine_kind(settings)
+        return payload
 
     @app.get("/health")
     async def health() -> dict[str, str]:
