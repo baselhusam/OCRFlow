@@ -1,4 +1,5 @@
 import { SOURCE_NODE_MODELS } from "@/lib/canvas/category-meta";
+import { isDocumentConverterNode } from "@/lib/canvas/document-converter-meta";
 import { formatArtifactKind } from "@/lib/canvas/wire-labels";
 import {
   extractLines,
@@ -17,10 +18,7 @@ export function summarizeInput(
     return filename ? filename : null;
   }
 
-  if (
-    data.modelId === "docling/vlm-granite-docling" ||
-    data.modelId === "docling/convert-pipeline"
-  ) {
+  if (isDocumentConverterNode(data.modelId)) {
     const filename = data.params.assetFilename as string | undefined;
     return filename ? filename : null;
   }

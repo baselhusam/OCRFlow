@@ -3,6 +3,7 @@
 import { FileText, Images, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { JsonTreeInline } from "@/components/canvas/node-detail/previews/json-tree";
 import {
@@ -845,7 +846,7 @@ function DocumentBody({
             PREVIEW_SCROLL,
           )}
         >
-          <ReactMarkdown>{markdown}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
         </div>
       )}
       {tab === "markdown" && markdown && (

@@ -82,6 +82,16 @@ class Settings(BaseSettings):
         default="http://127.0.0.1:8104",
         validation_alias="OCRFLOW_LIQUID_SERVICE_URL",
     )
+    unlimited_service_url: str = Field(
+        default="http://127.0.0.1:8105",
+        validation_alias="OCRFLOW_UNLIMITED_SERVICE_URL",
+    )
+    # MLX checkpoint the Unlimited-OCR service loads (8-bit matches upstream
+    # quality; 4-bit diverges on long pages).
+    unlimited_model_repo: str = Field(
+        default="mlx-community/Unlimited-OCR-8bit",
+        validation_alias="OCRFLOW_UNLIMITED_MODEL",
+    )
     ollama_base_url: str = Field(
         default="http://127.0.0.1:11434",
         validation_alias="OCRFLOW_OLLAMA_BASE_URL",
@@ -107,6 +117,7 @@ class Settings(BaseSettings):
             "surya": self.surya_service_url,
             "paddle": self.paddle_service_url,
             "liquid": self.liquid_service_url,
+            "unlimited": self.unlimited_service_url,
             "ollama": self.ollama_base_url,
         }.get(provider)
 

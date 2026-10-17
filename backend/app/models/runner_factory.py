@@ -101,6 +101,14 @@ RUNNER_FACTORIES: dict[str, Callable[[], BaseRunner]] = {
         "app.models.liquid.generation",
         "LiquidVisionStructuredRunner",
     ),
+    "unlimited/document-parse": _lazy(
+        "app.models.unlimited.document_parse",
+        "UnlimitedDocumentParseRunner",
+    ),
+    "unlimited/multi-page-parse": _lazy(
+        "app.models.unlimited.document_parse",
+        "UnlimitedMultiPageParseRunner",
+    ),
     "llm/text-prompt": _lazy("app.models.connected.generation", "ConnectedTextRunner"),
     "llm/structured-extract": _lazy("app.models.connected.generation", "ConnectedStructuredRunner"),
     "vlm/vision-prompt": _lazy("app.models.connected.generation", "ConnectedVisionRunner"),

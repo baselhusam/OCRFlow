@@ -26,6 +26,9 @@ When `OCRFLOW_RUNNER_MODE=remote`, the gateway needs URLs for each engine you st
 - Docling `http://127.0.0.1:8102`
 - Paddle `http://127.0.0.1:8103`
 - Liquid AI `http://127.0.0.1:8104`
+- Unlimited-OCR `http://127.0.0.1:8105` (`OCRFLOW_UNLIMITED_SERVICE_URL`; host-only, so Compose defaults it to `http://host.docker.internal:8105`)
+
+The Unlimited-OCR service loads `OCRFLOW_UNLIMITED_MODEL` (default `mlx-community/Unlimited-OCR-8bit`).
 
 Compose sets service DNS instead of localhost. See `backend/.env.example` and `backend/.env.remote.example` for the exact names.
 

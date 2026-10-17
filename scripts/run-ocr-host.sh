@@ -2,13 +2,14 @@
 # Run an OCR provider as a host microservice (Apple Silicon GPU path).
 #
 # Usage:
-#   scripts/run-ocr-host.sh start <surya|docling|paddle|liquid>
-#   scripts/run-ocr-host.sh stop  [surya|docling|paddle|liquid]
+#   scripts/run-ocr-host.sh start <surya|docling|paddle|liquid|unlimited>
+#   scripts/run-ocr-host.sh stop  [surya|docling|paddle|liquid|unlimited]
 #   scripts/run-ocr-host.sh status
 #
 # Apple GPU is not available inside Docker Desktop's Linux VM, so Docling and
 # Surya run on the host with PyTorch MPS. Paddle has no macOS ARM GPU build;
 # prefer `make ocr-paddle` (Docker linux/amd64, CPU) on Apple Silicon.
+# Unlimited-OCR is MLX-only, so it always runs here from backend/.venv-unlimited.
 
 set -euo pipefail
 
@@ -28,13 +29,15 @@ port_for() {
     docling) echo 8102 ;;
     paddle) echo 8103 ;;
     liquid) echo 8104 ;;
-    *) die "Unknown provider '$1' (surya|docling|paddle|liquid)" ;;
+    unlimited) echo 8105 ;;
+    *) die "Unknown provider '$1' (surya|docling|paddle|liquid|unlimited)" ;;
   esac
 }
 
 device_for() {
   case "$1" in
     paddle) echo "${OCRFLOW_PADDLE_DEVICE:-cpu}" ;;
+    unlimited) echo mlx ;;
     *) echo "${OCRFLOW_DEFAULT_DEVICE:-mps}" ;;
   esac
 }
@@ -46,6 +49,9 @@ find_uvicorn() {
   local provider="$1"
   if [ -x "$BACKEND/.venv-$provider/bin/uvicorn" ]; then
     echo "$BACKEND/.venv-$provider/bin/uvicorn"
+  elif [ "$provider" = unlimited ]; then
+    # mlx-vlm must not share backend/.venv (its transformers 5.x breaks Surya).
+    return 1
   elif [ -x "$BACKEND/.venv/bin/uvicorn" ]; then
     echo "$BACKEND/.venv/bin/uvicorn"
   elif [ -x "$ROOT/.venv/bin/uvicorn" ]; then
@@ -79,6 +85,12 @@ start_one() {
     die "port :$port is already in use by another process.
 Stop it, or run: make ocr-down
 Then retry: make ocr-${provider}"
+  fi
+
+  if [ "$provider" = unlimited ] && [ ! -x "$BACKEND/.venv-unlimited/bin/uvicorn" ]; then
+    die "Unlimited-OCR needs its own MLX venv. Create it once with:
+  make ocr-unlimited-setup
+Then retry: make ocr-unlimited"
   fi
 
   uvicorn="$(find_uvicorn "$provider")" || die \
@@ -148,7 +160,7 @@ status_one() {
 
 case "$ACTION" in
   start)
-    [ -n "$PROVIDER" ] || die "usage: $0 start <surya|docling|paddle|liquid>"
+    [ -n "$PROVIDER" ] || die "usage: $0 start <surya|docling|paddle|liquid|unlimited>"
     start_one "$PROVIDER"
     ;;
   stop)
@@ -159,6 +171,7 @@ case "$ACTION" in
       stop_one docling
       stop_one paddle
       stop_one liquid
+      stop_one unlimited
     fi
     ;;
   status)
@@ -166,8 +179,9 @@ case "$ACTION" in
     status_one docling
     status_one paddle
     status_one liquid
+    status_one unlimited
     ;;
   *)
-    die "usage: $0 start <surya|docling|paddle|liquid> | stop [provider] | status"
+    die "usage: $0 start <surya|docling|paddle|liquid|unlimited> | stop [provider] | status"
     ;;
 esac

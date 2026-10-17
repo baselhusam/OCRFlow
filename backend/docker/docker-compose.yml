@@ -81,6 +81,7 @@ services:
       OCRFLOW_SURYA_SERVICE_URL: http://surya:8000
       OCRFLOW_PADDLE_SERVICE_URL: http://paddle:8000
       OCRFLOW_LIQUID_SERVICE_URL: http://liquid:8000
+      OCRFLOW_UNLIMITED_SERVICE_URL: ${OCRFLOW_UNLIMITED_SERVICE_URL:-http://host.docker.internal:8105}
       OCRFLOW_OLLAMA_BASE_URL: http://ollama:11434
       OCRFLOW_UPLOAD_DIR: /data/uploads
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -118,6 +119,7 @@ services:
       OCRFLOW_SURYA_SERVICE_URL: http://surya:8000
       OCRFLOW_PADDLE_SERVICE_URL: http://paddle:8000
       OCRFLOW_LIQUID_SERVICE_URL: http://liquid:8000
+      OCRFLOW_UNLIMITED_SERVICE_URL: ${OCRFLOW_UNLIMITED_SERVICE_URL:-http://host.docker.internal:8105}
       OCRFLOW_OLLAMA_BASE_URL: http://ollama:11434
       OCRFLOW_UPLOAD_DIR: /data/uploads
     command: ["celery", "-A", "app.celery_app:celery_app", "worker", "--loglevel=info"]

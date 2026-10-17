@@ -27,7 +27,7 @@ Typical output includes:
 | macOS Apple Silicon | **Host processes** (Metal/MPS) | Docker `linux/amd64`, CPU | MPS for Docling/Surya/Liquid |
 | Anything else | Docker CPU images | Docker CPU | CPU |
 
-Apple GPU is **not** available inside Docker Desktop's Linux VM. That is why MLX/Metal acceleration is host-native.
+Apple GPU is **not** available inside Docker Desktop's Linux VM. That is why MLX/Metal acceleration is host-native. [Unlimited-OCR](/documentation/unlimited) is MLX-only, so it runs on Apple Silicon hosts and has no container image.
 
 ## Start OCR on the detected GPU
 
@@ -46,6 +46,7 @@ make ocr-surya       # :8101
 make ocr-docling     # :8102
 make ocr-paddle      # :8103
 make ocr-liquid      # :8104
+make ocr-unlimited   # :8105, Apple Silicon only (MLX)
 make ocr-ps          # status
 make ocr-logs        # follow provider logs
 make ocr-down        # stop OCR only
@@ -60,7 +61,7 @@ The gateway probes each provider's `/internal/health` when `OCRFLOW_RUNNER_MODE=
 - Can reveal offline nodes via **Show offline**.
 - Refreshes about every 10 seconds and on window focus — no full reload required.
 
-Light in-process work (PDF/image loaders, page-at) still runs inside the gateway. Only `docling/*`, `surya/*`, `paddle/*`, and `liquid/*` inference is forwarded.
+Light in-process work (PDF/image loaders, page-at) still runs inside the gateway. Only `docling/*`, `surya/*`, `paddle/*`, `liquid/*`, and `unlimited/*` inference is forwarded.
 
 ## Device on each runner
 

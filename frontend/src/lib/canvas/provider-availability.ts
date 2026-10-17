@@ -16,6 +16,7 @@ export const REMOTE_PROVIDERS = new Set([
   "paddle",
   "ollama",
   "liquid",
+  "unlimited",
 ]);
 
 /** Stable display order for OCR microservice status chips. */
@@ -25,6 +26,7 @@ export const REMOTE_PROVIDER_ORDER = [
   "paddle",
   "ollama",
   "liquid",
+  "unlimited",
 ] as const;
 
 /** Configurable API services shown alongside OCR service health in the palette. */
@@ -36,6 +38,7 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   paddle: "PaddleOCR",
   ollama: "Ollama",
   liquid: "Liquid AI",
+  unlimited: "Unlimited-OCR",
   openai: "OpenAI",
   anthropic: "Anthropic",
   "openai-compatible": "OpenAI-compatible",

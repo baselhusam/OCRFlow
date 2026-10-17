@@ -568,6 +568,65 @@ REGISTRY["surya/latex-ocr"] = {
   },
 };
 
+function unlimitedDocumentOutput(response: Record<string, unknown>) {
+  const markdown =
+    typeof response.markdown === "string" ? response.markdown : undefined;
+  const document = response.document as { pages?: unknown[] } | undefined;
+  const pageCount = Array.isArray(document?.pages) ? document.pages.length : 0;
+  return {
+    kind: "document" as const,
+    raw: response,
+    preview: {
+      itemCount: pageCount,
+      pageCount,
+      markdownPreview: markdown,
+      jsonPreview: document,
+    },
+  };
+}
+
+REGISTRY["unlimited/document-parse"] = {
+  apiPath: "/api/v1/models/unlimited/document-parse",
+  buildPayload(ctx) {
+    const page = extractPageImageFromCtx(ctx);
+    if (!page) return null;
+    return {
+      page,
+      options: optionsFromParams(ctx.data.params, [
+        "mode",
+        "max_tokens",
+        "include_furniture",
+      ]),
+    };
+  },
+  extractOutput(_id, response) {
+    return unlimitedDocumentOutput(response);
+  },
+};
+
+REGISTRY["unlimited/multi-page-parse"] = {
+  apiPath: "/api/v1/models/unlimited/multi-page-parse",
+  buildPayload(ctx) {
+    const resolved = resolveDocumentAsset(ctx);
+    if (!resolved) return null;
+    return {
+      document: { source: `asset:${resolved.assetId}`, format: resolved.format },
+      options: {
+        project_id: ctx.projectId,
+        ...optionsFromParams(ctx.data.params, [
+          "dpi",
+          "pages_per_pass",
+          "max_pages",
+          "include_furniture",
+        ]),
+      },
+    };
+  },
+  extractOutput(_id, response) {
+    return unlimitedDocumentOutput(response);
+  },
+};
+
 for (const id of ["docling/vlm-granite-docling", "docling/convert-pipeline"]) {
   const path =
     id === "docling/vlm-granite-docling"

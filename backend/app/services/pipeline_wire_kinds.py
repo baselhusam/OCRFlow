@@ -68,6 +68,11 @@ MODEL_WIRE_KINDS: dict[str, dict[str, WireKind]] = {
     },
     "liquid/vision-prompt": {"input": "page_artifact", "output": "text"},
     "liquid/vision-structured-extract": {"input": "page_artifact", "output": "json"},
+    "unlimited/document-parse": {"input": "page_artifact", "output": "document_artifact"},
+    "unlimited/multi-page-parse": {
+        "input": "document_input",
+        "output": "document_artifact",
+    },
     "llm/text-prompt": {"input": "text", "output": "text"},
     "llm/structured-extract": {"input": "text", "output": "json"},
     "vlm/vision-prompt": {"input": "page_artifact", "output": "text"},
@@ -131,6 +136,8 @@ MODEL_OUTPUT_DISPLAY_OVERRIDES: dict[str, str] = {
     "docling/code-formula-v2": "Formula[] (with LaTeX)",
     "surya/latex-ocr": "Formula[] (with LaTeX)",
     "docling/vlm-granite-docling": "DocumentArtifact + markdown",
+    "unlimited/document-parse": "DocumentArtifact + markdown",
+    "unlimited/multi-page-parse": "DocumentArtifact + markdown",
 }
 
 FILE_LOADER_MODELS = frozenset({"loader/pdf", "loader/image"})

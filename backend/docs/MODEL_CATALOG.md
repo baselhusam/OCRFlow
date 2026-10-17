@@ -836,6 +836,19 @@ for page understanding and prompted JSON extraction. Its service is available
 through `make ocr-liquid` on port `8104`; the gateway forwards both Liquid node
 APIs in remote mode. The model uses the LFM Open License v1.0.
 
+## Baidu Unlimited-OCR
+
+| ID | Category | Input | Output | Default | Status |
+|----|----------|-------|--------|---------|--------|
+| `unlimited/document-parse` | `vlm_convert` | page image | DocumentArtifact + markdown | `mlx-community/Unlimited-OCR-8bit` | done |
+| `unlimited/multi-page-parse` | `vlm_convert` | DocumentInput (PDF/image) | DocumentArtifact + markdown | `mlx-community/Unlimited-OCR-8bit` | done |
+
+End-to-end document parser (3B MoE, ~0.5B active, MIT). It runs through MLX
+on Apple Silicon only, from `backend/.venv-unlimited` (`make ocr-unlimited-setup`,
+then `make ocr-unlimited` on port `8105`). Both runners share one loaded
+model. The multi-page runner reads up to 16 pages per generation and uses the
+document-conversion timeout.
+
 ---
 
 # Transforms (non-ML)

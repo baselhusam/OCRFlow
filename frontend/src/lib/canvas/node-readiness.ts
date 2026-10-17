@@ -18,6 +18,7 @@ import {
   CONVERT_PIPELINE_TABLEFORMER_MODE_OPTIONS,
   DOCLING_OCR_LANGUAGE_OPTIONS,
   SURYA_LANGUAGE_OPTIONS,
+  UNLIMITED_PAGE_MODE_OPTIONS,
   validateLanguageCodes,
 } from "@/lib/canvas/node-param-schema";
 import {
@@ -27,6 +28,7 @@ import {
   type WireKind,
 } from "@/lib/canvas/wire-types";
 import { isConnectedModel } from "@/lib/canvas/connected-node-meta";
+import { isDocumentConverterNode } from "@/lib/canvas/document-converter-meta";
 
 export type NodeReadiness = {
   ready: boolean;
@@ -124,6 +126,31 @@ export function validateNodeParams(
       } catch {
         issues.push("JSON Schema must be valid JSON");
       }
+    }
+  }
+
+  if (modelId === "unlimited/document-parse") {
+    if (!UNLIMITED_PAGE_MODE_OPTIONS.some((opt) => opt.value === String(params.mode ?? "detail"))) {
+      issues.push("Page view must be detail or fast");
+    }
+    const maxTokens = Number(params.max_tokens ?? 8192);
+    if (!Number.isInteger(maxTokens) || maxTokens < 256 || maxTokens > 16384) {
+      issues.push("max_tokens must be between 256 and 16384");
+    }
+  }
+
+  if (modelId === "unlimited/multi-page-parse") {
+    const perPass = Number(params.pages_per_pass ?? 8);
+    if (!Number.isInteger(perPass) || perPass < 1 || perPass > 16) {
+      issues.push("Pages per pass must be between 1 and 16");
+    }
+    const maxPages = Number(params.max_pages ?? 64);
+    if (!Number.isInteger(maxPages) || maxPages < 1 || maxPages > 500) {
+      issues.push("Max pages must be between 1 and 500");
+    }
+    const dpi = Number(params.dpi ?? 200);
+    if (!Number.isFinite(dpi) || dpi < 72 || dpi > 300) {
+      issues.push("Render DPI must be between 72 and 300");
     }
   }
 
@@ -258,10 +285,7 @@ export function getNodeReadiness(
     return { ready: issues.length === 0, issues };
   }
 
-  if (
-    modelId === "docling/vlm-granite-docling" ||
-    modelId === "docling/convert-pipeline"
-  ) {
+  if (isDocumentConverterNode(modelId)) {
     if (!paramsAssetId(data) && !upstream.assetId) {
       issues.push("Upload a document or connect a file loader");
     }

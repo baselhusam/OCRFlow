@@ -70,12 +70,13 @@ make ocr-docling   # :8102
 make ocr-surya     # :8101
 make ocr-paddle    # :8103
 make ocr-liquid    # :8104
+make ocr-unlimited # :8105, Apple Silicon (run make ocr-unlimited-setup once)
 ```
 
 Offline engines appear greyed out in the canvas palette and come online as soon as their service reports healthy. `make help` lists every target.
 
 > [!NOTE]
-> **Apple Silicon:** Surya, Docling, and Liquid run on the host (PyTorch MPS) rather than in Docker, and Paddle runs in Docker on CPU. `make ocr-up` handles this for you. See [GPU & accelerators](frontend/src/content/docs/gpu.md).
+> **Apple Silicon:** Surya, Docling, and Liquid run on the host (PyTorch MPS) and Unlimited-OCR on the host through MLX, rather than in Docker, and Paddle runs in Docker on CPU. `make ocr-up` handles this for you. See [GPU & accelerators](frontend/src/content/docs/gpu.md).
 
 <details>
 <summary><b>Host-based development (no Docker for the app)</b></summary>
@@ -154,6 +155,7 @@ The catalog is task-level. Everything below runs today; more providers (Tesserac
 | **[Surya](frontend/src/content/docs/surya.md)** | `8101` | Layout, text detection & recognition, reading order, tables, LaTeX OCR | GPL-3.0 code · OpenRAIL-M weights ⚠️ |
 | **[Paddle](frontend/src/content/docs/paddle.md)** | `8103` | DocLayout, PP-OCR text recognition, PP-Structure | Apache-2.0 |
 | **[Liquid AI](frontend/src/content/docs/liquid.md)** | `8104` | LFM2.5-VL-1.6B: prompted vision and schema-validated extraction | LFM Open License v1.0 |
+| **[Unlimited-OCR](frontend/src/content/docs/unlimited.md)** | `8105` | Baidu end-to-end page parsing (text, tables, LaTeX, layout) and one-pass multi-page reading · Apple Silicon | MIT |
 | **Ollama** | `11434` | Local Qwen3 0.6B / Qwen3.5 0.8B for text and vision prompts and structured JSON | Apache-2.0 |
 | **Connected LLM / VLM** | — | OpenAI, Anthropic, or any compatible endpoint for prompts and structured extraction | Provider terms |
 
@@ -228,7 +230,7 @@ OCRFlow/
 │   ├── docker/                Dockerfiles, compose overlays, env example
 │   ├── docs/                  model catalog, containerized serving, air-gapped notes
 │   ├── tests/                 pytest suite
-│   └── requirements*.txt      core / dev / docling / surya / paddle / liquid
+│   └── requirements*.txt      core / dev / docling / surya / paddle / liquid / unlimited
 ├── frontend/                Next.js 16 app (React 19, React Flow, Tailwind v4, shadcn/ui)
 │   └── src/content/docs/      in-app documentation
 ├── branding/                logos, brand guidelines, design system
@@ -251,7 +253,7 @@ OCRFlow/
 ## 🗺️ Roadmap
 
 - [x] Typed canvas with project → pipeline → job promotion
-- [x] Docling, Surya, Paddle, Liquid, Ollama, and hosted LLM/VLM providers
+- [x] Docling, Surya, Paddle, Liquid, Unlimited-OCR, Ollama, and hosted LLM/VLM providers
 - [x] Auto-detected NVIDIA / AMD / Apple GPU serving and air-gapped deploys
 - [x] Developer API keys, per-key usage, workspace and admin analytics
 - [x] Collections: apply-to-all-pages, Items fan-out, structured schema builder

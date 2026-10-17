@@ -36,6 +36,12 @@ const MODEL_PAGE_META = {
     logoClassName: "size-[40px]",
     markClassName: "border-neutral-300 bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-900",
   },
+  unlimited: {
+    provider: "unlimited",
+    label: "Document parsing provider",
+    logoClassName: "size-[40px]",
+    markClassName: "border-neutral-300 bg-neutral-50 dark:border-neutral-600 dark:bg-neutral-900",
+  },
 } as const;
 
 type DocsPageProps = {

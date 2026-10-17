@@ -8,6 +8,7 @@ DOCUMENT_CONVERSION_MODELS = frozenset(
     {
         "docling/convert-pipeline",
         "docling/vlm-granite-docling",
+        "unlimited/multi-page-parse",
     }
 )
 

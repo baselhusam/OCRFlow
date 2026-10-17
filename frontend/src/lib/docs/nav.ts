@@ -126,6 +126,12 @@ export const DOCS_NAV: DocsNavSection[] = [
         description: "LFM2.5-VL document understanding and structured extraction.",
       },
       {
+        title: "Unlimited-OCR",
+        slug: "unlimited",
+        file: "unlimited.md",
+        description: "Baidu's end-to-end page and long-document parser (MLX, Apple Silicon).",
+      },
+      {
         title: "Loaders",
         slug: "loaders",
         file: "loaders.md",

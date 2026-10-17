@@ -39,6 +39,7 @@ const PROVIDER_MONOGRAMS: Record<string, string> = {
   surya: "SY",
   paddle: "PD",
   liquid: "LI",
+  unlimited: "UO",
   ibm: "IBM",
   loader: "LD",
   export: "EX",

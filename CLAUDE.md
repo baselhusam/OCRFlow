@@ -1,8 +1,8 @@
 # OCRFlow — local inference services
 
-How to **stop** and **start** Surya, Docling, Paddle, and Ollama on this machine.
+How to **stop** and **start** Surya, Docling, Paddle, Liquid, Unlimited-OCR, and Ollama on this machine.
 
-On Apple Silicon, Surya, Docling, and Liquid must run **on the host** (PyTorch MPS). Paddle has no macOS ARM GPU wheel — use Docker (`make ocr-paddle`) or skip it. Do **not** `pip install` Paddle into `backend/.venv`; it fights Surya’s torch. Liquid needs `transformers>=5.1` while Surya pins `<5`, so Liquid lives in its own `backend/.venv-liquid` (the host runner prefers `backend/.venv-<provider>` when it exists).
+On Apple Silicon, Surya, Docling, and Liquid must run **on the host** (PyTorch MPS). Paddle has no macOS ARM GPU wheel — use Docker (`make ocr-paddle`) or skip it. Do **not** `pip install` Paddle into `backend/.venv`; it fights Surya’s torch. Liquid needs `transformers>=5.1` while Surya pins `<5`, so Liquid lives in its own `backend/.venv-liquid` (the host runner prefers `backend/.venv-<provider>` when it exists). Unlimited-OCR runs through MLX (`mlx-vlm`, which also pulls transformers 5.x) and only ever from `backend/.venv-unlimited` — the host runner refuses to fall back to the shared venv.
 
 Gateway (`:8000`), Next.js (`:3000`), Celery, Postgres, and Redis are separate. Leave them running unless you intend to stop the whole app.
 
@@ -14,6 +14,7 @@ Gateway (`:8000`), Next.js (`:3000`), Celery, Postgres, and Redis are separate. 
 | Docling | `8102` | `make ocr-docling` |
 | Paddle | `8103` | `make ocr-paddle` (Docker on Mac) |
 | Liquid | `8104` | `make ocr-liquid` |
+| Unlimited-OCR | `8105` | `make ocr-unlimited` (once: `make ocr-unlimited-setup`) |
 | Ollama | `11434` | `open -a Ollama` |
 
 Health:
@@ -23,6 +24,7 @@ curl -s http://127.0.0.1:8101/health   # {"status":"ok","provider":"surya",...}
 curl -s http://127.0.0.1:8102/health   # {"status":"ok","provider":"docling",...}
 curl -s http://127.0.0.1:8103/health   # {"status":"ok","provider":"paddle",...}
 curl -s http://127.0.0.1:8104/internal/health   # {"status":"ok","provider":"liquid",...}
+curl -s http://127.0.0.1:8105/internal/health   # {"status":"ok","provider":"unlimited","device":"mlx",...}
 curl -s http://127.0.0.1:11434/api/tags
 ```
 
@@ -34,13 +36,13 @@ From the repo root:
 make ocr-down
 ```
 
-That only stops processes started via `scripts/run-ocr-host.sh` (pidfiles in `.ocr-run/`) plus Docker `surya` / `docling` / `paddle` / `liquid` containers.
+That only stops processes started via `scripts/run-ocr-host.sh` (pidfiles in `.ocr-run/`, including Unlimited-OCR) plus Docker `surya` / `docling` / `paddle` / `liquid` containers.
 
 If you started host uvicorn **by hand** (no pidfile), kill the listeners:
 
 ```bash
-# Surya / Docling / Paddle / Liquid host processes
-for p in 8101 8102 8103 8104; do
+# Surya / Docling / Paddle / Liquid / Unlimited-OCR host processes
+for p in 8101 8102 8103 8104 8105; do
   pid=$(lsof -tiTCP:$p -sTCP:LISTEN) && kill "$pid"
 done
 
@@ -134,10 +136,25 @@ OCRFLOW_SERVICE_PROVIDER=liquid OCRFLOW_RUNNER_MODE=local \
   .venv-liquid/bin/uvicorn app.internal_service.app:app --host 127.0.0.1 --port 8104
 ```
 
+### Unlimited-OCR (`:8105`)
+
+```bash
+make ocr-unlimited-setup   # once: creates backend/.venv-unlimited with mlx-vlm
+make ocr-unlimited
+```
+
+Apple Silicon only (MLX); there is no Docker image. Weights (`mlx-community/Unlimited-OCR-8bit`, 3.9 GB) download to `OCRFLOW_MODEL_CACHE/unlimited` on first inference; override the checkpoint with `OCRFLOW_UNLIMITED_MODEL`. Equivalent:
+
+```bash
+cd backend
+OCRFLOW_SERVICE_PROVIDER=unlimited OCRFLOW_RUNNER_MODE=local OCRFLOW_DEFAULT_DEVICE=mlx \
+  .venv-unlimited/bin/uvicorn app.internal_service.app:app --host 127.0.0.1 --port 8105
+```
+
 ### All OCR engines
 
 ```bash
-make ocr-up     # Surya + Docling + Liquid on host; Paddle via Docker on Apple Silicon
+make ocr-up     # Surya + Docling + Liquid (+ Unlimited-OCR if its venv exists) on host; Paddle via Docker on Apple Silicon
 make ocr-ps     # status
 ```
 
@@ -147,6 +164,7 @@ Gateway `OCRFLOW_RUNNER_MODE=remote` URLs are in `backend/.env.remote.example`:
 - `OCRFLOW_DOCLING_SERVICE_URL=http://127.0.0.1:8102`
 - `OCRFLOW_PADDLE_SERVICE_URL=http://127.0.0.1:8103`
 - `OCRFLOW_LIQUID_SERVICE_URL=http://127.0.0.1:8104`
+- `OCRFLOW_UNLIMITED_SERVICE_URL=http://127.0.0.1:8105`
 
 More Make targets: `frontend/src/content/docs/commands.md`.
 

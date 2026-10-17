@@ -68,6 +68,19 @@ prompted extraction rather than a bounding-box OCR engine.
 
 Details: [Liquid AI](/documentation/liquid).
 
+## Unlimited-OCR (`:8105`, Apple Silicon)
+
+Baidu's Unlimited-OCR (3B MoE, MIT) parses a whole page in one pass: reading-order
+text, headings, HTML tables, LaTeX formulas, and figure captions with layout
+boxes. It runs through MLX on Apple Silicon hosts in its own virtualenv.
+
+| ID | Input → output |
+| --- | --- |
+| `unlimited/document-parse` | page image → DocumentArtifact + markdown |
+| `unlimited/multi-page-parse` | PDF or image → DocumentArtifact + markdown (up to 16 pages per pass) |
+
+Details: [Unlimited-OCR](/documentation/unlimited).
+
 ## Local text and vision (`Ollama :11434`)
 
 | ID | Input → output | Default |

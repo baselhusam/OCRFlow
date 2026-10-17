@@ -120,6 +120,8 @@ export const MODEL_OUTPUT_DISPLAY_OVERRIDES: Record<string, string> = {
   "docling/code-formula-v2": "Formula[] (with LaTeX)",
   "surya/latex-ocr": "Formula[] (with LaTeX)",
   "docling/vlm-granite-docling": "DocumentArtifact + markdown",
+  "unlimited/document-parse": "DocumentArtifact + markdown",
+  "unlimited/multi-page-parse": "DocumentArtifact + markdown",
 };
 
 export function wireKindToDisplayLabel(
@@ -205,6 +207,14 @@ export const MODEL_WIRE_KINDS: Record<
     input: "page_artifact",
     output: "json",
   },
+  "unlimited/document-parse": {
+    input: "page_artifact",
+    output: "document_artifact",
+  },
+  "unlimited/multi-page-parse": {
+    input: "document_input",
+    output: "document_artifact",
+  },
   "llm/text-prompt": { input: "text", output: "text" },
   "llm/structured-extract": { input: "text", output: "json" },
   "vlm/vision-prompt": { input: "page_artifact", output: "text" },
@@ -274,6 +284,8 @@ const MODEL_CATEGORIES: Record<string, string> = {
   "ollama/vision-structured-extract": "vision_language",
   "liquid/vision-prompt": "vision_language",
   "liquid/vision-structured-extract": "vision_language",
+  "unlimited/document-parse": "vlm_convert",
+  "unlimited/multi-page-parse": "vlm_convert",
   "llm/text-prompt": "text_generation",
   "llm/structured-extract": "llm_extract",
   "vlm/vision-prompt": "vision_language",

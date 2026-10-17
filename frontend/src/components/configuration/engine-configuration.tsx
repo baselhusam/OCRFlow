@@ -85,6 +85,12 @@ const PROVIDERS: {
     port: "8104",
     detail: "LFM2.5-VL-1.6B document understanding & extraction",
   },
+  {
+    value: "unlimited",
+    label: "Unlimited-OCR",
+    port: "8105",
+    detail: "Baidu end-to-end document parsing · MLX on Apple Silicon",
+  },
 ];
 
 const EMPTY_FORM: EngineInput = {
@@ -336,7 +342,7 @@ export function EngineConfiguration() {
             </div>
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary"><Network className="size-4" /></span>
           </div>
-          <div className="grid overflow-hidden rounded-xl border border-border bg-card md:grid-cols-2 xl:grid-cols-4 md:divide-x md:divide-y-0 divide-y divide-border">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {PROVIDERS.map((provider) => <DefaultEngineCard key={provider.value} provider={provider} runtime={runtimeProviders.get(provider.value)} loading={loading && !runtime} />)}
           </div>
         </div>
@@ -447,7 +453,7 @@ function DefaultEngineCard({
   loading: boolean;
 }) {
   const online = runtime?.running ?? false;
-  return <div className="min-w-0 p-4.5"><div className="flex items-start justify-between gap-3"><span className="flex min-w-0 items-center gap-2.5"><span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/35"><ProviderLogo provider={provider.value} size={23} /></span><span><span className="block text-sm font-semibold">{provider.label}</span><span className="mt-0.5 block font-mono text-[10px] text-muted-foreground">Platform default</span></span></span><span className={cn("inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-semibold", online ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border-border bg-muted text-muted-foreground")}><span className={cn("size-1.5 rounded-full", online ? "bg-emerald-500" : "bg-muted-foreground/60")} />{loading ? "Checking" : online ? "Online" : "Offline"}</span></div><p className="mt-4 min-h-10 text-xs leading-5 text-muted-foreground">{loading ? "Checking service availability…" : online ? `${runtime?.models?.length ?? 0} model APIs available` : runtime?.detail ?? "Not running"}</p>{online && runtime?.models?.length ? <p className="mt-2 line-clamp-2 font-mono text-[10px] leading-4 text-muted-foreground">{runtime.models.join(" · ")}</p> : <p className="mt-2 font-mono text-[10px] text-muted-foreground">default port {provider.port}</p>}</div>;
+  return <div className="min-w-0 rounded-xl border border-border bg-card p-4.5"><div className="flex items-start justify-between gap-3"><span className="flex min-w-0 items-center gap-2.5"><span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/35"><ProviderLogo provider={provider.value} size={23} /></span><span className="min-w-0"><span className="block truncate text-sm font-semibold" title={provider.label}>{provider.label}</span><span className="mt-0.5 block font-mono text-[10px] text-muted-foreground">Platform default</span></span></span><span className={cn("inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-semibold", online ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border-border bg-muted text-muted-foreground")}><span className={cn("size-1.5 rounded-full", online ? "bg-emerald-500" : "bg-muted-foreground/60")} />{loading ? "Checking" : online ? "Online" : "Offline"}</span></div><p className="mt-4 min-h-10 text-xs leading-5 text-muted-foreground">{loading ? "Checking service availability…" : online ? `${runtime?.models?.length ?? 0} model APIs available` : runtime?.detail ?? "Not running"}</p>{online && runtime?.models?.length ? <p className="mt-2 line-clamp-2 font-mono text-[10px] leading-4 text-muted-foreground">{runtime.models.join(" · ")}</p> : <p className="mt-2 font-mono text-[10px] text-muted-foreground">default port {provider.port}</p>}</div>;
 }
 
 function AddEngineDialog({

@@ -10,6 +10,7 @@ import { PageIndexPicker } from "@/components/canvas/page-index-picker";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
 import { uploadPipelineAsset, uploadProjectAsset } from "@/lib/api/assets";
 import { SOURCE_NODE_MODELS } from "@/lib/canvas/category-meta";
+import { isDocumentConverterNode } from "@/lib/canvas/document-converter-meta";
 import { getLoaderAccept } from "@/lib/canvas/loader-accept";
 import { getParamSchema, resolveParamValue } from "@/lib/canvas/node-param-schema";
 import {
@@ -46,8 +47,7 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
   const paramErrors = validateNodeParams(data.modelId, data.params);
   const isSourceLoader = SOURCE_NODE_MODELS.has(data.modelId);
   const needsDocument =
-    data.modelId === "docling/vlm-granite-docling" ||
-    data.modelId === "docling/convert-pipeline" ||
+    isDocumentConverterNode(data.modelId) ||
     nodeAcceptsDirectDocument(data.modelId, getNodeWireKinds(data).input);
   const upstream = getUpstream(nodeId);
   const upstreamPages = getUpstreamPagesForNode(data, upstream);

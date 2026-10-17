@@ -25,6 +25,8 @@ OVERLAY        := $(shell ACCELERATOR=$(ACCELERATOR) $(DETECT) overlay)
 PADDLE_DEVICE  := $(shell ACCELERATOR=$(ACCELERATOR) $(DETECT) paddle-device)
 PADDLE_PLATFORM:= $(shell ACCELERATOR=$(ACCELERATOR) $(DETECT) paddle-platform)
 PADDLE_SERVE   := $(shell ACCELERATOR=$(ACCELERATOR) $(DETECT) paddle-serve)
+# Interpreter for backend/.venv-unlimited (mlx-vlm supports 3.10+).
+UNLIMITED_PYTHON ?= $(shell command -v python3.12 || command -v python3.11 || echo python3)
 
 COMPOSE_FILES := -f docker-compose.yml
 ifneq ($(strip $(OVERLAY)),)
@@ -160,12 +162,29 @@ else
 	$(COMPOSE_CMD) --profile liquid up -d --build liquid
 endif
 
+.PHONY: ocr-unlimited-setup
+ocr-unlimited-setup: ## One-time: create backend/.venv-unlimited with mlx-vlm (Apple Silicon)
+	cd $(BACKEND) && $(UNLIMITED_PYTHON) -m venv .venv-unlimited && \
+		.venv-unlimited/bin/pip install -q --upgrade pip && \
+		.venv-unlimited/bin/pip install -r requirements-unlimited.txt
+
+.PHONY: ocr-unlimited
+ocr-unlimited: ## Start the Baidu Unlimited-OCR MLX service (:8105, Apple Silicon only)
+ifeq ($(SERVE_MODE),host)
+	$(HOST_OCR) start unlimited
+else
+	@echo "Unlimited-OCR runs through MLX on Apple Silicon hosts only (serve-mode=$(SERVE_MODE))." >&2
+	@exit 1
+endif
+
 .PHONY: ocr-up
 ocr-up: ## Start all OCR microservices (each or all; GPU auto-detected)
 ifeq ($(SERVE_MODE),host)
 	$(HOST_OCR) start surya
 	$(HOST_OCR) start docling
 	$(HOST_OCR) start liquid
+	@if [ -x $(BACKEND)/.venv-unlimited/bin/uvicorn ]; then $(HOST_OCR) start unlimited; \
+		else echo "Skipping Unlimited-OCR (run make ocr-unlimited-setup to enable it)"; fi
 	$(COMPOSE_CMD) --profile paddle up -d --build paddle
 else
 	$(COMPOSE_CMD) --profile surya --profile docling --profile paddle --profile liquid up -d --build surya docling paddle liquid
@@ -185,7 +204,7 @@ ocr-ps: ## Show OCR microservice status (Docker + host)
 .PHONY: ocr-logs
 ocr-logs: ## Follow OCR logs (host files on Apple Silicon, else compose)
 ifeq ($(SERVE_MODE),host)
-	tail -f .ocr-run/surya.log .ocr-run/docling.log .ocr-run/paddle.log .ocr-run/liquid.log 2>/dev/null || \
+	tail -f .ocr-run/surya.log .ocr-run/docling.log .ocr-run/paddle.log .ocr-run/liquid.log .ocr-run/unlimited.log 2>/dev/null || \
 		$(COMPOSE) logs -f surya docling paddle liquid
 else
 	$(COMPOSE) --profile surya --profile docling --profile paddle --profile liquid logs -f surya docling paddle liquid
@@ -232,6 +251,11 @@ be-ocr-liquid: ## Host-dev Liquid LFM2.5-VL-1.6B service on :8104 (requires requ
 	cd $(BACKEND) && OCRFLOW_SERVICE_PROVIDER=liquid OCRFLOW_RUNNER_MODE=local \
 		OCRFLOW_DEFAULT_DEVICE=$(DEVICE) PYTORCH_ENABLE_MPS_FALLBACK=1 \
 		uvicorn app.internal_service.app:app --host 127.0.0.1 --port 8104 --reload
+
+.PHONY: be-ocr-unlimited
+be-ocr-unlimited: ## Host-dev Unlimited-OCR MLX service on :8105 (requires backend/.venv-unlimited)
+	cd $(BACKEND) && OCRFLOW_SERVICE_PROVIDER=unlimited OCRFLOW_RUNNER_MODE=local \
+		.venv-unlimited/bin/uvicorn app.internal_service.app:app --host 127.0.0.1 --port 8105 --reload
 
 .PHONY: be-test
 be-test: ## Run the backend test suite (skips GPU tests)

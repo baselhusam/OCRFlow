@@ -1,0 +1,5 @@
+-r requirements.txt
+# Baidu Unlimited-OCR through MLX (Apple Silicon only). Install into its own
+# backend/.venv-unlimited: mlx-vlm pulls transformers 5.x, which conflicts with
+# Surya's transformers<5 pin. 0.7.8 ships the model's R-SWA KV cache.
+mlx-vlm>=0.7.8 ; sys_platform == "darwin" and platform_machine == "arm64"

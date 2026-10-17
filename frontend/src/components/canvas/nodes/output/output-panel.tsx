@@ -22,6 +22,7 @@ import { CaptionExpandPanel } from "@/components/canvas/nodes/output/caption-exp
 import { CaptionTextPanel } from "@/components/canvas/nodes/output/caption-text-panel";
 import {
   DocumentConverterOutputPanel,
+  hasDocumentArtifactOutput,
   hasDocumentConverterOutput,
 } from "@/components/canvas/nodes/output/document-converter-output-panel";
 import { isPageAtAnchor } from "@/lib/canvas/page-branch-meta";
@@ -486,7 +487,8 @@ export function OutputPanel({
   const isCaptionTextOutput = isFigureCaptionTextOutput(data.modelId);
   const isDocumentConverter = isDocumentConverterNode(data.modelId);
   const isDocumentOutput =
-    isDocumentConverter && output?.kind === "document";
+    output?.kind === "document" &&
+    (isDocumentConverter || hasDocumentArtifactOutput(output));
 
   const handleExpandCaptionBranch = () => {
     const targetId = expandCaptionBranch(nodeId);
@@ -777,7 +779,7 @@ export function OutputPanel({
           <DocumentConverterOutputPanel output={output} />
         )}
 
-        {output?.kind === "document" && !isDocumentConverter && (
+        {output?.kind === "document" && !isDocumentOutput && (
           <div className="p-2 font-mono text-[10px] text-muted-foreground">
             Document · {output.preview?.itemCount ?? 0} pages
           </div>

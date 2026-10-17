@@ -547,6 +547,29 @@ _REGISTRY_ENTRIES: list[ModelRegistryEntry] = [
         display_name="Liquid Vision Structured Extract",
         notes="LFM2.5-VL-1.6B with schema-validated JSON output.",
     ),
+    # Baidu Unlimited-OCR — end-to-end document parsing (MLX, Apple Silicon)
+    _entry(
+        "unlimited/document-parse",
+        category="vlm_convert",
+        provider="unlimited",
+        status=ModelStatus.done,
+        compute=ComputeTier.gpu_low,
+        license="mit",
+        python_extra="unlimited",
+        display_name="Unlimited-OCR Page Parse",
+        notes="One page → markdown with layout boxes, HTML tables, and LaTeX formulas.",
+    ),
+    _entry(
+        "unlimited/multi-page-parse",
+        category="vlm_convert",
+        provider="unlimited",
+        status=ModelStatus.done,
+        compute=ComputeTier.gpu_low,
+        license="mit",
+        python_extra="unlimited",
+        display_name="Unlimited-OCR Multi-page Parse",
+        notes="Whole document read in one-pass chunks of up to 16 pages.",
+    ),
     # Branded cloud and on-prem-compatible LLM/VLM tasks. The old generic
     # connection ids remain executable for saved pipelines, but are no longer
     # offered in the palette because they cannot communicate provider choice.

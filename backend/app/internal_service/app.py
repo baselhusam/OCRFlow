@@ -1,7 +1,7 @@
 """Internal per-provider inference service.
 
 This is the slim FastAPI app that runs inside each provider image (Paddle,
-Docling, Surya, or Liquid). It exposes just enough to let the gateway forward inference:
+Docling, Surya, Liquid, or Unlimited-OCR). It exposes just enough to let the gateway forward inference:
 no auth, no database, no analytics — those stay in the gateway. Model runners
 are reused verbatim through the local runner factory.
 

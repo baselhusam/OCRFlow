@@ -1,4 +1,9 @@
-export type EngineProvider = "docling" | "surya" | "paddle" | "liquid";
+export type EngineProvider =
+  | "docling"
+  | "surya"
+  | "paddle"
+  | "liquid"
+  | "unlimited";
 export type EngineAuthType = "none" | "bearer" | "x-api-key";
 export type EngineStatus =
   | "ready"

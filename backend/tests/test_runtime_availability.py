@@ -48,6 +48,7 @@ async def test_local_mode_reports_importable_providers(monkeypatch):
         "surya": True,
         "paddle": False,
         "liquid": False,
+        "unlimited": False,
         "ollama": True,
     }
     paddle = next(p for p in result.providers if p.provider == "paddle")
@@ -86,6 +87,7 @@ async def test_remote_mode_reports_reachable_providers(monkeypatch):
         "docling": False,
         "surya": False,
         "liquid": False,
+        "unlimited": False,
         "ollama": False,
     }
 

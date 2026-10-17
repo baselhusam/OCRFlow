@@ -799,6 +799,28 @@
     padding: 0;
   }
 
+  .ocrflow-caption-markdown table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin: 0.55em 0;
+    font-size: 0.95em;
+  }
+
+  .ocrflow-caption-markdown th,
+  .ocrflow-caption-markdown td {
+    border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+    padding: 0.2em 0.45em;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .ocrflow-caption-markdown th {
+    font-weight: 600;
+    background: color-mix(in srgb, var(--foreground) 5%, transparent);
+  }
+
   .ocrflow-caption-markdown blockquote {
     border-left: 2px solid color-mix(in srgb, var(--foreground) 18%, transparent);
     padding-left: 0.65em;

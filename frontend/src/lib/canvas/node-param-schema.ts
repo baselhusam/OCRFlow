@@ -196,6 +196,24 @@ const CONNECTED_BASE_FIELDS: ParamFieldDef[] = [
   ...OLLAMA_BASE_FIELDS,
 ];
 
+export const UNLIMITED_PAGE_MODE_OPTIONS = [
+  { value: "detail", label: "Detail — tiled crops (default)" },
+  { value: "fast", label: "Fast — single 1024px view" },
+] as const;
+
+const UNLIMITED_MODEL_FIELD: ParamFieldDef = {
+  key: "model",
+  label: "Unlimited-OCR model",
+  type: "text",
+  readOnly: true,
+};
+
+const UNLIMITED_FURNITURE_FIELD: ParamFieldDef = {
+  key: "include_furniture",
+  label: "Keep headers, footers & page numbers",
+  type: "boolean",
+};
+
 const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
   "loader/pdf": [
     { key: "dpi", label: "DPI", type: "number", min: 72, max: 600 },
@@ -243,6 +261,37 @@ const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
   "docling/picture-description-smolvlm": [
     { key: "max_tokens", label: "Max tokens", type: "number", min: 1, max: 2048 },
     { key: "preset", label: "Preset", type: "text", readOnly: true },
+  ],
+  "unlimited/document-parse": [
+    UNLIMITED_MODEL_FIELD,
+    {
+      key: "mode",
+      label: "Page view",
+      type: "select",
+      options: [...UNLIMITED_PAGE_MODE_OPTIONS],
+    },
+    {
+      key: "max_tokens",
+      label: "Max output tokens",
+      type: "number",
+      min: 256,
+      max: 16384,
+      step: 256,
+    },
+    UNLIMITED_FURNITURE_FIELD,
+  ],
+  "unlimited/multi-page-parse": [
+    UNLIMITED_MODEL_FIELD,
+    {
+      key: "pages_per_pass",
+      label: "Pages per pass",
+      type: "number",
+      min: 1,
+      max: 16,
+    },
+    { key: "max_pages", label: "Max pages", type: "number", min: 1, max: 500 },
+    { key: "dpi", label: "Render DPI", type: "number", min: 72, max: 300 },
+    UNLIMITED_FURNITURE_FIELD,
   ],
   "docling/vlm-granite-docling": [
     { key: "preset", label: "Preset", type: "text", readOnly: true },

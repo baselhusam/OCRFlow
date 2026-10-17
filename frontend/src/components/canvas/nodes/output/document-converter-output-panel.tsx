@@ -3,6 +3,7 @@
 import { Braces, FileText } from "lucide-react";
 import { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { isDocumentConverterNode } from "@/lib/canvas/document-converter-meta";
 import type { NodeCachedOutput } from "@/lib/canvas/types";
@@ -136,7 +137,7 @@ export function DocumentConverterOutputPanel({
         {activeTab === "markdown" && markdown && (
           <div className="ocrflow-document-converter-markdown ocrflow-output-glass-card nodrag nopan rounded-lg px-3 py-2.5">
             <div className="ocrflow-caption-markdown text-[11px] leading-[1.65] text-foreground/90">
-              <ReactMarkdown>{markdown}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
             </div>
           </div>
         )}

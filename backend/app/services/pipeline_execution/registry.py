@@ -33,6 +33,10 @@ from app.schemas.models.liquid.generation import (
     LiquidVisionInput,
     LiquidVisionStructuredInput,
 )
+from app.schemas.models.unlimited.document_parse import (
+    UnlimitedDocumentParseInput,
+    UnlimitedMultiPageParseInput,
+)
 from app.schemas.models.connected.generation import (
     ConnectedTextInput, ConnectedStructuredInput, ConnectedVisionInput, ConnectedVisionStructuredInput,
 )
@@ -395,6 +399,24 @@ def _liquid_vision_structured_payload(
     return payload
 
 
+_UNLIMITED_PAGE_OPTION_KEYS = ["mode", "max_tokens", "include_furniture"]
+_UNLIMITED_DOCUMENT_OPTION_KEYS = ["dpi", "pages_per_pass", "max_pages", "include_furniture"]
+
+
+def _unlimited_page_payload(
+    _project_id: str,
+    node: PipelineNodeRecord,
+    ctx: UpstreamContext,
+) -> dict[str, Any] | None:
+    page = _page_from_upstream(ctx)
+    if page is None:
+        return None
+    return {
+        "page": page,
+        "options": _options_from_params(node.config, _UNLIMITED_PAGE_OPTION_KEYS),
+    }
+
+
 def _connected_options(node: PipelineNodeRecord, *, vision: bool) -> dict[str, Any]:
     connection_id = node.config.get("connection_id")
     model = node.config.get("model")
@@ -639,6 +661,8 @@ MODEL_EXECUTION_SPECS: dict[str, tuple[type[BaseModel], PayloadBuilder, OutputEx
     "ollama/vision-structured-extract": (OllamaVisionStructuredInput, _ollama_vision_structured_payload, _extract_json),
     "liquid/vision-prompt": (LiquidVisionInput, _liquid_vision_payload, _extract_text),
     "liquid/vision-structured-extract": (LiquidVisionStructuredInput, _liquid_vision_structured_payload, _extract_json),
+    "unlimited/document-parse": (UnlimitedDocumentParseInput, _unlimited_page_payload, _extract_document),
+    "unlimited/multi-page-parse": (UnlimitedMultiPageParseInput, lambda project_id, node, ctx: _document_payload(project_id, node, ctx, default_format="pdf", option_keys=_UNLIMITED_DOCUMENT_OPTION_KEYS), _extract_document),
     "llm/text-prompt": (ConnectedTextInput, _connected_text_payload, _extract_text),
     "llm/structured-extract": (ConnectedStructuredInput, _connected_structured_payload, _extract_json),
     "vlm/vision-prompt": (ConnectedVisionInput, _connected_vision_payload, _extract_text),

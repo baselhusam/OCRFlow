@@ -9,7 +9,8 @@ by:
 * the internal provider service app — needs the input schema to validate the
   forwarded JSON body before handing it to the local runner.
 
-Only the optional ML providers (Docling, Surya, Paddle, and Liquid) are served
+Only the optional ML providers (Docling, Surya, Paddle, Liquid, and
+Unlimited-OCR) are served
 remotely. Light in-process work (loaders, transforms) always runs inside
 whichever process handles the request.
 """
@@ -51,6 +52,11 @@ from app.schemas.models.liquid.generation import (
     LiquidVisionStructuredInput,
     LiquidTextOutput,
 )
+from app.schemas.models.unlimited.document_parse import (
+    UnlimitedDocumentParseInput,
+    UnlimitedMultiPageParseInput,
+    UnlimitedParseOutput,
+)
 from app.schemas.models.paddle.doclayout import DocLayoutInput, DocLayoutOutput
 from app.schemas.models.paddle.ocr import PaddleOcrInput, PaddleOcrOutput
 from app.schemas.models.paddle.pp_structure import PpStructureInput, PpStructureOutput
@@ -76,7 +82,9 @@ from app.schemas.models.surya.text_recognition import (
 )
 
 #: Providers that run as their own containerized service in remote mode.
-REMOTE_PROVIDERS: frozenset[str] = frozenset({"docling", "surya", "paddle", "liquid"})
+REMOTE_PROVIDERS: frozenset[str] = frozenset(
+    {"docling", "surya", "paddle", "liquid", "unlimited"}
+)
 
 
 @dataclass(frozen=True)
@@ -148,6 +156,17 @@ SERVABLE_MODELS: dict[str, ServableModel] = {
             "liquid/vision-structured-extract",
             LiquidVisionStructuredInput,
             LiquidStructuredOutput,
+        ),
+        # Baidu Unlimited-OCR — MLX document parsing
+        _servable(
+            "unlimited/document-parse",
+            UnlimitedDocumentParseInput,
+            UnlimitedParseOutput,
+        ),
+        _servable(
+            "unlimited/multi-page-parse",
+            UnlimitedMultiPageParseInput,
+            UnlimitedParseOutput,
         ),
     )
 }

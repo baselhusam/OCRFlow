@@ -33,9 +33,13 @@ def document_source_to_bytes(
     if source.startswith("http://") or source.startswith("https://"):
         raise ModelInferenceError("URL document sources not yet supported")
 
-    path = Path(source)
-    if path.is_file():
-        return path.read_bytes()
+    try:
+        path = Path(source)
+        if path.is_file():
+            return path.read_bytes()
+    except OSError:
+        # A long base64 payload is not a valid path ("File name too long").
+        pass
 
     try:
         return base64.b64decode(source, validate=True)
