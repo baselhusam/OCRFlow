@@ -7,7 +7,7 @@ By participating you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Getting set up
 
-The fastest path is Docker + `make` (see the [README](README.md#-getting-started)):
+The fastest path is Docker + `make` (see the [README](README.md#-quick-start)):
 
 ```bash
 cp backend/docker/.env.example backend/docker/.env
