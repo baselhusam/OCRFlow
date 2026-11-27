@@ -25,7 +25,7 @@ Every canvas node is a **model task** with a category, a provider, params, and t
 | Vision language | `PageArtifact` → text or schema-validated JSON |
 | Export / preprocess | planned |
 
-Planned categories still appear in the palette so the information architecture is stable; they are not runnable until a model ships.
+Planned categories still appear in the library so the information architecture is stable; they are not runnable until a model ships.
 
 ## Runnable providers
 
@@ -43,7 +43,7 @@ Full task lists live in [Model catalog](/documentation/models). Offline provider
 
 ## Branch satellites
 
-These nodes are **not** in the palette. They spawn beside an anchor after a run, from **Expand to node** in the anchor's preview card:
+These nodes are **not** in the library. They spawn beside an anchor after a run, from **Fan out** on the anchor's toolbar or the banner on its Preview tab in the inspector:
 
 | Satellite | Anchor | Purpose |
 | --- | --- | --- |

@@ -7,9 +7,11 @@ A **project** is your scratchpad. Upload documents, drop models, wire them, test
 
 ## Create a project
 
-From **Projects** in the workspace sidebar, open **Create project**. That calls `POST /api/v1/projects` and sends you to the canvas at `/app/projects/{id}/canvas`.
+Click **New project** at the top of the workspace sidebar (or press `N` on any workspace page). The same button is on the Dashboard and the Projects page. Name the project and choose **Create & open canvas**. That calls `POST /api/v1/projects` and takes you straight to the canvas at `/app/projects/{id}/canvas`.
 
-Give it a name you will recognize in analytics and jobs later. You can archive or edit metadata from the project card menu.
+Give it a name you will recognize in analytics and jobs later. Clicking a project card opens its canvas. You can archive, restore, edit settings, or delete a project from the **⋯** menu on its card.
+
+To start from a ready-made graph instead, pick a template under **Start from a template** on the Dashboard. It is cloned into your account as a pipeline and its canvas opens right away.
 
 ## What the canvas can do
 

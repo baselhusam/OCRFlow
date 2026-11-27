@@ -43,4 +43,4 @@ When a pipeline sits on a project canvas, its handles are the **boundary** kinds
 
 ## Offline providers
 
-You may still draw edges to a greyed Docling node. The graph is valid. A run fails until `GET /api/v1/models/runtime` reports that provider `running: true`. Start the engine; the palette updates without breaking your wires.
+You may still draw edges to a greyed Docling node. The graph is valid. A run fails until `GET /api/v1/models/runtime` reports that provider `running: true`. Start the engine; the library updates without breaking your wires.

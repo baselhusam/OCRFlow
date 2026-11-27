@@ -60,15 +60,15 @@ Confirm the gateway can see them:
 curl -s http://localhost:8000/api/v1/models/runtime
 ```
 
-Online providers show `running: true`. On the project canvas, their nodes leave the greyed-out state (the palette also polls about every 10 seconds and on window focus).
+Online providers show `running: true`. On the project canvas, their nodes leave the offline state (the library also polls about every 10 seconds and on window focus).
 
 ## 5. Run a first graph
 
 1. Create a **project**.
-2. Drop **PDF Loader** or **Image Loader** onto the canvas and upload a document.
-3. Wire a layout node (for example `docling/layout-heron` or `surya/layout`).
-4. Click **Run** in the node's footer, then **Preview** to inspect the detected regions.
-5. Select the useful subgraph and **Create pipeline from canvas**.
+2. On the empty canvas pick a recipe (for example **Find layout**), or drop a PDF or image anywhere on the board — the loader is added and its pages load automatically.
+3. Wire a layout node (for example `docling/layout-heron` or `surya/layout`): drag from the loader's output pin into empty space and pick it from the menu.
+4. Click **Run** in the node's footer, then **Preview** to inspect the detected regions in the inspector.
+5. Choose **⋯ → Save as reusable pipeline…** in the top bar.
 6. Open **Jobs**, pick that pipeline, upload documents, and watch the trace.
 
 ## Useful follow-ups

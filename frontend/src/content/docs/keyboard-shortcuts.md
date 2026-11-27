@@ -28,6 +28,8 @@ Use the arrow keys to move through results and `Enter` to open the selected item
 | Show all shortcuts | `?` |
 | Close a dialog or clear a canvas selection | `Esc` |
 | Toggle workspace sidebar | `Mod B` |
+| Create a new project (workspace pages) | `N` |
+| Focus the search box on Projects or Pipelines | `/` |
 | Go to Dashboard | `Alt 1` |
 | Go to Projects | `Alt 2` |
 | Go to Pipelines | `Alt 3` |
@@ -40,15 +42,25 @@ These shortcuts are available while editing a project or pipeline canvas.
 
 | Action | Shortcut |
 | --- | --- |
-| Run all ready nodes | `Mod Enter` |
+| Run the whole graph | `Mod Enter` |
+| Run the selected node | `Mod Shift Enter` |
+| Add a node (quick add; filtered to what can follow the selection) | `A` |
+| Open the inspector for the selected node | `Enter` |
+| Close quick add, quick settings, or the inspector | `Esc` |
+| Delete the selection (with Undo toast) | `Delete` / `Backspace` |
+| Undo | `Mod Z` |
+| Redo | `Mod Shift Z` or `Mod Y` |
 | Save the graph | `Mod S` |
-| Open or close the model library | `Mod Shift P` |
+| Open or close the library | `Mod Shift P` |
+| Search the library | `/` |
+| Tidy up layout | `Shift L` |
+| Fit to screen | `Shift 1` |
+| Toggle the minimap | `M` |
 | Use the select tool | `V` |
-| Use the pan tool | `H` |
-| Copy selected nodes | `Mod C` |
-| Cut selected nodes | `Mod X` |
-| Paste nodes | `Mod V` |
+| Use the hand (pan) tool | `H` |
+| Copy / cut / paste selected nodes | `Mod C` / `Mod X` / `Mod V` |
 | Duplicate selected nodes | `Mod D` |
-| Undo a node deletion | `Mod Z` |
+
+Double-click empty board to open quick add at that spot.
 
 Shortcuts are ignored while you are typing in a form field, except for `Mod K` and `Mod S`. The command palette stays the quickest way to discover pages, documents, model configuration, connections, and other actions as the workspace grows.
