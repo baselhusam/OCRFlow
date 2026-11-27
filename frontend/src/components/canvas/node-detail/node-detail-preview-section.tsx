@@ -235,13 +235,19 @@ export function NodeDetailPreviewSection({
   }
 
   return (
-    <section
-      ref={sectionRef}
-      className="border-t border-border/60 px-[18px] py-4"
-    >
+    <section ref={sectionRef} className="px-5 py-4">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <h3 className={canvasInspectorSectionLabelClassName}>Preview</h3>
+        <div className="flex min-w-0 items-center gap-2">
+          {/* The inspector tab already says "Preview"; label the side instead. */}
+          <h3 className={cn(canvasInspectorSectionLabelClassName, "truncate")}>
+            {activeSide === "input"
+              ? hasOutput
+                ? "What goes in"
+                : "Not run yet · input"
+              : isSourceLoader
+                ? "Document"
+                : "Result"}
+          </h3>
           {isMapped && activeSide === "output" && (
             <select
               value={shownPage}

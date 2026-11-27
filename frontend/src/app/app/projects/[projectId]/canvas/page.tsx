@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { CanvasShell } from "@/components/canvas/canvas-shell";
+import { FlowEditor } from "@/components/flow-editor/flow-editor";
 import {
   fetchModelCatalog,
   fetchModelCategories,
@@ -50,7 +50,7 @@ export default async function CanvasPage({ params }: CanvasPageProps) {
   const pipelines = pipelinesResponse.data.items;
 
   return (
-    <CanvasShell
+    <FlowEditor
       entity={{ kind: "project", id: project.id }}
       entityName={project.name}
       entityUpdatedAt={project.updated_at}

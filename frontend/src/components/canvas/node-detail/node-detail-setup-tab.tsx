@@ -24,7 +24,6 @@ import {
   PARENT_SELECT_PAGE_PARAM,
 } from "@/lib/canvas/page-branch-meta";
 import {
-  isLayoutSelectorNode,
   PARENT_LAYOUT_NODE_PARAM,
 } from "@/lib/canvas/region-branch-meta";
 import type { PipelineNodeData } from "@/lib/canvas/types";
@@ -61,7 +60,6 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
   const showDocumentSection = isSourceLoader || (needsDocument && !hasWiredInput);
 
   const isPageSelector = isPageSelectorNode(data.modelId);
-  const isLayoutSelector = isLayoutSelectorNode(data.modelId, data.category);
   const editableFields = schema.filter((f) => !f.readOnly);
   const editableKeys = new Set(editableFields.map((f) => f.key));
   const readOnlyEntries = Object.entries(data.params).filter(
@@ -153,7 +151,7 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
   };
 
   return (
-    <div className="px-4 py-3">
+    <div className="px-5 py-4">
       {needsDocument && hasWiredInput && (
         <DetailSection title="Input" className="border-b-0 px-0 py-0">
           <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/30 px-3 py-2">
@@ -263,6 +261,8 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
           defaultOpen={!isSourceLoader}
           className={cn(
             "px-0",
+            // Collapsible variant pads its trigger/content itself; align with the frame.
+            isSourceLoader && "border-b-0 [&>button]:px-0 [&>div]:px-0",
             (showDocumentSection || hasWiredInput) && "mt-4 border-t border-border pt-4",
           )}
         >
@@ -308,7 +308,7 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
           title="Model details"
           collapsible
           defaultOpen={false}
-          className="mt-4 px-0"
+          className="mt-2 border-b-0 px-0 [&>button]:px-0 [&>div]:px-0"
         >
           <div className="space-y-1.5">
             {readOnlyEntries.map(([key, value]) => (

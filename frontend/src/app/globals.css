@@ -1208,6 +1208,40 @@
     }
   }
 
+  /* Read-only canvas miniature used on project / pipeline cards. */
+  .graph-thumbnail {
+    background-color: color-mix(in srgb, var(--background) 70%, var(--card));
+    background-image: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--foreground) 11%, transparent) 1px,
+      transparent 1.2px
+    );
+    background-size: 14px 14px;
+    background-position: 7px 7px;
+  }
+
+  .dark .graph-thumbnail {
+    background-color: color-mix(in srgb, var(--background) 55%, var(--card));
+  }
+
+  .project-card:hover .graph-thumbnail,
+  .group\/card:hover .graph-thumbnail {
+    background-color: color-mix(in srgb, var(--primary) 4%, var(--background));
+  }
+
+  /* Soft violet wash behind the dashboard's primary call to action. */
+  .dashboard-hero {
+    background:
+      radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--primary) 16%, transparent) 0%, transparent 55%),
+      linear-gradient(180deg, var(--card), var(--card));
+  }
+
+  .dark .dashboard-hero {
+    background:
+      radial-gradient(120% 140% at 100% 0%, rgba(91, 46, 239, 0.32) 0%, transparent 55%),
+      linear-gradient(180deg, var(--card), var(--card));
+  }
+
   /* Ensure main content reflows when sidebar collapses to icon mode */
   [data-slot="sidebar"][data-state="collapsed"][data-collapsible="icon"]
     [data-slot="sidebar-gap"] {
@@ -1240,4 +1274,120 @@
 .dark .group-hover\:text-primary:is(:where(.group):hover *),
 .dark .data-\[state\=active\]\:text-primary[data-state="active"] {
   color: var(--primary-text);
+}
+
+/* ---------------------------------------------------------------------------
+   Flow editor (canvas v2)
+   --------------------------------------------------------------------------- */
+@layer components {
+  .flow-editor-canvas .react-flow__node {
+    border-radius: 14px;
+  }
+
+  .flow-editor-canvas .react-flow__node:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+
+  /* Pins: the Handle carries its own colour via --pin-color. */
+  .flow-editor-canvas .react-flow__handle.flow-pin {
+    min-width: 0;
+    min-height: 0;
+  }
+  .flow-editor-canvas .react-flow__handle.flow-pin.react-flow__handle-left {
+    left: -7px;
+  }
+  .flow-editor-canvas .react-flow__handle.flow-pin.react-flow__handle-right {
+    right: -7px;
+  }
+  .flow-editor-canvas .react-flow__handle.flow-pin::after {
+    /* Larger, invisible hit target. */
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 9999px;
+  }
+  .flow-pin--accepts {
+    background: var(--pin-color) !important;
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--pin-color) 28%, transparent),
+      0 0 18px color-mix(in srgb, var(--pin-color) 60%, transparent);
+  }
+
+  /* Running node: soft violet breathing ring. */
+  .flow-node--running {
+    animation: flow-node-breathe 1.6s ease-in-out infinite;
+  }
+  @keyframes flow-node-breathe {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--primary) 45%, transparent),
+        0 0 0 4px color-mix(in srgb, var(--primary) 10%, transparent);
+    }
+    50% {
+      box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--primary) 70%, transparent),
+        0 0 0 7px color-mix(in srgb, var(--primary) 16%, transparent);
+    }
+  }
+
+  .flow-pill-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--primary) 22%, transparent) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: flow-shimmer 1.2s linear infinite;
+  }
+  @keyframes flow-shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Data flowing along a wire toward a running node. */
+  .flow-edge--flowing {
+    animation: flow-dash 0.7s linear infinite;
+  }
+  @keyframes flow-dash {
+    to {
+      stroke-dashoffset: -14;
+    }
+  }
+
+  .flow-editor-canvas .react-flow__connectionline path {
+    stroke-linecap: round;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flow-node--running,
+    .flow-pill-shimmer,
+    .flow-edge--flowing {
+      animation: none;
+    }
+  }
+}
+
+/* Canvas toasts sit centred above the floating dock instead of in the
+   bottom-right corner, where they covered the dock and the inspector's run
+   footer. Unlayered so it beats AppToast's utility classes. */
+body:has(.flow-editor-canvas) > [role="status"].fixed {
+  left: 0;
+  right: 0;
+  bottom: 76px;
+  margin-inline: auto;
+}
+
+/* Unlayered: @xyflow's own stylesheet is unlayered and would win otherwise.
+   The minimap sits above the floating dock's row so a narrow canvas (inspector
+   open) never overlaps them. */
+.flow-editor-canvas .react-flow__minimap {
+  overflow: hidden;
+  margin: 0 16px 72px 0;
 }
