@@ -23,6 +23,7 @@
   <a href="https://baselhusam.github.io/OCRFlow/"><b>Website</b></a> ·
   <a href="#-quick-start"><b>Quick start</b></a> ·
   <a href="#-see-it-in-action">Screenshots</a> ·
+  <a href="#-how-it-works">How it works</a> ·
   <a href="#-models">Models</a> ·
   <a href="#-use-it-from-code">API</a> ·
   <a href="#-documentation">Docs</a> ·
@@ -130,17 +131,26 @@ Build an extraction schema field by field (or start from the Invoice or Receipt 
 
 You need **Docker** (Compose v2), **`make`**, and **Git**. A GPU is optional.
 
+**1. Clone and configure**
+
 ```bash
 git clone https://github.com/baselhusam/OCRFlow.git && cd OCRFlow
-cp backend/docker/.env.example backend/docker/.env   # add ADMIN_EMAIL=you@example.com
+cp backend/docker/.env.example backend/docker/.env
+echo "ADMIN_EMAIL=you@example.com" >> backend/docker/.env   # your email: this account becomes the admin
+```
 
+**2. Start the app**
+
+```bash
 make up            # web app on :3000, API on :8000
 make db-migrate    # set up the database
 ```
 
-Open **http://localhost:3000** and sign up with the email you set as `ADMIN_EMAIL`. That account becomes the admin.
+Open **http://localhost:3000** and sign up with the email you set as `ADMIN_EMAIL`.
 
-Now start some OCR engines. Your OS and GPU are detected automatically:
+**3. Start OCR engines**
+
+Your OS and GPU are detected automatically:
 
 ```bash
 make ocr-up        # start every engine
@@ -151,10 +161,23 @@ make ocr-liquid    # Liquid AI :8104
 make ocr-unlimited # Baidu Unlimited-OCR :8105 (Apple Silicon: run make ocr-unlimited-setup once)
 ```
 
-Engines that aren't running show up greyed out in the canvas palette and light up as soon as they report healthy. Weights download on first use. Run `make detect` to see which GPU overlay will be used, and `make help` for every command.
+Engines that aren't running show up greyed out in the canvas palette and light up as soon as they report healthy. Weights download on first use, so the first run of each model takes a few minutes. Check what's up with `make ocr-ps`, see which GPU overlay will be used with `make detect`, and list every command with `make help`.
+
+**4. Build your first pipeline.** In **Projects**, create a project, upload a PDF, and chain *PDF Loader* → *Surya Text Detection* → *Surya Text Recognition* → *Structured Extract* on the canvas. Run it and click any node to see its output.
+
+### Where each engine runs
+
+| Host | Docling · Surya · Liquid | PaddleOCR | Unlimited-OCR |
+| --- | --- | --- | --- |
+| Linux / Windows (WSL2) + NVIDIA | Docker, CUDA | Docker, CUDA | Docker, CUDA (Transformers or vLLM) |
+| Linux + AMD | Docker, ROCm | Docker, CPU | not supported |
+| macOS Apple Silicon | host process, MPS | Docker, CPU | host process, MLX |
+| Anything else | Docker, CPU | Docker, CPU | not supported |
+
+`make ocr-up` picks the right column for you. Override it with `ACCELERATOR=cpu|nvidia|amd|mlx`. Details in [GPU & accelerators](frontend/src/content/docs/gpu.md).
 
 > [!NOTE]
-> **On a Mac?** Surya, Docling, and Liquid run natively on the host through PyTorch MPS, Unlimited-OCR runs through MLX, and Paddle runs in Docker on CPU. `make ocr-up` sets all of this up for you. Details in [GPU & accelerators](frontend/src/content/docs/gpu.md).
+> **On Windows?** Run OCRFlow from a WSL2 shell with Docker Desktop's WSL integration turned on. `make` and the helper scripts expect a POSIX shell, and NVIDIA GPUs pass through to Docker under WSL2.
 
 <details>
 <summary><b>Run without Docker (host-based development)</b></summary>
@@ -256,14 +279,20 @@ Full list with IDs, inputs, and outputs: [Model catalog](frontend/src/content/do
 
 Anything built on the canvas runs headless. Create an API key in **Account & settings → API keys**, then send documents to any pipeline:
 
+<table>
+<tr><td><b>Python</b></td></tr>
+<tr><td>
+
 ```python
 import os, time, requests
 
 BASE = "http://localhost:8000/api/v1/developer"
 headers = {"X-API-Key": os.environ["OCRFLOW_API_KEY"]}
 
+# 1. Pick a pipeline
 pipeline_id = requests.get(f"{BASE}/pipelines", headers=headers).json()["items"][0]["id"]
 
+# 2. Upload a document
 with open("invoice.pdf", "rb") as f:
     queued = requests.post(
         f"{BASE}/pipelines/{pipeline_id}/documents",
@@ -272,14 +301,30 @@ with open("invoice.pdf", "rb") as f:
         data={"output_format": "json"},
     ).json()
 
-run_id = queued["runs"][0]["id"]
-while (run := requests.get(f"{BASE}/pipelines/{pipeline_id}/runs/{run_id}", headers=headers).json())["status"] in ("queued", "running"):
+# 3. Poll until it finishes
+run_url = f"{BASE}/pipelines/{pipeline_id}/runs/{queued['runs'][0]['id']}"
+run = requests.get(run_url, headers=headers).json()
+while run["status"] in ("queued", "running"):
     time.sleep(1)
+    run = requests.get(run_url, headers=headers).json()
 
 print(run["status"], run["result"])
 ```
 
-Send up to 50 files per request. Interactive OpenAPI docs live at **http://localhost:8000/docs**, and every route is listed in the [API reference](frontend/src/content/docs/api.md).
+</td></tr>
+<tr><td><b>curl</b></td></tr>
+<tr><td>
+
+```bash
+curl -s -H "X-API-Key: $OCRFLOW_API_KEY"   -F "files=@invoice.pdf" -F "output_format=json"   http://localhost:8000/api/v1/developer/pipelines/$PIPELINE_ID/documents
+
+curl -s -H "X-API-Key: $OCRFLOW_API_KEY"   http://localhost:8000/api/v1/developer/pipelines/$PIPELINE_ID/runs/$RUN_ID
+```
+
+</td></tr>
+</table>
+
+Send up to 50 files per request. Each upload returns a `job_id`, so you can track the whole batch at `GET /jobs/{job_id}` or each file through its run. Interactive OpenAPI docs live at **http://localhost:8000/docs**, and every route is listed in the [API reference](frontend/src/content/docs/api.md).
 
 ---
 
@@ -307,6 +352,9 @@ Not unless you add a node that calls a hosted provider like OpenAI or Anthropic.
 
 **Can I bring my own model?**<br>
 Yes. Point a Connected LLM/VLM node at any OpenAI-compatible endpoint (vLLM, LM Studio, llama.cpp server, ...). To add a new engine as first-class nodes, follow the per-task checklist in [`MODEL_CATALOG.md`](backend/docs/MODEL_CATALOG.md).
+
+**Something isn't showing up in the palette.**<br>
+Run `make ocr-ps` to see which engines are healthy and `make ocr-logs` to follow their logs. The gateway's view of every provider is at `GET http://localhost:8000/api/v1/models/runtime`.
 
 **Is it production-ready?**<br>
 OCRFlow is under active development. The pipeline API, API keys, batch jobs, and analytics are in place; expect the canvas and catalog to keep moving quickly.
