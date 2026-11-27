@@ -204,6 +204,8 @@ const shortcutGroups = [
   {
     title: "Workspace",
     rows: [
+      ["Create a new project", "N"],
+      ["Focus the list search", "/"],
       ["Toggle the workspace sidebar", "Mod B"],
       ["Dashboard / Projects / Pipelines", "Alt 1 / 2 / 3"],
       ["Jobs / Analytics", "Alt 4 / 5"],
@@ -463,7 +465,7 @@ export function CommandPalette({
           compact
             ? "size-9 rounded-lg text-muted-foreground"
             : responsive
-              ? "size-9 min-w-0 justify-center rounded-lg border-border bg-muted/35 px-0 text-muted-foreground hover:bg-muted/65 md:w-[15rem] md:justify-between md:px-3"
+              ? "size-9 min-w-0 justify-center rounded-lg border-border bg-muted/35 px-0 text-muted-foreground hover:bg-muted/65 md:w-[18rem] md:justify-between md:px-3 lg:w-[22rem]"
               : "h-9 min-w-[12rem] justify-between rounded-lg border-border bg-muted/35 px-3 text-muted-foreground hover:bg-muted/65 sm:min-w-[15rem]",
           className,
         )}

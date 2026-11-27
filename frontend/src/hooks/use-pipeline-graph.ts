@@ -121,7 +121,7 @@ import { getGraphAssetNamespace } from "@/lib/api/assets";
 import type { Pipeline } from "@/lib/api/client";
 import { getPipeline } from "@/lib/api/pipelines";
 import { getProject } from "@/lib/api/projects";
-import { getProjectRun, startProjectRun } from "@/lib/api/project-runs";
+import { cancelProjectRun, getProjectRun, startProjectRun } from "@/lib/api/project-runs";
 import { runModelInference } from "@/lib/api/inference";
 import { buildRunErrorResult } from "@/lib/canvas/run-errors";
 import type { ProjectStatus } from "@/lib/api/client";
@@ -154,6 +154,37 @@ import {
   type Viewport,
 } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+type GraphHistoryEntry = {
+  nodes: Node<PipelineNodeData>[];
+  edges: Edge[];
+};
+
+const HISTORY_LIMIT = 80;
+const HISTORY_BURST_MS = 450;
+
+/** Positions, params and wiring — everything undo should care about. */
+function graphStructureSignature(nodes: Node<PipelineNodeData>[], edges: Edge[]): string {
+  return JSON.stringify([
+    nodes.map((node) => [
+      node.id,
+      Math.round(node.position.x),
+      Math.round(node.position.y),
+      node.data.params,
+      node.data.label,
+    ]),
+    edges.map((edge) => [edge.id, edge.source, edge.target, edge.sourceHandle, edge.targetHandle]),
+  ]);
+}
+
+export type AddModelNodeOptions = {
+  /** Wire the new node's input from this source pin. */
+  connectFrom?: { nodeId: string; handleId?: string | null };
+  /** Wire the new node's output into this target pin. */
+  connectTo?: { nodeId: string; handleId?: string | null };
+  /** Auto-wire from the selected node when compatible (default true). */
+  autoConnect?: boolean;
+};
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -400,6 +431,49 @@ export function usePipelineGraph({
     viewportRef.current = viewport;
   }, [viewport]);
 
+  // ---- Undo / redo history -------------------------------------------------
+  // Every structural edit already funnels through scheduleGraphSave, and at
+  // that moment the refs still hold the pre-edit graph. A burst of calls within
+  // HISTORY_BURST_MS becomes one history entry; run results (which also save)
+  // are filtered out by comparing structural signatures.
+  const undoStackRef = useRef<GraphHistoryEntry[]>([]);
+  const redoStackRef = useRef<GraphHistoryEntry[]>([]);
+  const historyPendingRef = useRef<GraphHistoryEntry | null>(null);
+  const historyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppressHistoryRef = useRef(false);
+  const [historyCounts, setHistoryCounts] = useState({ undo: 0, redo: 0 });
+  const syncHistoryCounts = useCallback(() => {
+    setHistoryCounts({
+      undo: undoStackRef.current.length,
+      redo: redoStackRef.current.length,
+    });
+  }, []);
+
+  const recordHistory = useCallback(() => {
+    if (suppressHistoryRef.current) return;
+    if (!historyPendingRef.current) {
+      historyPendingRef.current = {
+        nodes: nodesRef.current,
+        edges: edgesRef.current,
+      };
+    }
+    if (historyTimerRef.current) clearTimeout(historyTimerRef.current);
+    historyTimerRef.current = setTimeout(() => {
+      const before = historyPendingRef.current;
+      historyPendingRef.current = null;
+      if (!before) return;
+      if (
+        graphStructureSignature(before.nodes, before.edges) ===
+        graphStructureSignature(nodesRef.current, edgesRef.current)
+      ) {
+        return;
+      }
+      undoStackRef.current = [...undoStackRef.current, before].slice(-HISTORY_LIMIT);
+      redoStackRef.current = [];
+      syncHistoryCounts();
+    }, HISTORY_BURST_MS);
+  }, [syncHistoryCounts]);
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -501,6 +575,7 @@ export function usePipelineGraph({
 
   const scheduleGraphSave = useCallback(() => {
     if (readOnly) return;
+    recordHistory();
     setHasUnsavedChanges(true);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
@@ -511,7 +586,7 @@ export function usePipelineGraph({
       );
       void persistGraph(graph);
     }, 500);
-  }, [persistGraph, readOnly]);
+  }, [persistGraph, readOnly, recordHistory]);
 
   const scheduleViewportSave = useCallback(() => {
     if (readOnly) return;
@@ -810,15 +885,19 @@ export function usePipelineGraph({
   );
 
   const addModelNode = useCallback(
-    (modelId: string, position: { x: number; y: number }) => {
-      if (readOnly) return;
-      if (modelId === PAGE_BRANCH_MODEL_ID) return;
-      if (modelId === REGION_BRANCH_MODEL_ID) return;
-      if (modelId === CAPTION_BRANCH_MODEL_ID) return;
-      if (modelId === DOCUMENT_BRANCH_MODEL_ID) return;
-      if (isPipelineDefinition && BLOCKED_PIPELINE_MODELS.has(modelId)) return;
+    (
+      modelId: string,
+      position: { x: number; y: number },
+      options?: AddModelNodeOptions,
+    ): string | null => {
+      if (readOnly) return null;
+      if (modelId === PAGE_BRANCH_MODEL_ID) return null;
+      if (modelId === REGION_BRANCH_MODEL_ID) return null;
+      if (modelId === CAPTION_BRANCH_MODEL_ID) return null;
+      if (modelId === DOCUMENT_BRANCH_MODEL_ID) return null;
+      if (isPipelineDefinition && BLOCKED_PIPELINE_MODELS.has(modelId)) return null;
       const entry = modelMap.get(modelId);
-      if (!entry) return;
+      if (!entry) return null;
 
       const data = buildPipelineNodeData(
         entry,
@@ -832,15 +911,39 @@ export function usePipelineGraph({
         data,
       };
 
-      const selected = selectedNodeId
-        ? nodesRef.current.find((node) => node.id === selectedNodeId)
-        : undefined;
-      const connection = suggestedConnectionForInsertedNode(selected, newNode);
+      let connection: Connection | null = null;
+      if (options?.connectFrom) {
+        connection = {
+          source: options.connectFrom.nodeId,
+          sourceHandle: options.connectFrom.handleId ?? "output",
+          target: newNode.id,
+          targetHandle: "input",
+        };
+      } else if (options?.connectTo) {
+        connection = {
+          source: newNode.id,
+          sourceHandle: "output",
+          target: options.connectTo.nodeId,
+          targetHandle: options.connectTo.handleId ?? "input",
+        };
+      } else if (options?.autoConnect !== false) {
+        const selected = selectedNodeId
+          ? nodesRef.current.find((node) => node.id === selectedNodeId)
+          : undefined;
+        connection = suggestedConnectionForInsertedNode(selected, newNode);
+      }
 
+      recordHistory();
+      const nodesBefore = nodesRef.current;
       setNodes((current) => [...current, newNode]);
+      // Keep the ref current so back-to-back inserts (recipes, quick-add
+      // chains) can wire to a node added in the same tick.
+      nodesRef.current = [...nodesBefore, newNode];
       if (connection) {
         setEdges((current) => {
-          const nodes = [...nodesRef.current, newNode];
+          const nodes = nodesRef.current.some((node) => node.id === newNode.id)
+            ? nodesRef.current
+            : [...nodesRef.current, newNode];
           const valid = evaluateConnection(connection, nodes);
           const baseEdge = {
             ...connection,
@@ -854,6 +957,7 @@ export function usePipelineGraph({
         });
       }
       scheduleGraphSave();
+      return newNode.id;
     },
     [
       modelMap,
@@ -864,6 +968,7 @@ export function usePipelineGraph({
       selectedNodeId,
       evaluateConnection,
       decorateEdge,
+      recordHistory,
     ],
   );
 
@@ -1586,6 +1691,20 @@ export function usePipelineGraph({
     runNodeAllPagesRef.current = runNodeAllPages;
   }, [runNodeAllPages]);
 
+  const activeProjectRunIdRef = useRef<string | null>(null);
+
+  /** Ask the backend to cancel the in-flight full run (no-op when idle). */
+  const stopFullPipeline = useCallback(async () => {
+    const runId = activeProjectRunIdRef.current;
+    if (!runId || !isProjectCanvas) return false;
+    try {
+      await cancelProjectRun(contextId, runId);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [contextId, isProjectCanvas]);
+
   const runFullPipeline = useCallback(async () => {
     if (readOnly) return;
     if (!isProjectCanvas) return;
@@ -1630,6 +1749,7 @@ export function usePipelineGraph({
 
     try {
       const run = await startProjectRun(contextId);
+      activeProjectRunIdRef.current = run.id;
       setPipelineRunState({
         status: "running",
         currentNodeId: run.current_node_id ?? undefined,
@@ -1654,6 +1774,7 @@ export function usePipelineGraph({
           continue;
         }
 
+        activeProjectRunIdRef.current = null;
         const refreshed = await getProject(contextId);
         const refreshedNodes = applyPersistedGraph(
           refreshed.graph,
@@ -1702,6 +1823,7 @@ export function usePipelineGraph({
         return;
       }
     } catch (error) {
+      activeProjectRunIdRef.current = null;
       setPipelineRunState({
         status: "error",
         completedCount: 0,
@@ -2482,6 +2604,86 @@ export function usePipelineGraph({
     [models, isPipelineDefinition],
   );
 
+  const restoreHistoryEntry = useCallback(
+    (entry: GraphHistoryEntry) => {
+      const current = new Map(nodesRef.current.map((node) => [node.id, node]));
+      // Keep live run results for nodes that still exist; history is about
+      // structure, not outputs.
+      const restoredNodes = entry.nodes.map((node) => {
+        const live = current.get(node.id);
+        if (!live) return node;
+        return {
+          ...node,
+          selected: false,
+          data: {
+            ...node.data,
+            cachedOutput: live.data.cachedOutput,
+            runStatus: live.data.runStatus,
+            runResult: live.data.runResult,
+            lastRunAt: live.data.lastRunAt,
+          },
+        };
+      });
+      suppressHistoryRef.current = true;
+      setNodes(restoredNodes);
+      setEdges(entry.edges.map((edge) => ({ ...edge, selected: false })));
+      nodesRef.current = restoredNodes;
+      edgesRef.current = entry.edges;
+      setSelectedNodeId(null);
+      setSelectedEdgeId(null);
+      scheduleGraphSave();
+      suppressHistoryRef.current = false;
+      syncHistoryCounts();
+    },
+    [scheduleGraphSave, syncHistoryCounts],
+  );
+
+  const flushPendingHistory = useCallback(() => {
+    if (historyTimerRef.current) clearTimeout(historyTimerRef.current);
+    historyTimerRef.current = null;
+    const before = historyPendingRef.current;
+    historyPendingRef.current = null;
+    if (
+      before &&
+      graphStructureSignature(before.nodes, before.edges) !==
+        graphStructureSignature(nodesRef.current, edgesRef.current)
+    ) {
+      undoStackRef.current = [...undoStackRef.current, before].slice(-HISTORY_LIMIT);
+      redoStackRef.current = [];
+    }
+  }, []);
+
+  const undo = useCallback(() => {
+    if (readOnly) return false;
+    flushPendingHistory();
+    const entry = undoStackRef.current.at(-1);
+    if (!entry) return false;
+    undoStackRef.current = undoStackRef.current.slice(0, -1);
+    redoStackRef.current = [
+      ...redoStackRef.current,
+      { nodes: nodesRef.current, edges: edgesRef.current },
+    ];
+    restoreHistoryEntry(entry);
+    return true;
+  }, [flushPendingHistory, readOnly, restoreHistoryEntry]);
+
+  const redo = useCallback(() => {
+    if (readOnly) return false;
+    flushPendingHistory();
+    const entry = redoStackRef.current.at(-1);
+    if (!entry) return false;
+    redoStackRef.current = redoStackRef.current.slice(0, -1);
+    undoStackRef.current = [
+      ...undoStackRef.current,
+      { nodes: nodesRef.current, edges: edgesRef.current },
+    ];
+    restoreHistoryEntry(entry);
+    return true;
+  }, [flushPendingHistory, readOnly, restoreHistoryEntry]);
+
+  const canUndo = historyCounts.undo > 0;
+  const canRedo = historyCounts.redo > 0;
+
   const boundaryValidation = useMemo(() => {
     if (!isPipelineDefinition) return null;
     const graph = serializePipelineGraph(nodes, edges, viewport);
@@ -2522,6 +2724,7 @@ export function usePipelineGraph({
     runNodeAllPages,
     cancelMapRun,
     runFullPipeline,
+    stopFullPipeline,
     clearNodeRunState,
     clearAllRunState,
     pipelineRunState,
@@ -2544,6 +2747,10 @@ export function usePipelineGraph({
     expandDocumentBranch,
     closeDocumentBranch,
     undoNodeDeletion,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
     copySelectedNodes,
     cutSelectedNodes,
     pasteNodes,

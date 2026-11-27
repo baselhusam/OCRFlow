@@ -16,6 +16,8 @@ type AppToastProps = {
   title?: string;
   toastKey?: string | number;
   onDismiss?: () => void;
+  /** Optional inline action, e.g. "Undo" after a delete. */
+  action?: { label: string; onClick: () => void };
 };
 
 const VARIANT_CONFIG = {
@@ -42,6 +44,7 @@ export function AppToast({
   title,
   toastKey,
   onDismiss,
+  action,
 }: AppToastProps) {
   const prefersReducedMotion = useReducedMotion();
   const [open, setOpen] = useState(true);
@@ -112,6 +115,18 @@ export function AppToast({
               <p className="mt-1 text-sm leading-snug font-semibold text-foreground">
                 {message}
               </p>
+              {action ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    action.onClick();
+                    dismiss();
+                  }}
+                  className="mt-2 inline-flex h-7 items-center rounded-md bg-primary px-2.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  {action.label}
+                </button>
+              ) : null}
             </div>
             <Button
               type="button"

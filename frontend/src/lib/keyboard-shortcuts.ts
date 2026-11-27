@@ -9,7 +9,7 @@ export const OPEN_SHORTCUTS_EVENT = "ocrflow:open-shortcuts";
 
 export function isEditableKeyboardTarget(target: EventTarget | null): boolean {
   return Boolean(
-    (target as HTMLElement | null)?.closest(
+    (target as HTMLElement | null)?.closest?.(
       "input, textarea, select, [contenteditable=true]",
     ),
   );

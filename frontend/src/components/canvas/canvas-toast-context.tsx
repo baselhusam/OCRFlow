@@ -19,6 +19,7 @@ type CanvasToastPayload = {
   message: string;
   variant?: AppToastVariant;
   title?: string;
+  action?: { label: string; onClick: () => void };
 };
 
 type CanvasToastState = CanvasToastPayload & {
@@ -51,6 +52,7 @@ export function CanvasToastProvider({ children }: { children: ReactNode }) {
           message={toast.message}
           variant={toast.variant ?? "success"}
           title={toast.title}
+          action={toast.action}
           onDismiss={() => setToast(null)}
         />
       ) : null}

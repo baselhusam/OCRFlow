@@ -23,6 +23,9 @@ type BatchDocumentsDialogProps = {
   disabled?: boolean;
   /** True when the canvas has a PDF or Image loader the batch injector can target. */
   hasFileLoader?: boolean;
+  /** Controlled mode: when provided, the built-in trigger button is hidden. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 const ACCEPT = "application/pdf,image/png,image/jpeg,image/webp";
@@ -31,9 +34,17 @@ export function BatchDocumentsDialog({
   projectId,
   disabled,
   hasFileLoader = true,
+  open: controlledOpen,
+  onOpenChange,
 }: BatchDocumentsDialogProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const controlled = controlledOpen !== undefined;
+  const open = controlled ? controlledOpen : uncontrolledOpen;
+  const setOpen = (next: boolean) => {
+    if (!controlled) setUncontrolledOpen(next);
+    onOpenChange?.(next);
+  };
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +91,7 @@ export function BatchDocumentsDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
+      {controlled ? null : <DialogTrigger
         render={
           <Button
             type="button"
@@ -101,7 +112,7 @@ export function BatchDocumentsDialog({
             <span className="hidden xl:inline">Batch</span>
           </Button>
         }
-      />
+      />}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Batch documents</DialogTitle>
