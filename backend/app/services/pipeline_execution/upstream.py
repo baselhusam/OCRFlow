@@ -172,8 +172,14 @@ def extract_pages(output: NodeCachedOutput | None) -> list[dict[str, Any]]:
 def extract_page_image(output: NodeCachedOutput | None) -> dict[str, Any] | None:
     if output is None:
         return None
-    if output.preview and isinstance(output.preview.get("pageImage"), dict):
-        return output.preview["pageImage"]
+    preview_page = output.preview.get("pageImage") if output.preview else None
+    # The canvas strips pixels from persisted previews, so only trust the
+    # preview image when it still carries image data; otherwise fall back to
+    # the full page in `raw`.
+    if isinstance(preview_page, dict) and (
+        preview_page.get("image_base64") or preview_page.get("image_url")
+    ):
+        return preview_page
     pages = extract_pages(output)
     page = pages[0] if pages else None
     if isinstance(page, dict) and isinstance(page.get("page"), dict):
@@ -182,6 +188,8 @@ def extract_page_image(output: NodeCachedOutput | None) -> dict[str, Any] | None
         raw_page = output.raw.get("page")
         if isinstance(raw_page, dict) and isinstance(raw_page.get("page"), dict):
             return raw_page["page"]
+    if isinstance(preview_page, dict):
+        return preview_page
     return None
 
 
