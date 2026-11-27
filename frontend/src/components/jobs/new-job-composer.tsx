@@ -91,7 +91,7 @@ export function NewJobComposer({
 
   if (readyPipelines.length === 0) {
     return (
-      <div className="mt-9 rounded-xl border border-dashed border-border px-8 py-14 text-center">
+      <div className="rounded-xl border border-dashed border-border px-8 py-14 text-center">
         <p className="text-lg font-bold tracking-tight text-foreground">
           No ready pipelines
         </p>
@@ -114,7 +114,7 @@ export function NewJobComposer({
   }
 
   return (
-    <div className="mt-9 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <section className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgba(20,18,37,0.05)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
         <p className="font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
           1 · Pipeline

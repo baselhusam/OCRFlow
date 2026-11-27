@@ -20,6 +20,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { ProviderLogo } from "@/components/canvas/provider-logo";
 import { Input } from "@/components/ui/input";
@@ -305,13 +306,11 @@ export function EngineConfiguration() {
 
   return (
     <div className="space-y-8 pb-12">
-      <header className="max-w-3xl space-y-3.5">
-        <p className="font-mono text-xs tracking-[0.16em] text-primary uppercase">Configuration / engines</p>
-        <h1 className="text-[40px] font-extrabold leading-[1.02] tracking-[-0.04em] text-foreground">Engine connections</h1>
-        <p className="max-w-2xl text-[15px] leading-6 text-muted-foreground">
-          Your platform engines are always shown first. Add a connection only when you need another OCRFlow-compatible service.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Admin"
+        title="Engine connections"
+        description="Your platform engines are always shown first. Add a connection only when you need another OCRFlow-compatible service."
+      />
 
       {error ? (
         <div role="alert" className="flex items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/8 px-4 py-3 text-sm text-destructive">

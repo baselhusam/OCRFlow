@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelLeft, PanelLeftClose } from "lucide-react";
+import { Menu, PanelLeft, PanelLeftClose } from "lucide-react";
 import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,9 @@ type SidebarToggleButtonProps = {
 };
 
 export function SidebarToggleButton({ className }: SidebarToggleButtonProps) {
-  const { state, toggleSidebar } = useSidebar();
-  const collapsed = state === "collapsed";
+  const { state, toggleSidebar, isMobile, openMobile } = useSidebar();
+  // On phones the sidebar is an off-canvas sheet with its own open state.
+  const collapsed = isMobile ? !openMobile : state === "collapsed";
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -37,14 +38,22 @@ export function SidebarToggleButton({ className }: SidebarToggleButtonProps) {
       variant="ghost"
       size="icon-sm"
       onClick={toggleSidebar}
-      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      aria-label={
+        isMobile
+          ? "Open navigation"
+          : collapsed
+            ? "Expand sidebar"
+            : "Collapse sidebar"
+      }
       aria-expanded={!collapsed}
       className={cn(
         "size-8 shrink-0 rounded-lg text-muted-foreground hover:bg-secondary/60 hover:text-foreground aria-expanded:bg-transparent aria-expanded:text-foreground",
         className,
       )}
     >
-      {collapsed ? (
+      {isMobile ? (
+        <Menu className="size-4" aria-hidden />
+      ) : collapsed ? (
         <PanelLeft className="size-4" aria-hidden />
       ) : (
         <PanelLeftClose className="size-4" aria-hidden />

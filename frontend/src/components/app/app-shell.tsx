@@ -23,14 +23,14 @@ export function AppShell({ user, children }: AppShellProps) {
         className="min-h-svh flex-1"
         style={
           {
-            "--sidebar-width": "16.5rem",
-            "--sidebar-width-icon": "3.25rem",
+            "--sidebar-width": "15rem",
+            "--sidebar-width-icon": "3.5rem",
           } as React.CSSProperties
         }
       >
         <AppSidebar user={user} />
         <SidebarInset className="flex min-h-svh min-w-0 flex-1 flex-col">
-          <AppHeader />
+          <AppHeader user={user} />
           {children}
         </SidebarInset>
       </SidebarProvider>

@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
+import { ArrowRight } from "lucide-react";
 
 import { dashboardCardClassName } from "@/components/dashboard/dashboard-styles";
+import { projectIconTileStyle } from "@/components/projects/project-card";
 import { ProjectCardMenu } from "@/components/projects/project-card-menu";
 import { ProjectStatusPill } from "@/components/projects/project-status-pill";
 import { RelativeTime } from "@/components/relative-time";
@@ -17,10 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Project } from "@/lib/api/client";
-import {
-  getProjectColorTint,
-  getProjectIconComponent,
-} from "@/lib/projects/appearance";
+import { getProjectIconComponent } from "@/lib/projects/appearance";
 import { getProjectStats } from "@/lib/projects/stats";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +29,7 @@ type ProjectTableProps = {
 };
 
 const headClassName =
-  "h-11 px-4 font-mono text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase";
+  "h-10 px-4 font-mono text-[10.5px] font-medium tracking-[0.12em] text-muted-foreground uppercase";
 
 const numericHeadClassName = cn(headClassName, "text-right");
 
@@ -48,7 +47,6 @@ function ProjectTableRow({
   const stats = getProjectStats(project);
   const canvasHref = `/app/projects/${project.id}/canvas`;
   const Icon = getProjectIconComponent(project.icon);
-  const tint = getProjectColorTint(project.color);
   const description = project.description?.trim();
   const hasDescription = Boolean(description);
 
@@ -63,14 +61,14 @@ function ProjectTableRow({
   return (
     <TableRow
       onClick={handleRowClick}
-      className="group/row cursor-pointer border-[var(--landing-hairline)] transition-colors hover:bg-secondary/30"
+      className="group/row cursor-pointer border-[var(--landing-hairline)] transition-colors hover:bg-primary/[0.035]"
     >
       <TableCell className="px-4 py-3.5 whitespace-normal">
         <div className="flex min-w-0 items-center gap-3.5">
           <Link
             href={canvasHref}
             className="flex size-9 shrink-0 items-center justify-center rounded-[9px] outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-            style={{ backgroundColor: tint, color: project.color }}
+            style={projectIconTileStyle(project.color)}
             aria-label={`Open ${project.name}`}
             tabIndex={-1}
           >
@@ -113,11 +111,18 @@ function ProjectTableRow({
         <RelativeTime value={project.updated_at} />
       </TableCell>
 
-      {canWrite ? (
-        <TableCell className="px-3 text-right">
-          <ProjectCardMenu project={project} />
-        </TableCell>
-      ) : null}
+      <TableCell className="px-3 text-right">
+        <div className="flex items-center justify-end gap-1">
+          <Link
+            href={canvasHref}
+            className="hidden items-center gap-1 rounded-md px-2 py-1 text-[12px] font-semibold text-primary opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 sm:inline-flex"
+          >
+            Open
+            <ArrowRight className="size-3.5" aria-hidden />
+          </Link>
+          {canWrite ? <ProjectCardMenu project={project} /> : null}
+        </div>
+      </TableCell>
     </TableRow>
   );
 }
@@ -127,7 +132,7 @@ export function ProjectTable({ projects, canWrite = true }: ProjectTableProps) {
     <div className={cn(dashboardCardClassName, "overflow-hidden")}>
       <Table>
         <TableHeader>
-          <TableRow className="border-[var(--landing-hairline)] bg-secondary/40 hover:bg-secondary/40">
+          <TableRow className="border-[var(--landing-hairline)] bg-foreground/[0.025] hover:bg-foreground/[0.025]">
             <TableHead className={headClassName}>Project</TableHead>
             <TableHead className={headClassName}>Status</TableHead>
             <TableHead className={numericHeadClassName}>Nodes</TableHead>
@@ -140,11 +145,9 @@ export function ProjectTable({ projects, canWrite = true }: ProjectTableProps) {
             <TableHead className={cn(headClassName, "hidden sm:table-cell")}>
               Updated
             </TableHead>
-            {canWrite ? (
-              <TableHead className={cn(headClassName, "w-14 px-3")}>
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            ) : null}
+            <TableHead className={cn(headClassName, "w-28 px-3")}>
+              <span className="sr-only">Actions</span>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

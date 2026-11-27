@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { PageContainer, PageHeader } from "@/components/app/page-header";
 import { CreateProjectDialog } from "@/components/projects/create-project-dialog";
 import { ProjectsView } from "@/components/projects/projects-view";
 import type { ProjectList as ProjectListResponse, User } from "@/lib/api/client";
@@ -16,29 +18,18 @@ export default async function ProjectsPage() {
   ]);
 
   const writable = canWrite(user);
+  const hasProjects = data.items.length > 0;
 
   return (
-    <main className="mx-auto w-full max-w-[1320px] flex-1 px-6 py-11 md:px-12">
-      <p className="font-mono text-xs tracking-[0.16em] text-primary uppercase">
-        Workspace
-      </p>
-
-      <div className="mt-3.5 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-        <div className="max-w-xl">
-          <h1 className="text-[40px] font-extrabold leading-[1.02] tracking-[-0.035em] text-foreground">
-            Projects
-          </h1>
-          <p className="mt-3.5 max-w-[560px] text-base leading-relaxed text-muted-foreground">
-            Every pipeline in your workspace. Open a canvas, duplicate a flow,
-            or start something new.
-          </p>
-        </div>
-        {writable ? <CreateProjectDialog /> : null}
+    <PageContainer>
+      <PageHeader
+        title="Projects"
+        description="Each project is a canvas where you wire loaders, OCR, and extraction models. Click any card to open it."
+        actions={writable && hasProjects ? <CreateProjectDialog /> : null}
+      />
+      <div className="mt-8">
+        <ProjectsView projects={data.items} canWrite={writable} />
       </div>
-
-      <div className="mt-9 h-px bg-[var(--landing-hairline)]" />
-
-      <ProjectsView projects={data.items} canWrite={writable} />
-    </main>
+    </PageContainer>
   );
 }

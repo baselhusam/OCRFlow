@@ -2,20 +2,19 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { ArrowRight, GitBranch } from "lucide-react";
 
+import {
+  EmptyState,
+  ListSearch,
+  ListToolbar,
+  SegmentedControl,
+  SortSelect,
+} from "@/components/app/list-toolbar";
 import { CreatePipelineDialog } from "@/components/pipelines/create-pipeline-dialog";
 import { PipelineCard } from "@/components/pipelines/pipeline-card";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { TemplateQuickStart } from "@/components/templates/template-quick-start";
 import type { Pipeline } from "@/lib/api/client";
-import { cn } from "@/lib/utils";
 
 type PipelinesViewProps = {
   pipelines: Pipeline[];
@@ -25,14 +24,8 @@ type PipelinesViewProps = {
 type PipelinesTab = "all" | "ready" | "archived";
 type PipelinesSort = "recent" | "name-asc" | "name-desc";
 
-const TAB_OPTIONS: { key: PipelinesTab; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "ready", label: "Ready" },
-  { key: "archived", label: "Archived" },
-];
-
 const SORT_OPTIONS: { key: PipelinesSort; label: string }[] = [
-  { key: "recent", label: "Recent" },
+  { key: "recent", label: "Last updated" },
   { key: "name-asc", label: "Name A–Z" },
   { key: "name-desc", label: "Name Z–A" },
 ];
@@ -46,6 +39,12 @@ function isReadyPipeline(pipeline: Pipeline): boolean {
   );
 }
 
+function matchesTab(pipeline: Pipeline, tab: PipelinesTab): boolean {
+  if (tab === "all") return !pipeline.is_archived;
+  if (tab === "ready") return !pipeline.is_archived && isReadyPipeline(pipeline);
+  return pipeline.is_archived;
+}
+
 function filterPipelines(
   pipelines: Pipeline[],
   tab: PipelinesTab,
@@ -54,10 +53,7 @@ function filterPipelines(
   const normalizedQuery = query.trim().toLowerCase();
 
   return pipelines.filter((pipeline) => {
-    if (tab === "all" && pipeline.is_archived) return false;
-    if (tab === "ready" && (!isReadyPipeline(pipeline) || pipeline.is_archived))
-      return false;
-    if (tab === "archived" && !pipeline.is_archived) return false;
+    if (!matchesTab(pipeline, tab)) return false;
 
     if (!normalizedQuery) return true;
 
@@ -102,108 +98,120 @@ export function PipelinesView({
     [pipelines, query, sort, tab],
   );
 
-  const countLabel = `${visiblePipelines.length} PIPELINE${visiblePipelines.length === 1 ? "" : "S"}`;
+  const tabOptions = useMemo(
+    () =>
+      (
+        [
+          { key: "all", label: "All" },
+          { key: "ready", label: "Ready" },
+          { key: "archived", label: "Archived" },
+        ] as const
+      ).map((option) => ({
+        ...option,
+        count: pipelines.filter((pipeline) => matchesTab(pipeline, option.key))
+          .length,
+      })),
+    [pipelines],
+  );
 
   if (pipelines.length === 0) {
     return (
-      <div className="mt-9 rounded-xl border border-dashed border-border px-8 py-14 text-center">
-        <p className="text-lg font-bold tracking-tight text-foreground">
-          No pipelines yet
-        </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Create reusable component flows, then apply them to document batches.
-        </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          {canWrite ? <CreatePipelineDialog /> : null}
-          <Link
-            href="/templates"
-            className="inline-flex h-auto items-center rounded-lg border border-border px-5 py-3 text-sm font-semibold text-foreground no-underline transition-colors hover:border-primary/40"
-          >
-            Browse templates
-          </Link>
-        </div>
+      <div className="space-y-10">
+        <EmptyState
+          icon={
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <GitBranch className="size-6" aria-hidden />
+            </span>
+          }
+          title="No pipelines yet"
+          description="A pipeline is a reusable flow with one input and one output. Build one from scratch, save part of a project canvas, or clone a template — then apply it to whole batches from Jobs."
+          actions={canWrite ? <CreatePipelineDialog /> : null}
+        />
+        <section aria-labelledby="pipelines-templates-heading">
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <h2
+              id="pipelines-templates-heading"
+              className="font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase"
+            >
+              Start from a template
+            </h2>
+            <Link
+              href="/templates"
+              className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-primary hover:underline"
+            >
+              All templates
+              <ArrowRight className="size-3.5" aria-hidden />
+            </Link>
+          </div>
+          <TemplateQuickStart canWrite={canWrite} />
+        </section>
       </div>
     );
   }
 
   return (
-    <div className="mt-9">
-      <div className="flex flex-wrap items-center gap-3.5">
-        <div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5">
-          <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search pipelines…"
-            className="h-auto border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+    <div>
+      <ListToolbar>
+        <ListSearch
+          value={query}
+          onChange={setQuery}
+          placeholder="Search pipelines"
+          className="w-full sm:w-auto sm:min-w-[240px] sm:flex-1 lg:max-w-sm"
+        />
+        <SegmentedControl
+          ariaLabel="Filter pipelines"
+          options={tabOptions}
+          value={tab}
+          onChange={setTab}
+        />
+        <div className="ml-auto">
+          <SortSelect options={SORT_OPTIONS} value={sort} onChange={setSort} />
+        </div>
+      </ListToolbar>
+
+      <div className="mt-6">
+        {visiblePipelines.length === 0 ? (
+          <EmptyState
+            title={
+              query.trim()
+                ? `No pipelines match “${query.trim()}”`
+                : tab === "ready"
+                  ? "No ready pipelines yet"
+                  : tab === "archived"
+                    ? "Nothing archived"
+                    : "No pipelines in this view"
+            }
+            description={
+              query.trim()
+                ? "Try a different name or clear the search."
+                : tab === "ready"
+                  ? "A pipeline is ready once its canvas has components and a single input and output. Open a draft to finish it."
+                  : "Switch tabs to see the rest of your pipelines."
+            }
+            actions={
+              query.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="inline-flex h-9 items-center rounded-lg border border-border bg-card px-4 text-sm font-semibold hover:border-primary/40"
+                >
+                  Clear search
+                </button>
+              ) : null
+            }
           />
-        </div>
-
-        <div className="inline-flex rounded-lg bg-secondary/80 p-0.5">
-          {TAB_OPTIONS.map((option) => {
-            const active = tab === option.key;
-            return (
-              <button
-                key={option.key}
-                type="button"
-                onClick={() => setTab(option.key)}
-                className={cn(
-                  "rounded-md px-4 py-1.5 text-[13px] font-semibold transition-colors",
-                  active
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <Select
-          value={sort}
-          items={SORT_OPTIONS.map((option) => ({ value: option.key, label: option.label }))}
-          onValueChange={(value) => setSort(value as PipelinesSort)}
-        >
-          <SelectTrigger className="ml-auto h-10 min-w-[120px] bg-card">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {SORT_OPTIONS.map((option) => (
-              <SelectItem key={option.key} value={option.key}>
-                {option.label}
-              </SelectItem>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {visiblePipelines.map((pipeline) => (
+              <PipelineCard
+                key={pipeline.id}
+                pipeline={pipeline}
+                canWrite={canWrite}
+              />
             ))}
-          </SelectContent>
-        </Select>
+          </div>
+        )}
       </div>
-
-      <p className="mt-7 mb-4 font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-        {countLabel}
-      </p>
-
-      {visiblePipelines.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border px-8 py-14 text-center">
-          <p className="text-lg font-bold tracking-tight text-foreground">
-            {query.trim()
-              ? `No pipelines match “${query.trim()}”`
-              : "No pipelines in this view"}
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Try a different search, or switch tabs.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {visiblePipelines.map((pipeline) => (
-            <PipelineCard
-              key={pipeline.id}
-              pipeline={pipeline}
-              canWrite={canWrite}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

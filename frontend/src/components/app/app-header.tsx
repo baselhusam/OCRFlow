@@ -1,40 +1,50 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { BookOpen } from "lucide-react";
 
-import { SidebarToggleButton } from "@/components/app/sidebar-toggle-button";
+import { SegmentMark } from "@/components/brand/segment-mark";
 import { CommandPalette } from "@/components/app/command-palette";
+import { SidebarToggleButton } from "@/components/app/sidebar-toggle-button";
+import { UserMenu } from "@/components/app/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
-import { logout } from "@/lib/auth/session";
+import type { User } from "@/lib/api/client";
 
-export function AppHeader() {
-  const router = useRouter();
+const iconButtonClassName =
+  "inline-flex size-8 items-center justify-center rounded-lg border-transparent bg-transparent text-muted-foreground transition-colors hover:bg-muted hover:text-foreground dark:bg-transparent dark:hover:bg-muted/60";
 
-  async function handleLogout() {
-    await logout();
-    router.push("/login");
-    router.refresh();
-  }
-
+export function AppHeader({ user }: { user: User }) {
   return (
-    <header className="flex h-[73px] shrink-0 items-center justify-between gap-4 border-b border-border bg-background px-4 md:px-9">
-      <div className="flex min-w-0 items-center gap-3">
-        <SidebarToggleButton />
+    <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/85 px-3 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 sm:px-5 md:px-6">
+      <SidebarToggleButton />
+      <Link
+        href="/app"
+        aria-label="OCRFlow home"
+        className="flex items-center md:hidden"
+      >
+        <SegmentMark className="size-[22px] text-foreground" />
+      </Link>
+
+      <div className="flex min-w-0 flex-1 justify-end md:justify-start">
         <CommandPalette responsive />
       </div>
-      <div className="flex items-center gap-[18px]">
-        <ThemeToggle persistToAccount />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleLogout}
-          className="h-auto gap-2 rounded-lg border-border px-4 py-2 text-[13px] font-semibold hover:border-primary/40 hover:text-primary"
+
+      <div className="flex items-center gap-1">
+        <Link
+          href="/documentation"
+          aria-label="Documentation"
+          title="Documentation"
+          className={`${iconButtonClassName} hidden sm:inline-flex`}
         >
-          <LogOut className="size-[15px]" aria-hidden />
-          Sign out
-        </Button>
+          <BookOpen className="size-4" aria-hidden />
+        </Link>
+        <ThemeToggle
+          persistToAccount
+          className={`${iconButtonClassName} hover:border-transparent dark:hover:text-foreground [&_svg]:size-4`}
+        />
+        <div className="ml-1.5">
+          <UserMenu user={user} />
+        </div>
       </div>
     </header>
   );

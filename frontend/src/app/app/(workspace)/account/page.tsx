@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { PageContainer } from "@/components/app/page-header";
 import { AccountDashboard, type AccountTab } from "@/components/account/account-dashboard";
 import type { User } from "@/lib/api/client";
 import { fetchModelCatalog } from "@/lib/api/models";
@@ -39,7 +40,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   );
 
   return (
-    <main className="mx-auto w-full max-w-[980px] flex-1 px-6 py-11 md:px-12">
+    <PageContainer width="narrow">
       <Suspense>
         <AccountDashboard
           user={user}
@@ -48,6 +49,6 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           ocrModels={ocrModels}
         />
       </Suspense>
-    </main>
+    </PageContainer>
   );
 }

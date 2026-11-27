@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
+import { PageContainer } from "@/components/app/page-header";
 import { AdminDashboard, type AdminTab } from "@/components/admin/admin-dashboard";
 import type { AdminAnalyticsSubTab } from "@/lib/api/admin";
 import type { AdminUserList, UserLeaderboardList } from "@/lib/api/admin";
@@ -141,7 +142,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const apiKeyUsage = Object.fromEntries(apiKeyUsageEntries);
 
   return (
-    <main className="mx-auto w-full max-w-[1320px] flex-1 px-6 py-11 md:px-12">
+    <PageContainer>
       <Suspense>
         <AdminDashboard
           user={user}
@@ -168,6 +169,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           apiKeyUsage={apiKeyUsage}
         />
       </Suspense>
-    </main>
+    </PageContainer>
   );
 }

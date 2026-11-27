@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { PageContainer } from "@/components/app/page-header";
 import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
 import type {
   ActivitySeries,
@@ -112,7 +113,7 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-[1320px] flex-1 px-6 py-11 md:px-12">
+    <PageContainer>
       <Suspense>
         <AnalyticsDashboard
           summary={summary}
@@ -132,6 +133,6 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
           range={range}
         />
       </Suspense>
-    </main>
+    </PageContainer>
   );
 }

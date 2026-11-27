@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { PageContainer } from "@/components/app/page-header";
 import { EngineConfiguration } from "@/components/configuration/engine-configuration";
 
 export const metadata: Metadata = {
@@ -6,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function ConfigurationPage() {
-  return <main className="mx-auto w-full max-w-[1180px] flex-1 px-6 py-11 md:px-12"><EngineConfiguration /></main>;
+  return (
+    <PageContainer width="default">
+      <EngineConfiguration />
+    </PageContainer>
+  );
 }

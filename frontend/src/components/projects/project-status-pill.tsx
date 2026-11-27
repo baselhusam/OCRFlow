@@ -1,36 +1,36 @@
-import type { Project } from "@/lib/api/client";
-import {
-  getArchivedStatusStyles,
-  getProjectDisplayStatus,
-  getProjectStatusStyles,
-} from "@/lib/projects/status";
+import { StatusPill, type StatusTone } from "@/components/app/status-pill";
+import type { Project, ProjectStatus } from "@/lib/api/client";
+import { getProjectDisplayStatus } from "@/lib/projects/status";
 
 type ProjectStatusPillProps = {
   project: Project;
+  className?: string;
 };
 
-export function ProjectStatusPill({ project }: ProjectStatusPillProps) {
-  const styles = project.is_archived
-    ? getArchivedStatusStyles()
-    : getProjectStatusStyles(
-        getProjectDisplayStatus(project),
-        project.color,
-      );
+const STATUS: Record<ProjectStatus, { label: string; tone: StatusTone }> = {
+  live: { label: "Live", tone: "ok" },
+  running: { label: "Running", tone: "warn" },
+  failed: { label: "Failed", tone: "danger" },
+  idle: { label: "Idle", tone: "neutral" },
+  draft: { label: "Draft", tone: "brand" },
+};
 
+export function ProjectStatusPill({ project, className }: ProjectStatusPillProps) {
+  if (project.is_archived) {
+    return (
+      <StatusPill tone="neutral" className={className}>
+        Archived
+      </StatusPill>
+    );
+  }
+  const status = STATUS[getProjectDisplayStatus(project)] ?? STATUS.idle;
   return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
-      style={{
-        backgroundColor: styles.pillBg,
-        color: styles.pillColor,
-      }}
+    <StatusPill
+      tone={status.tone}
+      pulse={status.label === "Running"}
+      className={className}
     >
-      <span
-        className="size-1.5 rounded-full"
-        style={{ backgroundColor: styles.dotColor }}
-        aria-hidden
-      />
-      {styles.label}
-    </span>
+      {status.label}
+    </StatusPill>
   );
 }

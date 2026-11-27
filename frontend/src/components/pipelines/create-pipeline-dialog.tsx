@@ -56,7 +56,7 @@ export function CreatePipelineDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button className="h-auto gap-2 rounded-lg px-5 py-3 text-sm font-semibold shadow-[0_8px_22px_-10px_var(--accent)]">
+          <Button className="h-10 gap-2 rounded-lg px-4 text-sm font-semibold shadow-[0_8px_22px_-12px_var(--accent)]">
             <Plus className="size-4" aria-hidden />
             New pipeline
           </Button>
