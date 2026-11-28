@@ -122,6 +122,7 @@ export const MODEL_OUTPUT_DISPLAY_OVERRIDES: Record<string, string> = {
   "docling/vlm-granite-docling": "DocumentArtifact + markdown",
   "unlimited/document-parse": "DocumentArtifact + markdown",
   "unlimited/multi-page-parse": "DocumentArtifact + markdown",
+  "openrouter/ocr": "DocumentArtifact + markdown",
 };
 
 export function wireKindToDisplayLabel(
@@ -219,6 +220,7 @@ export const MODEL_WIRE_KINDS: Record<
   "llm/structured-extract": { input: "text", output: "json" },
   "vlm/vision-prompt": { input: "page_artifact", output: "text" },
   "vlm/vision-structured-extract": { input: "page_artifact", output: "json" },
+  "openrouter/ocr": { input: "page_artifact", output: "document_artifact" },
 };
 
 for (const protocol of CONNECTED_PROTOCOLS) {
@@ -286,6 +288,7 @@ const MODEL_CATEGORIES: Record<string, string> = {
   "liquid/vision-structured-extract": "vision_language",
   "unlimited/document-parse": "vlm_convert",
   "unlimited/multi-page-parse": "vlm_convert",
+  "openrouter/ocr": "vlm_convert",
   "llm/text-prompt": "text_generation",
   "llm/structured-extract": "llm_extract",
   "vlm/vision-prompt": "vision_language",

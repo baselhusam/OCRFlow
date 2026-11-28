@@ -853,6 +853,32 @@ for (const id of ["llm/text-prompt", "llm/structured-extract", "vlm/vision-promp
   };
 }
 
+REGISTRY["openrouter/ocr"] = {
+  apiPath: "/api/v1/models/openrouter/ocr",
+  buildPayload(ctx) {
+    const connection_id = String(ctx.data.params.connection_id ?? "").trim();
+    const model = String(ctx.data.params.model ?? "").trim();
+    if (!connection_id || !model) return null;
+    const page = extractPageImageFromCtx(ctx);
+    if (!page) return null;
+    const prompt = typeof ctx.data.params.prompt === "string" ? ctx.data.params.prompt.trim() : "";
+    return {
+      page,
+      options: {
+        connection_id,
+        model,
+        provider_protocol: "openrouter",
+        temperature: Number(ctx.data.params.temperature ?? 0),
+        max_tokens: Number(ctx.data.params.max_tokens ?? 8192),
+        ...(prompt ? { prompt } : {}),
+      },
+    };
+  },
+  extractOutput(_id, response) {
+    return unlimitedDocumentOutput(response);
+  },
+};
+
 export function getModelInferenceDef(
   modelId: string,
 ): ModelInferenceDef | null {

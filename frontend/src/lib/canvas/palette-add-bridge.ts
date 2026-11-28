@@ -1,4 +1,5 @@
-type PaletteAddHandler = (modelId: string) => void;
+export type PaletteAddParams = Record<string, string | boolean | number>;
+type PaletteAddHandler = (modelId: string, params?: PaletteAddParams) => void;
 type PaletteAddPipelineHandler = (pipelineId: string) => void;
 
 let paletteAddHandler: PaletteAddHandler | null = null;
@@ -14,8 +15,8 @@ export function registerPaletteAddPipelineHandler(
   paletteAddPipelineHandler = handler;
 }
 
-export function requestPaletteAdd(modelId: string) {
-  paletteAddHandler?.(modelId);
+export function requestPaletteAdd(modelId: string, params?: PaletteAddParams) {
+  paletteAddHandler?.(modelId, params);
 }
 
 export function requestPaletteAddPipeline(pipelineId: string) {

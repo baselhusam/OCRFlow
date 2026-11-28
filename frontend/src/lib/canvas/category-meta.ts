@@ -187,6 +187,15 @@ for (const protocol of CONNECTED_PROTOCOLS) {
   };
 }
 
+DEFAULT_NODE_PARAMS["openrouter/ocr"] = {
+  connection_id: "",
+  model: "",
+  prompt:
+    "Transcribe this document page into clean Markdown. Keep the reading order, headings, lists, and paragraph breaks. Render tables as Markdown tables and formulas as LaTeX between $ delimiters. Do not summarize, translate, or add commentary. Return only the page content.",
+  temperature: 0,
+  max_tokens: 8192,
+};
+
 /** Pipeline source nodes — no upstream input handle */
 export const SOURCE_NODE_CATEGORIES = new Set(["page_loader"]);
 

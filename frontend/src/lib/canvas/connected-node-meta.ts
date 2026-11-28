@@ -4,7 +4,18 @@ export const CONNECTED_PROTOCOLS = [
   "anthropic",
   "openai-compatible",
   "anthropic-compatible",
+  "openrouter",
 ] as const;
+
+/**
+ * One OCR node backs every OpenRouter vision model: the library lists each
+ * discovered model as a preset of this node (`params.model`).
+ */
+export const OPENROUTER_OCR_MODEL_ID = "openrouter/ocr";
+
+export function isOpenRouterOcrModel(modelId: string): boolean {
+  return modelId === OPENROUTER_OCR_MODEL_ID;
+}
 
 export type ConnectedProtocol = (typeof CONNECTED_PROTOCOLS)[number];
 
@@ -32,6 +43,7 @@ export function isConnectedModel(modelId: string): boolean {
 }
 
 export function isConnectedVisionModel(modelId: string): boolean {
+  if (isOpenRouterOcrModel(modelId)) return true;
   return getConnectedOperation(modelId)?.startsWith("vision-") ?? false;
 }
 
@@ -44,4 +56,13 @@ export function connectedNodeIds(): string[] {
   return CONNECTED_PROTOCOLS.flatMap((protocol) =>
     CONNECTED_OPERATIONS.map((operation) => `${protocol}/${operation}`),
   );
+}
+
+/** One-line caption for an OpenRouter OCR node: the chosen model's name. */
+export function openRouterModelCaption(
+  params: Record<string, string | boolean | number | undefined>,
+): string {
+  const label = String(params.model_label ?? "").trim();
+  const model = String(params.model ?? "").trim();
+  return label || model || "Choose an OpenRouter model";
 }

@@ -22,6 +22,7 @@ const TILE_LOGOS: Record<string, string> = {
   "openai-compatible": "/models_logos/openai.svg",
   anthropic: "/models_logos/claude.png",
   "anthropic-compatible": "/models_logos/claude.png",
+  openrouter: "/models_logos/openrouter.png",
 };
 
 const MONOGRAMS: Record<string, string> = {

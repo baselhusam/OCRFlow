@@ -19,6 +19,7 @@ import {
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 
 import { EngineMark } from "@/components/flow-editor/library/engine-mark";
+import { isOpenRouterOcrModel, openRouterModelCaption } from "@/lib/canvas/connected-node-meta";
 import { usePipelineGraphActions } from "@/components/canvas/pipeline-graph-context";
 import { useRuntimeAvailability } from "@/components/canvas/runtime-availability-context";
 import {
@@ -115,7 +116,9 @@ function FlowNodeComponent({ id, data: rawData, selected }: NodeProps) {
     ? ((data.params.assetFilename as string | undefined) ?? "Drop a file here or choose one")
     : isCustom
       ? (data.pipelineDescription ?? `${data.internalNodeCount ?? 0} steps · saved pipeline`)
-      : getCategoryDescription(data.category);
+      : isOpenRouterOcrModel(data.modelId)
+        ? openRouterModelCaption(data.params)
+        : getCategoryDescription(data.category);
 
   const otherHovered = useOtherNodeHovered(id);
   const showToolbar =

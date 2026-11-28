@@ -373,6 +373,13 @@ const MODEL_PARAM_SCHEMA: Record<string, ParamFieldDef[]> = {
   "llm/structured-extract": [{ key: "text", label: "Input text (optional)", type: "textarea", rows: 6 }, ...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "Fields to extract", type: "json-schema" }],
   "vlm/vision-prompt": CONNECTED_BASE_FIELDS,
   "vlm/vision-structured-extract": [...CONNECTED_BASE_FIELDS, { key: "json_schema", label: "Fields to extract", type: "json-schema" }],
+  "openrouter/ocr": [
+    { key: "connection_id", label: "OpenRouter connection", type: "text" },
+    { key: "model", label: "OCR model", type: "text" },
+    { key: "prompt", label: "Instructions", type: "textarea", rows: 4 },
+    { key: "max_tokens", label: "Max output tokens", type: "number", min: 256, max: 32768, step: 256 },
+    { key: "temperature", label: "Temperature", type: "number", min: 0, max: 2, step: 0.1 },
+  ],
 };
 
 for (const protocol of CONNECTED_PROTOCOLS) {

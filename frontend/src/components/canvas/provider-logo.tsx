@@ -21,6 +21,7 @@ const PROVIDER_LOGOS: Record<string, string | ThemedLogo | undefined> = {
   "openai-compatible": "/models_logos/openai.svg",
   anthropic: "/models_logos/claude.png",
   "anthropic-compatible": "/models_logos/claude.png",
+  openrouter: "/models_logos/openrouter.png",
 };
 
 /** Native OCRFlow pipeline providers (loaders, export, transforms, etc.). */

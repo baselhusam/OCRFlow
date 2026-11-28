@@ -5,6 +5,15 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
 
 import { useRuntimeAvailability } from "@/components/canvas/runtime-availability-context";
+import { useOcrCatalog } from "@/hooks/use-ocr-catalog";
+import {
+  formatOcrModelPrice,
+  shortOcrModelName,
+  type OcrCatalogConnection,
+} from "@/lib/api/model-connections";
+import { isOpenRouterOcrModel } from "@/lib/canvas/connected-node-meta";
+import { VendorMark } from "@/components/configuration/vendor-mark";
+import { vendorKey, vendorLabel } from "@/lib/openrouter-vendors";
 import type { Pipeline } from "@/lib/api/client";
 import { getPipelineLogoUrl, isPipelineReady } from "@/lib/api/pipelines";
 import { CAPTION_SPAWN_ONLY_MODELS } from "@/lib/canvas/caption-branch-meta";
@@ -48,6 +57,7 @@ import {
   normalizeQuery,
   pipelineMatchesQuery,
   type LibraryModelItem,
+  type LibraryPreset,
   type LibrarySectionMeta,
 } from "./library-data";
 import { useSectionFolds } from "./library-prefs";
@@ -70,6 +80,60 @@ export type LibraryPanelProps = {
 };
 
 const LIST_ID = "ocrflow-library-list";
+
+/** Cloud OCR rows shown before "Show all" (search and the engine chip show every model). */
+const CLOUD_OCR_PREVIEW = 8;
+
+function formatContext(tokens: number | null): string | null {
+  if (!tokens) return null;
+  return tokens >= 1000 ? `${Math.round(tokens / 1000)}K tokens` : `${tokens} tokens`;
+}
+
+/** One library preset per OCR model on each validated OpenRouter connection. */
+function cloudOcrPresets(
+  connections: OcrCatalogConnection[],
+): Array<{ key: string; label: string; rank: number; preset: LibraryPreset }> {
+  const openrouter = connections.filter((connection) => connection.protocol === "openrouter");
+  const multiple = openrouter.length > 1;
+  const rows: Array<{ key: string; label: string; rank: number; preset: LibraryPreset }> = [];
+  for (const connection of openrouter) {
+    connection.models.forEach((model, index) => {
+      const vendor = vendorLabel(vendorKey(model.id), model.name);
+      const price = formatOcrModelPrice(model);
+      const context = formatContext(model.context_length);
+      const meta = [vendor, model.free ? "free" : null, multiple ? connection.connection_name : null]
+        .filter(Boolean)
+        .join(" · ");
+      rows.push({
+        key: `openrouter/ocr:${connection.connection_id}:${model.id}`,
+        label: shortOcrModelName(model.name),
+        rank: index,
+        preset: {
+          params: {
+            connection_id: connection.connection_id,
+            model: model.id,
+            model_label: model.name,
+          },
+          modelId: model.id,
+          description:
+            model.description ??
+            "Hosted vision model on OpenRouter. Reads one page image and returns markdown.",
+          meta,
+          details: [
+            ...(price ? [{ label: "price", value: price }] : []),
+            ...(context ? [{ label: "context", value: context }] : []),
+            { label: "via", value: connection.connection_name },
+            ...(model.document_focused ? [{ label: "fit", value: "described for documents" }] : []),
+          ],
+          searchText: [model.name, model.id, vendor, model.description ?? "", "ocr cloud openrouter"]
+            .join("\n")
+            .toLowerCase(),
+        },
+      });
+    });
+  }
+  return rows;
+}
 
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -95,6 +159,8 @@ export function LibraryPanel({
   const pendingFocusRef = useRef(false);
   const { runtime, getModelStatus } = useRuntimeAvailability();
   const { isFolded, toggleFold } = useSectionFolds();
+  const ocrCatalog = useOcrCatalog();
+  const [showAllCloudOcr, setShowAllCloudOcr] = useState(false);
 
   const q = normalizeQuery(query);
   const isSearching = q.length > 0;
@@ -102,6 +168,8 @@ export function LibraryPanel({
   /* ---------------------------------------------------------------- data */
 
   const labels = useMemo(() => categoryLabelMap(categories), [categories]);
+
+  const presets = useMemo(() => cloudOcrPresets(ocrCatalog.connections), [ocrCatalog.connections]);
 
   const items = useMemo<LibraryModelItem[]>(
     () =>
@@ -112,9 +180,9 @@ export function LibraryPanel({
             !REGION_SPAWN_ONLY_MODELS.has(model.id) &&
             !CAPTION_SPAWN_ONLY_MODELS.has(model.id),
         )
-        .map((model) => {
+        .flatMap((model): LibraryModelItem[] => {
           const status = getModelStatus(model);
-          return {
+          const base: LibraryModelItem = {
             model,
             label: getModelLabel(model),
             categoryLabel: labels.get(model.category) ?? humanizeCategory(model.category),
@@ -123,8 +191,20 @@ export function LibraryPanel({
             offlineMessage: status.message,
             preferred: model.id === preferredModelId,
           };
+          if (!isOpenRouterOcrModel(model.id)) return [base];
+          // Until a connection lists models, keep the bare node so users can
+          // discover it (offline, with a "connect in Configuration" fix).
+          if (presets.length === 0) return [{ ...base, section: "cloud_ocr" }];
+          return presets.map((row) => ({
+            ...base,
+            key: row.key,
+            label: row.label,
+            rank: row.rank,
+            section: "cloud_ocr",
+            preset: row.preset,
+          }));
         }),
-    [models, labels, getModelStatus, preferredModelId],
+    [models, labels, getModelStatus, preferredModelId, presets],
   );
 
   const engines = useMemo<EngineSummary[]>(() => {
@@ -156,7 +236,9 @@ export function LibraryPanel({
       items.filter(
         (item) =>
           (!engineFilter || item.engine === engineFilter) &&
-          modelMatchesQuery(item.model, item.categoryLabel, q),
+          (item.preset
+            ? !q || item.preset.searchText.includes(q)
+            : modelMatchesQuery(item.model, item.categoryLabel, q)),
       ),
     [items, engineFilter, q],
   );
@@ -263,43 +345,57 @@ export function LibraryPanel({
   /* ------------------------------------------------------------- render */
 
   const renderModelRow = (item: LibraryModelItem) => {
-    const { model } = item;
+    const { model, preset } = item;
     const wire = getModelWireTypes(model);
     const engineName = engineDisplayName(item.engine);
     const providerName =
       item.engine === BUILTIN_ENGINE ? "ocrflow" : model.provider;
+    const metaText = preset ? preset.meta : item.categoryLabel.toLowerCase();
     return (
-      <li key={model.id}>
+      <li key={item.key ?? model.id}>
         <LibraryRow
           name={item.label}
           preferred={item.preferred}
           offline={item.offline}
-          tile={<EngineMark provider={model.provider} size={30} dimmed={item.offline} />}
+          tile={
+            preset ? (
+              <VendorMark vendor={preset.modelId} size={30} dimmed={item.offline} />
+            ) : (
+              <EngineMark provider={model.provider} size={30} dimmed={item.offline} />
+            )
+          }
           title={<Highlight text={item.label} query={q} />}
           meta={
             <>
               <StatusDot online={!item.offline} />
               <span className="truncate">
-                <Highlight text={providerName} query={q} />
-                <span className="text-[var(--lib-ink-faint)]"> · </span>
-                <Highlight text={item.categoryLabel.toLowerCase()} query={q} />
+                {preset ? null : (
+                  <>
+                    <Highlight text={providerName} query={q} />
+                    <span className="text-[var(--lib-ink-faint)]"> · </span>
+                  </>
+                )}
+                <Highlight text={metaText} query={q} />
               </span>
             </>
           }
-          onAdd={() => requestPaletteAdd(model.id)}
+          onAdd={() => requestPaletteAdd(model.id, preset?.params)}
           onDragStart={(event) => {
             event.dataTransfer.setData(
               DRAG_MODEL_MIME,
-              JSON.stringify({ type: "model", modelId: model.id }),
+              JSON.stringify({ type: "model", modelId: model.id, params: preset?.params }),
             );
             event.dataTransfer.effectAllowed = "move";
           }}
           info={
             <ModelInfo
-              tile={<EngineMark provider={model.provider} size={34} />}
+              tile={
+                preset ? <VendorMark vendor={preset.modelId} size={34} /> : <EngineMark provider={model.provider} size={34} />
+              }
               name={item.label}
-              modelId={model.id}
-              description={getModelDescription(model)}
+              modelId={preset ? preset.modelId : model.id}
+              description={preset ? preset.description : getModelDescription(model)}
+              details={preset?.details}
               engineName={engineName}
               categoryLabel={item.categoryLabel}
               accent={getCategoryColor(model.category)}
@@ -392,10 +488,34 @@ export function LibraryPanel({
     }
     const group = groups.find((entry) => entry.section.id === meta.id);
     if (group) {
+      // Hundreds of hosted models: preview the best fits, search shows all.
+      const capped =
+        meta.id === "cloud_ocr" &&
+        !isSearching &&
+        !engineFilter &&
+        !showAllCloudOcr &&
+        group.items.length > CLOUD_OCR_PREVIEW + 2;
+      const shown = capped ? group.items.slice(0, CLOUD_OCR_PREVIEW) : group.items;
+      const rows = shown.map(renderModelRow);
+      if (meta.id === "cloud_ocr" && group.items.length > CLOUD_OCR_PREVIEW + 2 && !isSearching && !engineFilter) {
+        rows.push(
+          <li key="cloud-ocr-toggle">
+            <button
+              type="button"
+              onClick={() => setShowAllCloudOcr((value) => !value)}
+              className="my-1 flex h-8 w-full items-center justify-center rounded-md font-mono text-[10.5px] text-[var(--lib-accent-ink)] transition-colors hover:bg-[var(--lib-row-hover)] focus-visible:ring-2 focus-visible:ring-[var(--pulse)]/50 focus-visible:outline-none"
+            >
+              {capped
+                ? `Show all ${group.items.length} OpenRouter models`
+                : "Show fewer"}
+            </button>
+          </li>,
+        );
+      }
       sections.push({
         section: meta,
         count: group.items.length,
-        rows: group.items.map(renderModelRow),
+        rows,
       });
     }
   }

@@ -1,3 +1,4 @@
+import { isOpenRouterOcrModel } from "@/lib/canvas/connected-node-meta";
 import { getParamSchema, type ParamFieldDef } from "@/lib/canvas/node-param-schema";
 import type { PipelineNodeData } from "@/lib/canvas/types";
 
@@ -14,7 +15,11 @@ export function getQuickParamSchema(data: PipelineNodeData): ParamFieldDef[] {
   return getParamSchema(data.modelId, data.category)
     .filter(
       (field) =>
-        !field.readOnly && !HEAVY_TYPES.has(field.type) && !HIDDEN_KEYS.has(field.key),
+        !field.readOnly &&
+        !HEAVY_TYPES.has(field.type) &&
+        !HIDDEN_KEYS.has(field.key) &&
+        // OpenRouter models are picked from a searchable list in the inspector.
+        !(isOpenRouterOcrModel(data.modelId) && field.key === "model"),
     )
     .slice(0, 3);
 }

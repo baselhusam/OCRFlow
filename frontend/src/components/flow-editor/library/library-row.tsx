@@ -2,7 +2,7 @@
 
 import { ArrowRight, Check, Copy, GripVertical, Info, Plus, Star } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -312,6 +312,8 @@ export type ModelInfoProps = {
   offline: boolean;
   offlineMessage?: string;
   fix: { command?: string; hint: string } | null;
+  /** Extra rows for the facts table (price, context window, connection). */
+  details?: Array<{ label: string; value: string }>;
 };
 
 export function ModelInfo({
@@ -328,6 +330,7 @@ export function ModelInfo({
   offline,
   offlineMessage,
   fix,
+  details = [],
 }: ModelInfoProps) {
   return (
     <div className="space-y-3.5 p-3.5">
@@ -368,6 +371,12 @@ export function ModelInfo({
         <dd className="truncate text-foreground">{categoryLabel}</dd>
         <dt className="text-[var(--lib-ink-faint)]">compute</dt>
         <dd className="truncate text-foreground">{compute}</dd>
+        {details.map((detail) => (
+          <Fragment key={detail.label}>
+            <dt className="text-[var(--lib-ink-faint)]">{detail.label}</dt>
+            <dd className="truncate text-foreground">{detail.value}</dd>
+          </Fragment>
+        ))}
       </dl>
 
       {offline ? (

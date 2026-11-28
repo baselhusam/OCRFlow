@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  CloudCog,
   FileInput,
   LayoutPanelTop,
   Puzzle,
@@ -34,6 +35,7 @@ export type LibrarySectionId =
   | "figures"
   | "formulas"
   | "convert"
+  | "cloud_ocr"
   | "extract"
   | "pipelines"
   | "other";
@@ -98,6 +100,14 @@ export const LIBRARY_SECTIONS: LibrarySectionMeta[] = [
     icon: Wand2,
     accent: "var(--node-vlm-convert)",
     categories: ["vlm_convert", "assembler"],
+  },
+  {
+    // Filled with one row per OCR model discovered on an OpenRouter connection.
+    id: "cloud_ocr",
+    label: "Cloud OCR",
+    icon: CloudCog,
+    accent: "var(--node-vlm-convert)",
+    categories: [],
   },
   {
     id: "extract",
@@ -250,14 +260,34 @@ export function pipelineMatchesQuery(pipeline: Pipeline, q: string): boolean {
 /* Grouping                                                                    */
 /* -------------------------------------------------------------------------- */
 
+/** A catalog node pre-configured for one hosted model (e.g. an OpenRouter OCR model). */
+export type LibraryPreset = {
+  /** Params merged over the node defaults when the row is added. */
+  params: Record<string, string | boolean | number>;
+  /** Provider-side model id, shown in place of the node id. */
+  modelId: string;
+  description: string;
+  /** Short secondary text for the row (vendor, price). */
+  meta: string;
+  details: Array<{ label: string; value: string }>;
+  searchText: string;
+};
+
 export type LibraryModelItem = {
   model: ModelCatalogEntry;
+  /** Unique row key; defaults to the catalog id. */
+  key?: string;
   label: string;
   categoryLabel: string;
   engine: string;
   offline: boolean;
   offlineMessage?: string;
   preferred: boolean;
+  /** Route the row to a section other than its category's. */
+  section?: LibrarySectionId;
+  /** Explicit order within the section (lower first), before the label. */
+  rank?: number;
+  preset?: LibraryPreset;
 };
 
 export type LibraryModelGroup = {
@@ -277,7 +307,7 @@ export function humanizeCategory(category: string): string {
 export function groupLibraryItems(items: LibraryModelItem[]): LibraryModelGroup[] {
   const bySection = new Map<LibrarySectionId, LibraryModelItem[]>();
   for (const item of items) {
-    const id = sectionForCategory(item.model.category);
+    const id = item.section ?? sectionForCategory(item.model.category);
     const list = bySection.get(id) ?? [];
     list.push(item);
     bySection.set(id, list);
@@ -294,6 +324,7 @@ export function groupLibraryItems(items: LibraryModelItem[]): LibraryModelGroup[
       if (rankA !== rankB) return rankA - rankB;
       const engineDelta = engineRank(a.engine) - engineRank(b.engine);
       if (engineDelta !== 0) return engineDelta;
+      if (a.rank !== undefined && b.rank !== undefined && a.rank !== b.rank) return a.rank - b.rank;
       return a.label.localeCompare(b.label);
     });
     return [{ section, items: sorted }];

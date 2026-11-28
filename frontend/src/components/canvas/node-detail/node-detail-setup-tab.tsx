@@ -28,7 +28,8 @@ import {
 } from "@/lib/canvas/region-branch-meta";
 import type { PipelineNodeData } from "@/lib/canvas/types";
 import { cn } from "@/lib/utils";
-import { isConnectedModel, isConnectedVisionModel } from "@/lib/canvas/connected-node-meta";
+import { isConnectedModel, isConnectedVisionModel, isOpenRouterOcrModel } from "@/lib/canvas/connected-node-meta";
+import { OpenRouterOcrFields } from "@/components/canvas/node-detail/openrouter-model-field";
 
 type NodeDetailSetupTabProps = {
   nodeId: string;
@@ -268,6 +269,14 @@ export function NodeDetailSetupTab({ nodeId, data }: NodeDetailSetupTabProps) {
         >
           <div className="space-y-3">
             {editableFields.map((field) => (
+              isOpenRouterOcrModel(data.modelId) && field.key === "model" ? null :
+              isOpenRouterOcrModel(data.modelId) && field.key === "connection_id" ? (
+                <OpenRouterOcrFields
+                  key={field.key}
+                  params={data.params}
+                  onChange={(patch) => updateNodeConfig(nodeId, patch)}
+                />
+              ) :
               field.key === "connection_id" && isConnectedModel(data.modelId) ? (
                 <ConnectionSelectField
                   key={field.key}

@@ -395,8 +395,8 @@ function FlowEditorInner({
   );
 
   useEffect(() => {
-    registerPaletteAddHandler((modelId) => {
-      addAndFocus(modelId, nextFreePosition());
+    registerPaletteAddHandler((modelId, params) => {
+      addAndFocus(modelId, nextFreePosition(), params ? { params } : undefined);
     });
     return () => registerPaletteAddHandler(null);
   }, [addAndFocus, nextFreePosition]);
@@ -691,8 +691,11 @@ function FlowEditorInner({
       const raw = event.dataTransfer.getData(DRAG_MODEL_MIME);
       if (!raw) return;
       try {
-        const { modelId } = JSON.parse(raw) as { modelId?: string };
-        if (modelId) addAndFocus(modelId, placed, { autoConnect: false });
+        const { modelId, params } = JSON.parse(raw) as {
+          modelId?: string;
+          params?: Record<string, string | boolean | number>;
+        };
+        if (modelId) addAndFocus(modelId, placed, { autoConnect: false, ...(params ? { params } : {}) });
       } catch {
         // ignore
       }

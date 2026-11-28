@@ -184,6 +184,8 @@ export type AddModelNodeOptions = {
   connectTo?: { nodeId: string; handleId?: string | null };
   /** Auto-wire from the selected node when compatible (default true). */
   autoConnect?: boolean;
+  /** Preset params merged over the model defaults (e.g. a chosen OpenRouter model). */
+  params?: Record<string, string | boolean | number>;
 };
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -903,6 +905,7 @@ export function usePipelineGraph({
         entry,
         categoryLabels.get(entry.category) ?? entry.category,
       );
+      if (options?.params) data.params = { ...data.params, ...options.params };
 
       const newNode: Node<PipelineNodeData> = {
         id: createNodeId(modelId),

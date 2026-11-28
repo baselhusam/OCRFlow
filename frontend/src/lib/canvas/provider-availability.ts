@@ -43,6 +43,7 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   anthropic: "Anthropic",
   "openai-compatible": "OpenAI-compatible",
   "anthropic-compatible": "Anthropic-compatible",
+  openrouter: "OpenRouter",
 };
 
 export type ProviderRuntimeStatus = {
