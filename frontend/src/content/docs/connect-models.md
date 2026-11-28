@@ -54,7 +54,7 @@ API.
 ## Connect LLM and vision-language APIs
 
 Open **Configuration → LLM & vision connections** to register OpenAI, Anthropic,
-or an OpenAI-/Anthropic-compatible endpoint. This supports hosted APIs as well
+OpenRouter, or an OpenAI-/Anthropic-compatible endpoint. This supports hosted APIs as well
 as on-prem installations such as vLLM, LiteLLM, LM Studio, and a team gateway.
 Enter the endpoint base URL, API key, and the default text and vision model
 names. OCRFlow validates the provider's models endpoint before enabling it.
@@ -72,6 +72,11 @@ Each node uses its configured connection name (or ID), model name, instruction, 
 optional system prompt. Structured nodes require a top-level-object JSON
 Schema. Connections are revalidated before use so disabled, failed, or unsafe
 endpoints cannot receive document content.
+
+An **OpenRouter** connection only needs an API key. Validation verifies the key
+and lists every OpenRouter model that reads images, and each one appears as an
+OCR node under **Cloud OCR** in the canvas library. See
+[OpenRouter](/documentation/openrouter).
 
 ## Start providers
 

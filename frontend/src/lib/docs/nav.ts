@@ -132,6 +132,12 @@ export const DOCS_NAV: DocsNavSection[] = [
         description: "Baidu's end-to-end page and long-document parser (Apple Silicon or NVIDIA).",
       },
       {
+        title: "OpenRouter",
+        slug: "openrouter",
+        file: "openrouter.md",
+        description: "Hosted vision models as cloud OCR nodes, from one API key.",
+      },
+      {
         title: "Loaders",
         slug: "loaders",
         file: "loaders.md",

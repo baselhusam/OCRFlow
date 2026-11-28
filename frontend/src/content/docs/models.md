@@ -109,7 +109,17 @@ top-level object schema either way; malformed schemas are blocked before a run.
 | `vlm/vision-structured-extract` | page image + JSON Schema → JSON |
 
 These nodes run through a validated connection configured for OpenAI,
-Anthropic, or an API-compatible hosted/on-prem provider.
+Anthropic, OpenRouter, or an API-compatible hosted/on-prem provider.
+
+## Cloud OCR (OpenRouter)
+
+| ID | Input → output |
+| --- | --- |
+| `openrouter/ocr` | page image → DocumentArtifact + markdown |
+
+One node backs every OCR-capable model on a validated OpenRouter connection;
+the library lists each model as its own row with the model preselected. See
+[OpenRouter](/documentation/openrouter).
 
 ## Planned and deferred
 
