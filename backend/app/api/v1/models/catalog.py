@@ -15,7 +15,11 @@ from app.services.runtime_availability import (
     RuntimeAvailability,
     get_runtime_availability,
 )
+from app.api.deps import get_current_user
+from app.db.models.user import User
 from app.db.session import get_db
+from app.schemas.model_connection import OcrCatalog
+from app.services.model_connections import list_ocr_catalog
 
 router = APIRouter()
 
@@ -41,6 +45,15 @@ async def get_runtime(
 ) -> RuntimeAvailability:
     """Which provider backends are reachable right now (drives UI gating)."""
     return await get_runtime_availability(settings, db)
+
+
+@router.get("/ocr-catalog", response_model=OcrCatalog)
+async def get_ocr_catalog(
+    _: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> OcrCatalog:
+    """OCR models discovered on validated connections (OpenRouter), for the canvas."""
+    return await list_ocr_catalog(db)
 
 
 @router.get("/{model_id:path}", response_model=ModelRegistryEntry)

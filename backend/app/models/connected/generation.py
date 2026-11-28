@@ -9,6 +9,24 @@ from app.models.errors import ModelInferenceError, ModelLoadError, ModelValidati
 from app.services.model_connections import connection_headers, resolve_connection
 from app.schemas.models.connected.generation import *
 
+def _provider_error(response: httpx.Response, connection_name: str) -> str:
+    """A readable failure: the provider's own message, plus what to do for auth/credit errors."""
+    try:
+        body = response.json()
+        error = body.get("error") if isinstance(body, dict) else None
+        message = (error.get("message") if isinstance(error, dict) else error) or response.text
+    except ValueError:
+        message = response.text
+    message = str(message)[:300]
+    if response.status_code in {401, 403}:
+        return f"'{connection_name}' rejected the API key ({message}). Update and revalidate the connection in Configuration."
+    if response.status_code == 402:
+        return f"'{connection_name}' has insufficient credits ({message})."
+    if response.status_code == 429:
+        return f"'{connection_name}' is rate limited ({message}). Retry shortly or pick another model."
+    return f"Provider returned HTTP {response.status_code}: {message}"
+
+
 class _ConnectedRunner(BaseRunner[Any, Any]):
     async def _load_impl(self, config: ModelConfig) -> None: return None
     async def _unload_impl(self) -> None: return None
@@ -39,9 +57,12 @@ class _ConnectedRunner(BaseRunner[Any, Any]):
             async with httpx.AsyncClient(timeout=(self.config.timeout_seconds if self.config else 120), trust_env=False) as client:
                 response = await client.post(url, headers=connection_headers(connection), json=payload)
         except httpx.HTTPError as exc: raise ModelInferenceError(f"Provider request failed: {exc}") from exc
-        if not response.is_success: raise ModelInferenceError(f"Provider returned HTTP {response.status_code}: {response.text[:500]}")
+        if not response.is_success: raise ModelInferenceError(_provider_error(response, connection.name))
         try:
             body=response.json()
+            # Routers such as OpenRouter can answer 200 with an upstream error.
+            if isinstance(body, dict) and isinstance(body.get("error"), dict) and not body.get("choices"):
+                raise ModelInferenceError(f"Provider error: {str(body['error'].get('message') or body['error'])[:500]}")
             text=(body["content"][0]["text"] if anthropic else body["choices"][0]["message"]["content"])
         except (ValueError, KeyError, IndexError, TypeError) as exc: raise ModelValidationError("Provider returned an invalid completion response") from exc
         if not isinstance(text,str) or not text.strip(): raise ModelValidationError("Provider returned an empty completion")

@@ -45,6 +45,7 @@ async def test_runtime_statuses_include_unconfigured_language_providers():
     assert {item["provider"]: item["running"] for item in statuses} == {
         "openai": False, "anthropic": False,
         "openai-compatible": False, "anthropic-compatible": False,
+        "openrouter": False,
     }
 
 

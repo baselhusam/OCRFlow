@@ -98,6 +98,7 @@ def _connected_provider_entries() -> list[ModelRegistryEntry]:
         ("anthropic", "Anthropic", "Official Claude API"),
         ("openai-compatible", "OpenAI-compatible", "vLLM, LiteLLM, LM Studio, or an on-prem gateway"),
         ("anthropic-compatible", "Anthropic-compatible", "An Anthropic-compatible on-prem gateway"),
+        ("openrouter", "OpenRouter", "Hundreds of hosted models through one OpenRouter API key"),
     )
     operations = (
         ("text-prompt", "Text Prompt", "text_generation", "Prompt text and return text."),
@@ -112,6 +113,14 @@ def _connected_provider_entries() -> list[ModelRegistryEntry]:
                 status=ModelStatus.done, compute=ComputeTier.api, license="varies",
                 display_name=f"{label} {operation_label}", notes=f"{note} {provider_note}",
             ))
+    # One OCR runner backs every OpenRouter vision model; the canvas library
+    # lists each discovered model as its own preset of this node.
+    entries.append(_entry(
+        "openrouter/ocr", category="vlm_convert", provider="openrouter",
+        status=ModelStatus.done, compute=ComputeTier.api, license="varies",
+        display_name="OpenRouter OCR",
+        notes="One page -> markdown with a hosted vision model of your choice on OpenRouter.",
+    ))
     return entries
 
 

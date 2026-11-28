@@ -37,6 +37,7 @@ from app.schemas.models.unlimited.document_parse import (
     UnlimitedDocumentParseInput,
     UnlimitedMultiPageParseInput,
 )
+from app.schemas.models.connected.ocr import ConnectedOcrInput
 from app.schemas.models.connected.generation import (
     ConnectedTextInput, ConnectedStructuredInput, ConnectedVisionInput, ConnectedVisionStructuredInput,
 )
@@ -423,7 +424,7 @@ def _connected_options(node: PipelineNodeRecord, *, vision: bool) -> dict[str, A
     if not isinstance(connection_id, str) or not connection_id or not isinstance(model, str) or not model:
         raise ValueError(f"Node {node.id} requires a provider connection and model name")
     protocol = node.modelId.split("/", 1)[0]
-    expected_protocol = protocol if protocol in {"openai", "anthropic", "openai-compatible", "anthropic-compatible"} else None
+    expected_protocol = protocol if protocol in {"openai", "anthropic", "openai-compatible", "anthropic-compatible", "openrouter"} else None
     return {"connection_id": connection_id, "model": model, "temperature": node.config.get("temperature", 0), "max_tokens": node.config.get("max_tokens", 1024), **({"provider_protocol": expected_protocol} if expected_protocol else {}), **({"system_prompt": node.config["system_prompt"]} if isinstance(node.config.get("system_prompt"), str) and node.config["system_prompt"].strip() else {})}
 
 
@@ -449,6 +450,27 @@ def _connected_vision_structured_payload(project_id: str, node: PipelineNodeReco
     payload = _connected_vision_payload(project_id, node, ctx)
     if payload is not None: payload["json_schema"] = _json_schema_from_node(node)
     return payload
+
+
+def _connected_ocr_payload(_project_id: str, node: PipelineNodeRecord, ctx: UpstreamContext) -> dict[str, Any] | None:
+    page = _page_from_upstream(ctx)
+    if page is None:
+        return None
+    connection_id = node.config.get("connection_id")
+    model = node.config.get("model")
+    if not isinstance(connection_id, str) or not connection_id or not isinstance(model, str) or not model:
+        raise ValueError(f"Node {node.id} requires an OpenRouter connection and model")
+    options: dict[str, Any] = {
+        "connection_id": connection_id,
+        "model": model,
+        "provider_protocol": "openrouter",
+        "temperature": node.config.get("temperature", 0),
+        "max_tokens": node.config.get("max_tokens", 8192),
+    }
+    prompt = node.config.get("prompt")
+    if isinstance(prompt, str) and prompt.strip():
+        options["prompt"] = prompt
+    return {"page": page, "options": options}
 
 
 def _reading_order_payload(_project_id: str, node: PipelineNodeRecord, ctx: UpstreamContext) -> dict[str, Any] | None:
@@ -662,6 +684,7 @@ MODEL_EXECUTION_SPECS: dict[str, tuple[type[BaseModel], PayloadBuilder, OutputEx
     "liquid/vision-prompt": (LiquidVisionInput, _liquid_vision_payload, _extract_text),
     "liquid/vision-structured-extract": (LiquidVisionStructuredInput, _liquid_vision_structured_payload, _extract_json),
     "unlimited/document-parse": (UnlimitedDocumentParseInput, _unlimited_page_payload, _extract_document),
+    "openrouter/ocr": (ConnectedOcrInput, _connected_ocr_payload, _extract_document),
     "unlimited/multi-page-parse": (UnlimitedMultiPageParseInput, lambda project_id, node, ctx: _document_payload(project_id, node, ctx, default_format="pdf", option_keys=_UNLIMITED_DOCUMENT_OPTION_KEYS), _extract_document),
     "llm/text-prompt": (ConnectedTextInput, _connected_text_payload, _extract_text),
     "llm/structured-extract": (ConnectedStructuredInput, _connected_structured_payload, _extract_json),
@@ -669,7 +692,7 @@ MODEL_EXECUTION_SPECS: dict[str, tuple[type[BaseModel], PayloadBuilder, OutputEx
     "vlm/vision-structured-extract": (ConnectedVisionStructuredInput, _connected_vision_structured_payload, _extract_json),
 }
 
-for _protocol in ("openai", "anthropic", "openai-compatible", "anthropic-compatible"):
+for _protocol in ("openai", "anthropic", "openai-compatible", "anthropic-compatible", "openrouter"):
     MODEL_EXECUTION_SPECS.update({
         f"{_protocol}/text-prompt": (ConnectedTextInput, _connected_text_payload, _extract_text),
         f"{_protocol}/structured-extract": (ConnectedStructuredInput, _connected_structured_payload, _extract_json),

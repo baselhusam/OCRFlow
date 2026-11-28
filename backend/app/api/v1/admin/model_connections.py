@@ -21,6 +21,11 @@ async def validate(payload: ModelConnectionValidationRequest, _: User = Depends(
 async def create(payload: ModelConnectionCreate, _: User = Depends(require_admin), db: AsyncSession = Depends(get_db)) -> ModelConnection:
     return await model_connections.create_connection(db, payload)
 
+@router.get("/model-connections/{connection_id}", response_model=ModelConnection)
+async def get(connection_id: str, _: User = Depends(require_member_manager), db: AsyncSession = Depends(get_db)) -> ModelConnection:
+    try: return await model_connections.get_connection(db, connection_id)
+    except LookupError as exc: raise HTTPException(404, str(exc)) from exc
+
 @router.post("/model-connections/{connection_id}/validate", response_model=ModelConnection)
 async def revalidate(connection_id: str, _: User = Depends(require_admin), db: AsyncSession = Depends(get_db)) -> ModelConnection:
     try: return await model_connections.revalidate_connection(db, connection_id)

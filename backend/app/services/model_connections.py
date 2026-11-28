@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import re
 from datetime import datetime, timezone
 from typing import Any
 
@@ -17,6 +18,9 @@ from app.core.config import get_settings
 from app.core.engine_url import EngineUrlSafetyError, assert_safe_engine_url
 from app.db.models.model_connection import ModelConnection
 from app.schemas.model_connection import (
+    OcrCatalog,
+    OcrCatalogConnection,
+    OcrModel,
     ModelConnection as ModelConnectionSchema,
     ModelConnectionCreate,
     ModelConnectionUpdate,
@@ -25,6 +29,13 @@ from app.schemas.model_connection import (
 )
 
 _TIMEOUT = 8.0
+_OPENROUTER_TIMEOUT = 15.0
+#: Every protocol the palette reports, in display order.
+CONNECTED_PROTOCOLS = ("openai", "anthropic", "openai-compatible", "anthropic-compatible", "openrouter")
+_DOCUMENT_HINT = re.compile(
+    r"\b(ocr|documents?|handwrit\w*|scann?ed|scans?|pdfs?|receipts?|invoices?|text extraction|charts?)\b",
+    re.IGNORECASE,
+)
 
 
 def _cipher() -> Fernet:
@@ -41,6 +52,12 @@ def _decrypt(value: str | None) -> str | None:
 
 
 def _headers(api_key: str | None, protocol: str) -> dict[str, str]:
+    if protocol == "openrouter":
+        # OpenRouter attributes traffic to an app through the X-Title header.
+        headers = {"Content-Type": "application/json", "X-Title": "OCRFlow"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        return headers
     if not api_key:
         return {"Content-Type": "application/json"}
     headers = {"Content-Type": "application/json", "x-api-key": api_key} if protocol.startswith("anthropic") else {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
@@ -55,6 +72,7 @@ def _as_schema(connection: ModelConnection) -> ModelConnectionSchema:
         base_url=connection.base_url, has_api_key=bool(connection.encrypted_api_key),
         text_model=connection.text_model, vision_model=connection.vision_model, enabled=connection.enabled,
         last_validation=ModelConnectionValidation.model_validate(connection.last_validation) if connection.last_validation else None,
+        enabled_models=enabled_model_ids(connection),
         last_checked_at=connection.last_checked_at, created_at=connection.created_at, updated_at=connection.updated_at,
     )
 
@@ -63,11 +81,155 @@ def _models_url(base_url: str, protocol: str) -> str:
     return f"{base_url}/v1/models" if protocol.startswith("anthropic") else f"{base_url}/models"
 
 
+def _per_million(value: Any) -> float | None:
+    try:
+        price = float(value)
+    except (TypeError, ValueError):
+        return None
+    # Routers report -1 ("varies"); keep only real prices.
+    return round(price * 1_000_000, 4) if price >= 0 else None
+
+
+def ocr_models_from_catalog(items: Any) -> list[OcrModel]:
+    """Keep the models that read images and answer in text, best OCR fits first.
+
+    OpenRouter has no OCR category: any model whose architecture takes an image
+    and returns only text can transcribe a page. Routers (``openrouter/*``) and
+    batch-only variants are skipped because they cannot back a canvas node.
+    """
+    models: list[OcrModel] = []
+    seen: set[str] = set()
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+            continue
+        model_id = item["id"]
+        architecture = item.get("architecture") if isinstance(item.get("architecture"), dict) else {}
+        inputs = architecture.get("input_modalities") or []
+        outputs = architecture.get("output_modalities") or []
+        if "image" not in inputs or list(outputs) != ["text"]:
+            continue
+        if model_id.startswith(("openrouter/", "~")) or model_id.endswith(":batch") or model_id in seen:
+            continue
+        seen.add(model_id)
+        pricing = item.get("pricing") if isinstance(item.get("pricing"), dict) else {}
+        prompt_price = _per_million(pricing.get("prompt"))
+        completion_price = _per_million(pricing.get("completion"))
+        description = item.get("description") if isinstance(item.get("description"), str) else None
+        name = item.get("name") if isinstance(item.get("name"), str) and item.get("name") else model_id
+        parameters = item.get("supported_parameters") or []
+        context = item.get("context_length")
+        models.append(OcrModel(
+            id=model_id,
+            name=name,
+            description=(description[:400] if description else None),
+            context_length=context if isinstance(context, int) else None,
+            prompt_price=prompt_price,
+            completion_price=completion_price,
+            structured_outputs="structured_outputs" in parameters or "response_format" in parameters,
+            free=model_id.endswith(":free") or (prompt_price == 0 and completion_price == 0),
+            document_focused=bool(_DOCUMENT_HINT.search(f"{name} {description or ''}")),
+        ))
+    models.sort(key=lambda model: (not model.document_focused, model.name.lower()))
+    return models
+
+
+#: How many models to enable when none are described for documents.
+_DEFAULT_ENABLED_FALLBACK = 8
+
+
+def recommended_model_ids(models: list[OcrModel]) -> list[str]:
+    """The starting canvas set: models the provider describes for documents."""
+    focused = [model.id for model in models if model.document_focused]
+    return focused or [model.id for model in models[:_DEFAULT_ENABLED_FALLBACK]]
+
+
+def _discovered(connection: ModelConnection) -> list[OcrModel]:
+    validation = connection.last_validation or {}
+    return [OcrModel.model_validate(item) for item in validation.get("ocr_models") or [] if isinstance(item, dict)]
+
+
+def enabled_model_ids(connection: ModelConnection) -> list[str]:
+    """Enabled ids that are still listed; NULL resolves to the recommended set."""
+    models = _discovered(connection)
+    if not models:
+        return []
+    chosen = connection.enabled_models
+    if chosen is None:
+        return recommended_model_ids(models)
+    allowed = set(chosen)
+    return [model.id for model in models if model.id in allowed]
+
+
+async def get_connection(db: AsyncSession, connection_id: str) -> ModelConnectionSchema:
+    connection = await db.get(ModelConnection, connection_id)
+    if connection is None: raise LookupError("Model connection not found")
+    return _as_schema(connection)
+
+
+async def _validate_openrouter(base_url: str, api_key: str | None) -> ModelConnectionValidation:
+    if not api_key:
+        return ModelConnectionValidation(
+            status="authentication_required",
+            detail="Paste an OpenRouter API key (sk-or-...) to verify the connection.",
+            authentication_required=True,
+        )
+    headers = _headers(api_key, "openrouter")
+    try:
+        async with httpx.AsyncClient(timeout=_OPENROUTER_TIMEOUT, follow_redirects=False, trust_env=False) as client:
+            # /models is public, so only /key proves the credential is real.
+            key_response = await client.get(f"{base_url}/key", headers=headers)
+            if key_response.status_code in {401, 403}:
+                return ModelConnectionValidation(
+                    status="authentication_required",
+                    detail="OpenRouter rejected the API key.",
+                    authentication_required=True,
+                )
+            if not key_response.is_success:
+                return ModelConnectionValidation(
+                    status="incompatible",
+                    detail=f"OpenRouter key check failed (HTTP {key_response.status_code}).",
+                )
+            models_response = await client.get(f"{base_url}/models", headers=headers)
+    except httpx.HTTPError as exc:
+        return ModelConnectionValidation(status="unreachable", detail=f"Could not reach OpenRouter: {exc.__class__.__name__}.")
+    if not models_response.is_success:
+        return ModelConnectionValidation(
+            status="incompatible",
+            detail=f"OpenRouter did not return its model list (HTTP {models_response.status_code}).",
+        )
+    try:
+        body = models_response.json()
+    except ValueError:
+        body = {}
+    models = ocr_models_from_catalog(body.get("data") if isinstance(body, dict) else None)
+    if not models:
+        return ModelConnectionValidation(status="incompatible", detail="API key verified, but OpenRouter listed no image-capable models.")
+    try:
+        key_info = key_response.json().get("data") or {}
+    except (ValueError, AttributeError):
+        key_info = {}
+    label = key_info.get("label") if isinstance(key_info, dict) else None
+    focused = sum(1 for model in models if model.document_focused)
+    detail = "API key verified"
+    if isinstance(label, str) and label:
+        detail += f" ({label})"
+    detail += f". Found {len(models)} OCR-capable models"
+    detail += f", {focused} described for documents." if focused else "."
+    return ModelConnectionValidation(
+        status="ready",
+        detail=detail,
+        discovered_models=[model.id for model in models[:50]],
+        ocr_models=models,
+    )
+
+
 async def validate_connection(payload: ModelConnectionValidationRequest) -> ModelConnectionValidation:
     try:
         base_url = await assert_safe_engine_url(payload.base_url)
     except EngineUrlSafetyError as exc:
         return ModelConnectionValidation(status="blocked", detail=str(exc))
+    if payload.protocol == "openrouter":
+        return await _validate_openrouter(base_url, payload.api_key)
     try:
         async with httpx.AsyncClient(timeout=_TIMEOUT, follow_redirects=False, trust_env=False) as client:
             response = await client.get(_models_url(base_url, payload.protocol), headers=_headers(payload.api_key, payload.protocol))
@@ -104,7 +266,7 @@ async def get_connection_runtime_statuses(db: AsyncSession) -> list[dict[str, ob
         # its database migration; the two icons safely remain disconnected.
         connections = []
     statuses: list[dict[str, object]] = []
-    for provider in ("openai", "anthropic", "openai-compatible", "anthropic-compatible"):
+    for provider in CONNECTED_PROTOCOLS:
         matching = [
             item for item in connections
             if item.protocol == provider
@@ -121,6 +283,34 @@ async def get_connection_runtime_statuses(db: AsyncSession) -> list[dict[str, ob
             "models": [],
         })
     return statuses
+
+
+async def list_ocr_catalog(db: AsyncSession) -> OcrCatalog:
+    """OCR models on validated catalog connections, for the canvas library.
+
+    Exposes connection ids, names and public model metadata only (never a URL
+    or credential), so every signed-in user may read it.
+    """
+    try:
+        result = await db.execute(select(ModelConnection).order_by(ModelConnection.created_at.desc()))
+        connections = list(result.scalars())
+    except SQLAlchemyError:
+        connections = []
+    catalog: list[OcrCatalogConnection] = []
+    for connection in connections:
+        validation = connection.last_validation or {}
+        if not connection.enabled or validation.get("status") != "ready":
+            continue
+        enabled = set(enabled_model_ids(connection))
+        models = [model for model in _discovered(connection) if model.id in enabled]
+        if models:
+            catalog.append(OcrCatalogConnection(
+                connection_id=connection.id,
+                connection_name=connection.name,
+                protocol=connection.protocol,
+                models=models,
+            ))
+    return OcrCatalog(connections=catalog)
 
 
 async def create_connection(db: AsyncSession, payload: ModelConnectionCreate) -> ModelConnectionSchema:
@@ -146,7 +336,11 @@ async def revalidate_connection(db: AsyncSession, connection_id: str) -> ModelCo
 async def update_connection(db: AsyncSession, connection_id: str, payload: ModelConnectionUpdate) -> ModelConnectionSchema:
     connection = await db.get(ModelConnection, connection_id)
     if connection is None: raise LookupError("Model connection not found")
-    for key, value in payload.model_dump(exclude_unset=True).items(): setattr(connection, key, value)
+    for key, value in payload.model_dump(exclude_unset=True).items():
+        if key == "enabled_models" and value is not None:
+            known = {model.id for model in _discovered(connection)}
+            value = list(dict.fromkeys(item for item in value if item in known))
+        setattr(connection, key, value)
     await db.commit(); await db.refresh(connection)
     return _as_schema(connection)
 

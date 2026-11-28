@@ -69,6 +69,7 @@ MODEL_WIRE_KINDS: dict[str, dict[str, WireKind]] = {
     "liquid/vision-prompt": {"input": "page_artifact", "output": "text"},
     "liquid/vision-structured-extract": {"input": "page_artifact", "output": "json"},
     "unlimited/document-parse": {"input": "page_artifact", "output": "document_artifact"},
+    "openrouter/ocr": {"input": "page_artifact", "output": "document_artifact"},
     "unlimited/multi-page-parse": {
         "input": "document_input",
         "output": "document_artifact",
@@ -79,7 +80,7 @@ MODEL_WIRE_KINDS: dict[str, dict[str, WireKind]] = {
     "vlm/vision-structured-extract": {"input": "page_artifact", "output": "json"},
 }
 
-for _protocol in ("openai", "anthropic", "openai-compatible", "anthropic-compatible"):
+for _protocol in ("openai", "anthropic", "openai-compatible", "anthropic-compatible", "openrouter"):
     MODEL_WIRE_KINDS.update({
         f"{_protocol}/text-prompt": {"input": "text", "output": "text"},
         f"{_protocol}/structured-extract": {"input": "text", "output": "json"},

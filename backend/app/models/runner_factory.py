@@ -113,6 +113,7 @@ RUNNER_FACTORIES: dict[str, Callable[[], BaseRunner]] = {
     "llm/structured-extract": _lazy("app.models.connected.generation", "ConnectedStructuredRunner"),
     "vlm/vision-prompt": _lazy("app.models.connected.generation", "ConnectedVisionRunner"),
     "vlm/vision-structured-extract": _lazy("app.models.connected.generation", "ConnectedVisionStructuredRunner"),
+    "openrouter/ocr": _lazy("app.models.connected.ocr", "ConnectedOcrRunner"),
     "loader/pdf": _lazy("app.models.loader.pdf", "PdfLoaderRunner"),
     "loader/image": _lazy("app.models.loader.image", "ImageLoaderRunner"),
     "loader/page-at": _lazy("app.models.loader.page_at", "PageAtRunner"),
@@ -121,7 +122,7 @@ RUNNER_FACTORIES: dict[str, Callable[[], BaseRunner]] = {
 # Branded provider nodes use the same transport adapters as the provider-neutral
 # legacy nodes. The request contract carries the expected protocol and the
 # runner verifies it before calling the configured endpoint.
-for _protocol in ("openai", "anthropic", "openai-compatible", "anthropic-compatible"):
+for _protocol in ("openai", "anthropic", "openai-compatible", "anthropic-compatible", "openrouter"):
     RUNNER_FACTORIES.update({
         f"{_protocol}/text-prompt": _lazy("app.models.connected.generation", "ConnectedTextRunner"),
         f"{_protocol}/structured-extract": _lazy("app.models.connected.generation", "ConnectedStructuredRunner"),

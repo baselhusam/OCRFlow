@@ -9,7 +9,7 @@ class ConnectedOptions(BaseModel):
     temperature: float = Field(default=0, ge=0, le=2)
     max_tokens: int = Field(default=1024, ge=1, le=32768)
     system_prompt: str | None = Field(default=None, max_length=8000)
-    provider_protocol: Literal["openai", "anthropic", "openai-compatible", "anthropic-compatible"] | None = None
+    provider_protocol: Literal["openai", "anthropic", "openai-compatible", "anthropic-compatible", "openrouter"] | None = None
 
 class ConnectedTextInput(BaseModel):
     text: str = Field(min_length=1, max_length=200_000)

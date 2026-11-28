@@ -23,6 +23,8 @@ class ModelConnection(Base):
     vision_model: Mapped[str | None] = mapped_column(String(256), nullable=True)
     enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
     last_validation: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    #: Discovered models shown on the canvas. NULL = the recommended default set.
+    enabled_models: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
     last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
